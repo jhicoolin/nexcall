@@ -114,7 +114,11 @@ export async function POST(request) {
       process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID ||
       process.env.ELEVENLABS_PHONE_NUMBER_ID ||
       process.env.TWILIO_PHONE_NUMBER_ID;
-    const twilioFromNumber = process.env.TWILIO_FROM_NUMBER || process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER || "";
+    const twilioFromNumber =
+      process.env.TWILIO_FROM_NUMBER ||
+      process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER ||
+      process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER ||
+      "";
 
     if (!phone) {
       return NextResponse.json({ error: "Phone number is mandatory." }, { status: 400 });

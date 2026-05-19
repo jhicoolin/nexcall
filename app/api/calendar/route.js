@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 const CAL_REQUEST_TIMEOUT_MS = 8000;
 const EVENT_TYPE_MAP = {
   demo: process.env.CAL_EVENT_DEMO_ID,
-  follow_up: process.env.CAL_EVENT_DEMO_ID,
+  follow_up: process.env.CAL_EVENT_FOLLOWUP_ID || process.env.CAL_EVENT_DEMO_ID,
   default: process.env.CAL_EVENT_DEMO_ID
 };
 

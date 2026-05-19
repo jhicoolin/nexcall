@@ -77,7 +77,11 @@ function cleanModelId(value: unknown, fallback: string) {
 }
 
 function demoTenant(): TenantRuntimeConfig {
-  const phone = normalizeTenantPhone(process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER || "+15551234567");
+  const phone = normalizeTenantPhone(
+    process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER ||
+      process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER ||
+      "+15551234567"
+  );
 
   return {
     id: "demo",
