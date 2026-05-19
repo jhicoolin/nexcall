@@ -18,12 +18,25 @@ function getClientIp(request) {
 function normalizePhoneNumber(phone) {
   const raw = String(phone || '').trim();
   const digits = raw.replace(/\D/g, '');
-  return raw.startsWith('+') ? `+${digits}` : digits;
+
+  if (raw.startsWith('+')) {
+    return `+${digits}`;
+  }
+
+  if (digits.length === 10) {
+    return `+1${digits}`;
+  }
+
+  if (digits.length > 10 && digits.length <= 15) {
+    return `+${digits}`;
+  }
+
+  return digits;
 }
 
 function getUpstashConfig() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
   return url && token ? { url: url.replace(/\/$/, ''), token } : null;
 }

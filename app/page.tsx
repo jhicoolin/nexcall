@@ -960,6 +960,17 @@ function getBrowserTimeZone() {
   }
 }
 
+function normalizeOutboundPhoneInput(value: string) {
+  const raw = value.trim();
+  const digits = raw.replace(/\D/g, "");
+
+  if (raw.startsWith("+")) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length > 10 && digits.length <= 15) return `+${digits}`;
+
+  return raw;
+}
+
 function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -997,12 +1008,14 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
     event.preventDefault();
     setError("");
     setStatus("calling");
+    const normalizedPhone = normalizeOutboundPhoneInput(phone);
+    setPhone(normalizedPhone);
 
     try {
       const response = await fetch("/api/outbound-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, user_timezone: getBrowserTimeZone() })
+        body: JSON.stringify({ name, phone: normalizedPhone, user_timezone: getBrowserTimeZone() })
       });
 
       if (!response.ok) {
@@ -1084,6 +1097,9 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
                 className="mt-2 min-h-14 w-full rounded-xl border border-stone-300 bg-white px-4 text-lg font-bold text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f] focus:ring-4 focus:ring-blue-100"
               />
             </label>
+            <p className="-mt-2 text-xs font-bold leading-5 text-stone-500">
+              US numbers can be entered as 10 digits; we will format them as +1 automatically.
+            </p>
             <label className="text-sm font-black text-[#172033]">
               Name <span className="font-semibold text-stone-400">(optional)</span>
               <input
@@ -2412,7 +2428,7 @@ function ClosingLeadCapture() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.name || data.email.split("@")[0] || "Valued Lead",
-          phone: data.phone,
+          phone: normalizeOutboundPhoneInput(data.phone),
           user_timezone: getBrowserTimeZone()
         })
       });
