@@ -11,9 +11,10 @@ Launch-ready Next.js sales site for the NexCall AI receptionist business.
 - Stripe Checkout API route for monthly/yearly subscriptions
 - Stripe webhook receiver for successful checkout events
 - Checkout success and cancel pages
-- Lead capture webhook route
+- Lead capture webhook route with nexcall@proton.me notification fallback
 - Twilio voice webhook forwarding route
-- Calendar booking webhook route
+- Calendar booking webhook route plus `/api/voice/schedule` for ElevenLabs/Twilio tool calls
+- Cal.com booking with valid ICS fallback for appointment requests
 - Per-client phone, voice-agent, lead, and calendar routing through Postgres tenants
 - Database-first tenant routing with Prisma/Postgres
 - Upstash rate limiting middleware for API cost protection
@@ -158,6 +159,7 @@ That file explains what belongs in the MarcoPolo workspace folder and why genera
 - `app/api/tts/elevenlabs/route.ts` - optional ElevenLabs scenario-only TTS generation
 - `app/api/tts/huggingface/route.ts` - legacy lab route, not used by the launch UI
 - `app/api/calendar-booking/route.ts` - booking webhook forwarding
+- `app/api/voice/schedule/route.ts` - ElevenLabs/Twilio-compatible demo scheduling tool
 - `app/api/ai/respond/route.ts` - tenant-aware AI turn processor for live calls
 - `app/api/inngest/route.ts` - Inngest durable background job endpoint
 - `app/api/admin/*` - protected admin APIs
@@ -165,6 +167,9 @@ That file explains what belongs in the MarcoPolo workspace folder and why genera
 - `app/api/clients/lookup/route.ts` - protected client lookup for voice-agent platforms
 - `lib/client-directory.ts` - compatibility exports for the database tenant repository
 - `lib/tenant-repository.ts` - database-first tenant repository
+- `lib/lead-notifications.ts` - lead notification and safe capture fallback for nexcall@proton.me
+- `lib/ics.ts` - iCal/ICS fallback generation
+- `lib/phone.ts` - server-side phone normalization and masking
 - `prisma/schema.prisma` - Supabase/Postgres schema
 - `middleware.ts` - Upstash API rate limiting
 - `lib/huggingface-receptionist-pipeline.ts` - legacy native voice pipeline for lab testing

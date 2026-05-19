@@ -49,7 +49,17 @@ function isSafeWebSocketUrl(value = "") {
  * 5. If neither is configured, the caller hears a safe fallback message.
  */
 export async function POST(request: Request) {
-  const params = await readTwilioParams(request);
+  let params: URLSearchParams;
+
+  try {
+    params = await readTwilioParams(request);
+  } catch (error) {
+    console.error("Twilio voice route could not parse request", {
+      message: error instanceof Error ? error.message : "Unknown Twilio parse error"
+    });
+
+    return xmlResponse(buildFallbackTwiml("Thanks for calling. We could not read the call request, so please try again."));
+  }
 
   if (!isValidTwilioWebhookRequest(request, params)) {
     return xmlResponse(buildFallbackTwiml("This call could not be verified. Please try again."));
@@ -60,7 +70,18 @@ export async function POST(request: Request) {
   );
   const callerNumber = normalizeClientPhone(params.get("From") || params.get("Caller"));
   const callSid = params.get("CallSid") || "";
-  const client = await getClientByPhone(calledNumber);
+  let client: Awaited<ReturnType<typeof getClientByPhone>> | null = null;
+
+  try {
+    client = await getClientByPhone(calledNumber);
+  } catch (error) {
+    console.error("Twilio voice route client lookup failed", {
+      calledNumber,
+      message: error instanceof Error ? error.message : "Unknown client lookup error"
+    });
+
+    return xmlResponse(buildFallbackTwiml("Thanks for calling. The AI receptionist is being connected now. Please try again shortly."));
+  }
 
   if (!client) {
     return xmlResponse(

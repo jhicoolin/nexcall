@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
+import { notifyNexCallLead } from "@/lib/lead-notifications";
 import { isAllowedServerUrl } from "@/lib/security";
 
 export const runtime = "nodejs";
@@ -51,31 +52,51 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
+    await notifyNexCallLead({
+      subject: "New NexCall Checkout Lead",
+      source: "stripe-checkout-completed",
+      name: session.customer_details?.name,
+      email: session.customer_details?.email || session.customer_email,
+      inquiryType: "checkout completed",
+      appointmentType: session.metadata?.billing,
+      message: "Stripe confirmed a checkout.session.completed event.",
+      metadata: {
+        sessionId: session.id,
+        customerId: session.customer,
+        subscriptionId: session.subscription,
+        planId: session.metadata?.planId,
+        planName: session.metadata?.planName,
+        billing: session.metadata?.billing
+      }
+    });
 
     if (process.env.CHECKOUT_SUCCESS_WEBHOOK_URL) {
       if (!isAllowedServerUrl(process.env.CHECKOUT_SUCCESS_WEBHOOK_URL)) {
-        return NextResponse.json(
-          { ok: false, error: "CHECKOUT_SUCCESS_WEBHOOK_URL must be a secure HTTPS URL." },
-          { status: 500 }
-        );
+        console.error("CHECKOUT_SUCCESS_WEBHOOK_URL is not allowed");
+      } else {
+        try {
+          await fetch(process.env.CHECKOUT_SUCCESS_WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              event: event.type,
+              customerEmail: session.customer_details?.email || session.customer_email,
+              customerName: session.customer_details?.name,
+              customerId: session.customer,
+              subscriptionId: session.subscription,
+              planId: session.metadata?.planId,
+              planName: session.metadata?.planName,
+              billing: session.metadata?.billing,
+              sessionId: session.id,
+              createdAt: new Date().toISOString()
+            })
+          });
+        } catch (error) {
+          console.error("Checkout success webhook failed", {
+            message: error instanceof Error ? error.message : "Unknown checkout webhook error"
+          });
+        }
       }
-
-      await fetch(process.env.CHECKOUT_SUCCESS_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: event.type,
-          customerEmail: session.customer_details?.email || session.customer_email,
-          customerName: session.customer_details?.name,
-          customerId: session.customer,
-          subscriptionId: session.subscription,
-          planId: session.metadata?.planId,
-          planName: session.metadata?.planName,
-          billing: session.metadata?.billing,
-          sessionId: session.id,
-          createdAt: new Date().toISOString()
-        })
-      });
     }
   }
 

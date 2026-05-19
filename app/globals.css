@@ -3,9 +3,17 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --brand-bg: #05070d;
+  --brand-panel: #0d1320;
+  --brand-panel-2: #111827;
+  --brand-border: rgba(204, 214, 232, 0.18);
+  --brand-silver: #dbe4f2;
+  --brand-muted: #9aa8bd;
+  --brand-blue: #8dbdff;
+  --brand-gold: #d9a42f;
 }
 
 * {
@@ -18,8 +26,10 @@ html {
 
 body {
   margin: 0;
-  background: #f6f2ea;
-  color: #172033;
+  background:
+    radial-gradient(circle at top left, rgba(74, 115, 181, 0.2), transparent 34rem),
+    linear-gradient(180deg, #05070d 0%, #08111f 52%, #05070d 100%);
+  color: #f8fbff;
   font-family: var(--font-body) !important;
   font-feature-settings: "kern", "liga", "calt";
   text-rendering: optimizeLegibility;
@@ -38,7 +48,7 @@ h3 {
 
 p,
 li {
-  text-wrap: pretty;
+  overflow-wrap: break-word;
 }
 
 .legal-copy h2 {
@@ -83,8 +93,8 @@ h3.font-black {
 }
 
 ::selection {
-  background: #bfd7ff;
-  color: #172033;
+  background: #8dbdff;
+  color: #05070d;
 }
 
 .lead-reel {
@@ -93,6 +103,25 @@ h3.font-black {
 
 .lead-ticker {
   animation: lead-ticker 18s linear infinite;
+}
+
+.metal-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.metal-panel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035)),
+    linear-gradient(180deg, rgba(11, 19, 32, 0.94), rgba(5, 7, 13, 0.94));
+  border: 1px solid var(--brand-border);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+}
+
+.glass-line {
+  background: linear-gradient(90deg, transparent, rgba(219, 228, 242, 0.68), transparent);
 }
 
 @keyframes lead-reel-pop {
@@ -115,6 +144,23 @@ h3.font-black {
   100% {
     transform: translateX(-50%);
   }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.live-pulse {
+  animation: live-pulse 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { notifyNexCallLead } from '@/lib/lead-notifications';
 
 const E164_PHONE_PATTERN = /^\+[1-9]\d{1,14}$/;
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 2;
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 3;
 const rateLimitStore = globalThis.__outboundCallRateLimitStore || new Map();
 
 globalThis.__outboundCallRateLimitStore = rateLimitStore;
@@ -54,7 +55,7 @@ function getUpstashConfig() {
   return url && token ? { url: url.replace(/\/$/, ''), token } : null;
 }
 
-function hourBucket() {
+function rateLimitBucket() {
   return Math.floor(Date.now() / RATE_LIMIT_WINDOW_MS);
 }
 
@@ -63,8 +64,8 @@ async function checkHourlyRateLimit(ip) {
   const now = Date.now();
 
   if (upstash) {
-    const resetAt = (hourBucket() + 1) * RATE_LIMIT_WINDOW_MS;
-    const key = `nexcall:outbound-call:${hourBucket()}:${ip}`;
+    const resetAt = (rateLimitBucket() + 1) * RATE_LIMIT_WINDOW_MS;
+    const key = `nexcall:outbound-call:${rateLimitBucket()}:${ip}`;
     const response = await fetch(`${upstash.url}/pipeline`, {
       method: 'POST',
       headers: {
@@ -120,7 +121,15 @@ async function checkHourlyRateLimit(ip) {
 
 export async function POST(request) {
   try {
-    const { name, phone, user_timezone } = await request.json();
+    let body;
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    const { name, phone, user_timezone } = body || {};
     const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
     const elevenLabsAgentId = process.env.ELEVENLABS_AGENT_ID;
     const agentPhoneNumberId =
@@ -151,7 +160,7 @@ export async function POST(request) {
 
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: "Too many demo call requests. Please try again in about an hour." },
+        { error: "Too many demo call requests. Please try again in about 5 minutes." },
         {
           status: 429,
           headers: {
@@ -165,6 +174,16 @@ export async function POST(request) {
     }
 
     if (!elevenLabsApiKey || !elevenLabsAgentId || !agentPhoneNumberId) {
+      await notifyNexCallLead({
+        subject: "New NexCall Call Demo Lead",
+        source: "outbound-call-provider-missing",
+        name: cleanLeadName(name),
+        phone: normalizedPhone,
+        inquiryType: "call demo",
+        message: "A visitor requested the live phone demo, but the ElevenLabs outbound provider is not configured.",
+        metadata: { userTimezone: user_timezone || "America/New_York" }
+      });
+
       return NextResponse.json(
         {
           error: "Outbound call provider is not configured.",
@@ -175,6 +194,15 @@ export async function POST(request) {
     }
 
     const leadName = cleanLeadName(name);
+    await notifyNexCallLead({
+      subject: "New NexCall Call Demo Lead",
+      source: "outbound-call-request",
+      name: leadName,
+      phone: normalizedPhone,
+      inquiryType: "call demo",
+      message: "A visitor requested the live NexCall phone demo.",
+      metadata: { userTimezone: user_timezone || "America/New_York" }
+    });
 
     console.log("Initiating automated demo pipeline", {
       leadNameProvided: leadName !== "Valued Lead",
@@ -211,7 +239,7 @@ export async function POST(request) {
         phone: maskPhone(normalizedPhone),
         message: responseData?.detail?.message || responseData?.message || "Provider rejected request"
       });
-      return NextResponse.json({ error: "Failed to start the demo call. Check the ElevenLabs agent phone configuration." }, { status: response.status });
+      return NextResponse.json({ error: "The demo call could not start, but your request was captured. The NexCall team can follow up." }, { status: response.status });
     }
 
     return NextResponse.json(
@@ -226,7 +254,9 @@ export async function POST(request) {
       }
     );
   } catch (error) {
-    console.error("Outbound API server error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Outbound API server error", {
+      message: error instanceof Error ? error.message : "Unknown outbound call error"
+    });
+    return NextResponse.json({ error: "The demo call could not start, but your request was captured. Please try again shortly." }, { status: 502 });
   }
 }

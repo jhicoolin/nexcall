@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { getCheckoutPlan, getPriceEnvName, getPriceId, type CheckoutBilling } from "@/lib/checkout-plans";
+import {
+  getCheckoutPlan,
+  getInlinePriceData,
+  getPriceEnvNames,
+  getPriceId,
+  type CheckoutBilling
+} from "@/lib/checkout-plans";
+import { notifyNexCallLead } from "@/lib/lead-notifications";
 import { cleanIdentifier, cleanText, getSafeSiteOrigin, isValidEmail, readJsonObject, validationResponse } from "@/lib/security";
 
 type CheckoutRequest = {
@@ -22,7 +29,8 @@ export async function POST(request: Request) {
   const email = cleanText(rawBody.email, 254);
   const plan = getCheckoutPlan(planId);
   const priceId = getPriceId(planId, billing);
-  const priceEnvName = getPriceEnvName(planId, billing);
+  const priceEnvNames = getPriceEnvNames(planId, billing);
+  const inlinePriceData = getInlinePriceData(planId, billing);
 
   if (!plan) {
     return NextResponse.json(
@@ -32,16 +40,20 @@ export async function POST(request: Request) {
   }
 
   if (!priceId) {
-    console.warn("Stripe Checkout price ID missing", { planId, billing, priceEnvName });
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Online checkout for this plan is being connected. Book a demo and we can start your setup manually.",
-        missingConfig: priceEnvName
-      },
-      { status: 503 }
-    );
+    console.warn("Stripe Checkout price ID missing; using server-side inline price_data fallback", {
+      planId,
+      billing,
+      priceEnvNames
+    });
+    await notifyNexCallLead({
+      subject: "New NexCall Checkout Lead",
+      source: "checkout-inline-price-fallback",
+      email,
+      inquiryType: "checkout fallback",
+      appointmentType: billing,
+      message: "A visitor started checkout using server-side Stripe inline price_data because this plan is missing its Stripe price ID.",
+      metadata: { planId, planName: plan.name, billing, missingEnvCandidates: priceEnvNames }
+    });
   }
 
   if (email && !isValidEmail(email)) {
@@ -50,7 +62,11 @@ export async function POST(request: Request) {
 
   const origin = getSafeSiteOrigin(request);
 
-  const lineItems = [{ price: priceId, quantity: "1" }];
+  const lineItems = [
+    priceId
+      ? { price: priceId, quantity: "1" }
+      : { priceData: inlinePriceData, quantity: "1" }
+  ];
   const setupFeePriceId = process.env.STRIPE_SETUP_FEE_PRICE_ID;
 
   if (setupFeePriceId && !setupFeePriceId.includes("replace_me")) {
@@ -60,14 +76,33 @@ export async function POST(request: Request) {
   try {
     const secretKey = process.env.STRIPE_SECRET_KEY;
 
-    if (!secretKey || secretKey.includes("replace_me")) {
+    if (!secretKey || secretKey.includes("replace_me") || !inlinePriceData) {
       console.warn("Stripe Checkout secret key missing or placeholder");
+      await notifyNexCallLead({
+        subject: "New NexCall Checkout Lead",
+        source: "checkout-missing-secret-key",
+        email,
+        inquiryType: "checkout fallback",
+        appointmentType: billing,
+        message: "A visitor tried to start checkout, but STRIPE_SECRET_KEY is missing or placeholder.",
+        metadata: { planId: plan.id, planName: plan.name, billing }
+      });
 
       return NextResponse.json(
-        { ok: false, error: "Online checkout is temporarily unavailable. Book a demo and we can complete setup manually." },
-        { status: 500 }
+        {
+          ok: false,
+          error: "This plan is being finalized. Please request a demo and our team will help you activate it.",
+          leadCaptured: true
+        },
+        { status: 503 }
       );
     }
+
+    console.info("Starting Stripe Checkout session", {
+      planId: plan.id,
+      billing,
+      stripeMode: secretKey.startsWith("sk_test_") ? "test" : secretKey.startsWith("sk_live_") ? "live" : "unknown"
+    });
 
     const form = new URLSearchParams();
     form.set("mode", "subscription");
@@ -93,7 +128,14 @@ export async function POST(request: Request) {
     }
 
     lineItems.forEach((item, index) => {
-      form.set(`line_items[${index}][price]`, item.price);
+      if ("price" in item && item.price) {
+        form.set(`line_items[${index}][price]`, item.price);
+      } else if ("priceData" in item && item.priceData) {
+        form.set(`line_items[${index}][price_data][currency]`, "usd");
+        form.set(`line_items[${index}][price_data][unit_amount]`, item.priceData.unitAmount.toString());
+        form.set(`line_items[${index}][price_data][recurring][interval]`, item.priceData.interval);
+        form.set(`line_items[${index}][price_data][product_data][name]`, item.priceData.productName);
+      }
       form.set(`line_items[${index}][quantity]`, item.quantity);
     });
 
@@ -125,10 +167,23 @@ export async function POST(request: Request) {
       billing,
       message: error instanceof Error ? error.message : "Unknown checkout error"
     });
+    await notifyNexCallLead({
+      subject: "New NexCall Checkout Lead",
+      source: "checkout-provider-error",
+      email,
+      inquiryType: "checkout fallback",
+      appointmentType: billing,
+      message: "A visitor tried to start checkout, but Stripe did not return a usable session.",
+      metadata: { planId: plan?.id, planName: plan?.name, billing }
+    });
 
     return NextResponse.json(
-      { ok: false, error: "Checkout could not open right now. Please book a demo and we will follow up." },
-      { status: 500 }
+      {
+        ok: false,
+        error: "This plan is being finalized. Please request a demo and our team will help you activate it.",
+        leadCaptured: true
+      },
+      { status: 502 }
     );
   }
 }

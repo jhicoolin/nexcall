@@ -9,7 +9,8 @@ const highCostRoutes = [
   "/api/twilio/voice",
   "/api/calendar-booking",
   "/api/calendar",
-  "/api/outbound-call"
+  "/api/outbound-call",
+  "/api/voice/schedule"
 ];
 
 const webhookRoutes = ["/api/stripe/webhook", "/api/inngest"];

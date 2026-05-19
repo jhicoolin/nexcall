@@ -17,6 +17,7 @@ import {
   HelpCircle,
   HomeIcon,
   Landmark,
+  Menu,
   MessageSquareText,
   Minus,
   Phone,
@@ -34,7 +35,7 @@ import {
   X,
   type LucideIcon
 } from "lucide-react";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { nexCallVoiceOptions, type NexCallScenarioId } from "@/lib/nexcall-voice-demos";
 
@@ -539,12 +540,93 @@ const integrationGroups = [
 const elevenLabsTtsEnabled = process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS === "true";
 
 const trustSignals = [
-  "Calendar-first setup",
-  "Human fallback paths",
-  "Twilio-ready phone routing",
-  "Secure Stripe checkout path",
-  "Reviewed May 2026"
+  "Answers 24/7",
+  "Books appointments",
+  "Captures lead details",
+  "Routes to a person",
+  "Stripe checkout ready"
 ];
+
+const brandAssets = {
+  logo: "/brand/nexcall-logo.png",
+  icon: "/brand/nexcall-icon.png"
+} as const;
+
+type AnimatedCounterProps = {
+  value: number;
+  suffix?: string;
+  prefix?: string;
+  decimals?: number;
+  durationMs?: number;
+};
+
+function AnimatedCounter({
+  value,
+  suffix = "",
+  prefix = "",
+  decimals = 0,
+  durationMs = 1400
+}: AnimatedCounterProps) {
+  const ref = useRef<HTMLSpanElement | null>(null);
+  const started = useRef(false);
+  const rafRef = useRef<number | null>(null);
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || started.current) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion) {
+      started.current = true;
+      setCurrent(value);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting || started.current) return;
+        started.current = true;
+        const start = performance.now();
+
+        const tick = (time: number) => {
+          const progress = Math.min((time - start) / durationMs, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          setCurrent(value * eased);
+
+          if (progress < 1) {
+            rafRef.current = window.requestAnimationFrame(tick);
+          }
+        };
+
+        rafRef.current = window.requestAnimationFrame(tick);
+        observer.disconnect();
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, [durationMs, value]);
+
+  const formatted = current.toLocaleString("en-US", {
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: decimals
+  });
+
+  return (
+    <span ref={ref}>
+      {prefix}
+      {formatted}
+      {suffix}
+    </span>
+  );
+}
 
 function selectHumanVoice(voices: SpeechSynthesisVoice[], profile: VoiceProfile) {
   if (!voices.length) return undefined;
@@ -580,21 +662,16 @@ export default function Home() {
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f6f2ea] text-[#1d2733]">
+    <main className="min-h-screen overflow-hidden bg-[#05070d] text-slate-50">
       <Header onCallDemo={() => setIsOutboundModalOpen(true)} />
       <Hero onCallDemo={() => setIsOutboundModalOpen(true)} />
       <TrustSignalBar />
       <UseCaseStrip />
       <FrontOfficeSignalMap />
-      <ProblemSnapshot />
-      <VoiceAgentDemos />
-      <VoiceQualityLab />
-      <JobsDone />
       <HowItWorks />
       <HumanProof />
-      <IndustryMatrix />
-      <IntegrationDirectory />
-      <MarketFit />
+      <JobsDone />
+      <VoiceAgentDemos />
       <Pricing />
       <FAQSection />
       <ClosingLeadCapture />
@@ -606,92 +683,141 @@ export default function Home() {
 }
 
 function Header({ onCallDemo }: { onCallDemo: () => void }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navItems = [
+    { href: "#demos", label: "Demos" },
+    { href: "#how-it-works", label: "How It Works" },
+    { href: "#services", label: "Services" },
+    { href: "#pricing", label: "Pricing" },
+    { href: "#faq", label: "FAQ" },
+    { href: "/about", label: "About" }
+  ];
+
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 border-b border-stone-200/80 bg-[#f6f2ea]/88 backdrop-blur-xl">
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#05070d]/82 backdrop-blur-2xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <a href="#top" className="flex items-center gap-3" aria-label="NexCall home">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white shadow-sm">
-            <ShieldCheck size={21} aria-hidden="true" />
+          <span className="relative h-11 w-11 overflow-hidden rounded-xl border border-white/10 bg-black shadow-lg shadow-blue-950/30">
+            <Image
+              src={brandAssets.icon}
+              alt=""
+              fill
+              sizes="44px"
+              className="object-cover"
+              priority
+            />
           </span>
-          <span className="text-lg font-black tracking-wide text-[#172033] sm:text-xl">
+          <span className="text-lg font-black tracking-wide text-white sm:text-xl">
             NEXCALL
           </span>
         </a>
-        <div className="hidden items-center gap-7 text-sm font-semibold text-stone-600 md:flex">
-          <a className="transition hover:text-[#172033]" href="#demos">
-            Demos
-          </a>
-          <a className="transition hover:text-[#172033]" href="#how-it-works">
-            How It Works
-          </a>
-          <a className="transition hover:text-[#172033]" href="#reviews">
-            Stories
-          </a>
-          <a className="transition hover:text-[#172033]" href="#pricing">
-            Pricing
-          </a>
-          <a className="transition hover:text-[#172033]" href="#faq">
-            FAQ
-          </a>
-          <a className="transition hover:text-[#172033]" href="/about">
-            About
-          </a>
+        <div className="hidden items-center gap-7 text-sm font-semibold text-slate-300 md:flex">
+          {navItems.map((item) => (
+            <a key={item.href} className="transition hover:text-white" href={item.href}>
+              {item.label}
+            </a>
+          ))}
         </div>
-        <button
-          type="button"
-          onClick={onCallDemo}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#244f8f] px-4 py-2 text-sm font-black text-white shadow-lg shadow-blue-900/10 transition hover:bg-[#1c3f73] focus:outline-none focus:ring-4 focus:ring-blue-200"
-        >
-          <Phone size={17} aria-hidden="true" />
-          Call Demo
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onCallDemo}
+            className="hidden min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30 sm:inline-flex"
+          >
+            <Phone size={17} aria-hidden="true" />
+            Call Demo
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((current) => !current)}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20 md:hidden"
+            aria-label="Open navigation menu"
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={19} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+          </button>
+        </div>
       </nav>
+      {mobileOpen ? (
+        <div className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 md:hidden">
+          <div className="rounded-2xl border border-white/10 bg-[#0b1220] p-3 shadow-2xl shadow-black/40">
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-xl px-4 py-3 text-sm font-bold text-slate-200 transition hover:bg-white/5 hover:text-white"
+              >
+                {item.label}
+              </a>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                onCallDemo();
+              }}
+              className="mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-[#05070d]"
+            >
+              <Phone size={17} aria-hidden="true" />
+              Call Demo
+            </button>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }
 
 function Hero({ onCallDemo }: { onCallDemo: () => void }) {
   return (
-    <section id="top" className="relative pt-28">
-      <div className="absolute inset-x-0 top-0 h-full bg-[linear-gradient(rgba(36,79,143,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(36,79,143,0.06)_1px,transparent_1px)] bg-[size:42px_42px]" />
-      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:pb-20">
-        <motion.div {...sectionMotion} className="flex flex-col justify-center">
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-[#c8d7ef] bg-white px-4 py-2 text-sm font-bold text-[#244f8f] shadow-sm">
+    <section id="top" className="relative overflow-hidden pt-28">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(141,189,255,0.2),transparent_34rem),radial-gradient(circle_at_86%_20%,rgba(217,164,47,0.12),transparent_26rem)]" />
+      <div className="metal-grid absolute inset-0 opacity-45" />
+      <div className="absolute inset-x-0 bottom-0 h-px glass-line" />
+      <div className="relative mx-auto grid min-w-0 max-w-7xl grid-cols-1 gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:px-8 lg:pb-24">
+        <motion.div
+          initial={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="flex w-full max-w-[20.5rem] min-w-0 flex-col justify-center sm:max-w-none"
+        >
+          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-sm font-bold text-slate-200 shadow-2xl shadow-black/20 backdrop-blur">
             <Sparkles size={16} aria-hidden="true" />
-            Warm phone coverage for real businesses
+            Premium AI front desk for real businesses
           </div>
-          <h1 className="max-w-4xl text-5xl font-black leading-[1.02] text-[#172033] sm:text-6xl lg:text-7xl">
-            A receptionist that answers like a person and works like a system.
+          <h1 className="max-w-[20.5rem] break-words text-4xl font-black leading-[1.05] text-white sm:max-w-4xl sm:text-6xl lg:text-7xl">
+            NexCall answers every call like your best receptionist.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600 sm:text-xl">
-            NexCall picks up missed calls, books open slots, handles simple
-            reschedules, and sends clean notes to your team with human backup for the
-            calls that need judgment.
+          <p className="mt-6 max-w-[20.5rem] text-lg leading-8 text-slate-300 sm:max-w-2xl sm:text-xl">
+            NexCall answers calls, qualifies leads, books appointments, and sends clean
+            notes to your team. Customers get a professional response. Your team gets
+            the details they need.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-6 flex max-w-[20.5rem] flex-wrap gap-2 sm:max-w-2xl">
             {industries.map((item) => (
               <span
                 key={item}
-                className="rounded-full border border-stone-200 bg-white px-3 py-1 text-sm font-bold text-stone-600 shadow-sm"
+                className="rounded-full border border-white/10 bg-white/7 px-3 py-1 text-sm font-bold text-slate-300 shadow-sm backdrop-blur"
               >
                 {item}
               </span>
             ))}
           </div>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex max-w-[20.5rem] flex-col gap-3 sm:max-w-none sm:flex-row">
             <button
               type="button"
               onClick={onCallDemo}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#244f8f] px-6 py-3 text-base font-black text-white shadow-lg shadow-blue-900/10 transition hover:bg-[#1c3f73] focus:outline-none focus:ring-4 focus:ring-blue-200"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-black text-[#05070d] shadow-xl shadow-blue-500/10 transition hover:-translate-y-0.5 hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30"
             >
               <Phone size={19} aria-hidden="true" />
-              Call the Live Demo
+              Try a Demo Call
             </button>
             <a
-              href="#demos"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-6 py-3 text-base font-bold text-[#172033] shadow-sm transition hover:border-stone-400 hover:bg-stone-50 focus:outline-none focus:ring-4 focus:ring-stone-200"
+              href="#pricing"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/6 px-6 py-3 text-base font-bold text-white shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
             >
-              Hear Scenario Demos
+              View Plans
               <ArrowRight size={18} aria-hidden="true" />
             </a>
           </div>
@@ -703,48 +829,30 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
 }
 
 function HeroPortraitGrid() {
-  const portraits = [
+  const callCards = [
     {
-      src: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=900&q=85&crop=faces",
-      alt: "Diverse business professional receiving the first customer call",
-      label: "1. Call reaches AI front desk",
-      crop: "object-center",
-      position: "center 30%"
+      icon: Phone,
+      label: "Active call",
+      value: "New caller",
+      detail: "Intent detected in 4 seconds"
     },
     {
-      src: "https://images.pexels.com/photos/5273651/pexels-photo-5273651.jpeg?auto=compress&cs=tinysrgb&w=900",
-      alt: "Black business professional working in an office while reviewing caller details",
-      label: "2. Question answered",
-      crop: "object-center",
-      position: "center 30%"
+      icon: CalendarCheck,
+      label: "Calendar",
+      value: "2 slots found",
+      detail: "Thursday afternoon available"
     },
     {
-      src: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=900&q=85&crop=faces",
-      alt: "Business professional confirming caller information",
-      label: "3. Details verified",
-      crop: "object-center",
-      position: "center 24%"
+      icon: ClipboardList,
+      label: "Lead capture",
+      value: "Details saved",
+      detail: "Name, need, phone, urgency"
     },
     {
-      src: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=900&q=85&crop=faces",
-      alt: "Business professional selecting an appointment slot",
-      label: "4. Calendar slot held",
-      crop: "object-center",
-      position: "center 30%"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=900&q=85&crop=faces",
-      alt: "Business operator receiving a warm human handoff",
-      label: "5. Human backup alerted",
-      crop: "object-center",
-      position: "center 32%"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=900&q=85&crop=faces",
-      alt: "Office team reviewing the final call summary together",
-      label: "6. Team sees clean summary",
-      crop: "object-center",
-      position: "center 36%"
+      icon: Users,
+      label: "Human backup",
+      value: "Ready",
+      detail: "Transfer rule available"
     }
   ];
   const callSteps = [
@@ -757,74 +865,78 @@ function HeroPortraitGrid() {
   ];
 
   return (
-    <motion.div {...sectionMotion} className="relative min-h-[620px] lg:min-h-[650px]">
-      <div className="absolute inset-0 rotate-[-1.5deg] rounded-lg border border-stone-200 bg-white/70 shadow-xl shadow-stone-300/30" />
-      <div className="absolute inset-4 rotate-[1.2deg] rounded-lg border border-[#c8d7ef] bg-[#eef4ff]" />
+    <motion.div
+      initial={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="relative min-h-[620px] min-w-0 overflow-hidden rounded-[1.75rem] lg:min-h-[650px]"
+    >
+      <div className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(circle_at_50%_10%,rgba(141,189,255,0.22),transparent_34rem)] blur-2xl" />
+      <div className="absolute inset-0 rotate-[-1.2deg] rounded-[1.75rem] border border-white/10 bg-white/5 shadow-2xl shadow-black/40" />
+      <div className="absolute inset-4 rotate-[1deg] rounded-[1.5rem] border border-blue-200/15 bg-[#0b1220]/80 backdrop-blur" />
 
       <div className="relative grid gap-4 p-4 sm:p-5">
-        <div className="rounded-lg border border-stone-200 bg-white p-4 shadow-lg shadow-stone-300/30">
+        <div className="metal-panel rounded-[1.25rem] p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#244f8f]">
-                Live Front Office
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#8dbdff]">
+                Live NexCall Console
               </p>
-              <p className="mt-1 text-2xl font-black text-[#172033]">One call, handled end-to-end</p>
+              <p className="mt-1 text-2xl font-black text-white">One call, handled end-to-end</p>
             </div>
             <div className="flex gap-2" aria-hidden="true">
-              <span className="h-3 w-3 rounded-full bg-[#10b981]" />
-              <span className="h-3 w-3 rounded-full bg-[#f59e0b]" />
-              <span className="h-3 w-3 rounded-full bg-[#244f8f]" />
+              <span className="h-3 w-3 rounded-full bg-emerald-400 live-pulse" />
+              <span className="h-3 w-3 rounded-full bg-[#d9a42f]" />
+              <span className="h-3 w-3 rounded-full bg-[#8dbdff]" />
             </div>
           </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {portraits.map((portrait, index) => (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {callCards.map((card, index) => (
               <motion.div
-                key={portrait.alt}
+                key={card.label}
                 animate={{ y: [0, index % 2 === 0 ? -4 : 4, 0] }}
                 transition={{ duration: 6 + index * 0.4, repeat: Infinity, ease: "easeInOut" }}
-                className="overflow-hidden rounded-lg border border-stone-200 bg-[#f6f2ea]"
+                className="rounded-2xl border border-white/10 bg-white/6 p-4"
               >
-                <div className="relative h-44 w-full bg-stone-100 sm:h-48 lg:h-40 xl:h-44">
-                  <Image
-                    fill
-                    priority
-                    sizes="(min-width: 1024px) 16vw, (min-width: 640px) 50vw, 100vw"
-                    className={`object-cover ${portrait.crop}`}
-                    style={{ objectPosition: portrait.position }}
-                    src={portrait.src}
-                    alt={portrait.alt}
-                  />
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#05070d] shadow-lg shadow-blue-500/10">
+                    <card.icon size={20} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{card.label}</p>
+                    <p className="mt-1 text-lg font-black text-white">{card.value}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">{card.detail}</p>
+                  </div>
                 </div>
-                <p className="px-3 py-3 text-xs font-black text-[#172033]">{portrait.label}</p>
               </motion.div>
             ))}
           </div>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-lg border border-stone-200 bg-white p-4 shadow-lg shadow-stone-300/25">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#0f766e]">
+          <div className="rounded-[1.25rem] border border-white/10 bg-white/7 p-4 shadow-2xl shadow-black/25">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">
               Active Call
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-lg bg-[#f1ede5] p-3 text-sm font-bold leading-6 text-[#172033]">
+              <div className="rounded-2xl bg-white/10 p-3 text-sm font-bold leading-6 text-slate-100">
                 &quot;Can someone see me today? I need to change my appointment.&quot;
               </div>
-              <div className="ml-auto rounded-lg bg-[#244f8f] p-3 text-sm font-bold leading-6 text-white">
+              <div className="ml-auto rounded-2xl bg-[#8dbdff] p-3 text-sm font-bold leading-6 text-[#05070d]">
                 &quot;I can help. I found two openings and can move you without a callback.&quot;
               </div>
             </div>
-            <div className="mt-4 rounded-lg border border-[#c8d7ef] bg-[#e8f0fc] p-3">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#244f8f]">
+            <div className="mt-4 rounded-2xl border border-blue-200/15 bg-blue-300/10 p-3">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#8dbdff]">
                 Outcome
               </p>
-              <p className="mt-1 text-sm font-black text-[#172033]">Rescheduled, confirmed, logged</p>
+              <p className="mt-1 text-sm font-black text-white">Rescheduled, confirmed, logged</p>
             </div>
           </div>
 
-          <div className="rounded-lg border border-stone-200 bg-[#172033] p-4 text-white shadow-lg shadow-stone-400/30">
+          <div className="rounded-[1.25rem] border border-white/10 bg-[#05070d] p-4 text-white shadow-2xl shadow-black/35">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-100">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-200">
                 Call Path
               </p>
               <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-200">
@@ -836,9 +948,8 @@ function HeroPortraitGrid() {
               {callSteps.map((step, index) => (
                 <motion.div
                   key={step}
-                  initial={{ opacity: 0, x: 16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
+                  initial={{ opacity: 1, x: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.08 }}
                   className="relative flex items-center gap-3"
                 >
@@ -857,10 +968,10 @@ function HeroPortraitGrid() {
         <motion.div
           animate={{ x: [0, 10, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="ml-auto max-w-md rounded-lg border border-[#c8d7ef] bg-white p-4 shadow-2xl shadow-stone-400/25"
+          className="ml-auto max-w-md rounded-[1.25rem] border border-white/10 bg-white p-4 shadow-2xl shadow-black/35"
         >
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#ecfdf5] text-[#0f766e]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ecfdf5] text-[#0f766e]">
               <MessageSquareText size={20} aria-hidden="true" />
             </span>
             <div>
@@ -901,27 +1012,27 @@ function FrontOfficeSignalMap() {
   ];
 
   return (
-    <section className="relative overflow-hidden border-b border-stone-200 bg-[#eef4ff] py-16">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.78),transparent_28%),radial-gradient(circle_at_80%_35%,rgba(191,215,255,0.6),transparent_32%)]" />
+    <section className="relative overflow-hidden border-b border-white/10 bg-[#08111f] py-16">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(141,189,255,0.14),transparent_30%),radial-gradient(circle_at_80%_35%,rgba(217,164,47,0.08),transparent_34%)]" />
       <motion.div {...sectionMotion} className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#244f8f]">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
               What NexCall Does
             </p>
-            <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
+            <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
               One clear path from missed call to booked next step.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-stone-600">
+            <p className="mt-5 text-lg leading-8 text-slate-300">
               NexCall answers, verifies intent, checks the right workflow, and sends
               your team the summary they need to act without chasing voicemail.
             </p>
           </div>
 
           <div className="relative">
-            <div className="absolute left-6 right-6 top-1/2 hidden h-1 -translate-y-1/2 bg-white md:block" />
+            <div className="absolute left-6 right-6 top-1/2 hidden h-1 -translate-y-1/2 bg-white/10 md:block" />
             <motion.div
-              className="absolute left-6 top-1/2 hidden h-1 -translate-y-1/2 bg-[#244f8f] md:block"
+              className="absolute left-6 top-1/2 hidden h-1 -translate-y-1/2 bg-[#8dbdff] md:block"
               animate={{ width: ["0%", "88%", "0%"] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -930,16 +1041,16 @@ function FrontOfficeSignalMap() {
                 <motion.article
                   key={lane.label}
                   whileHover={{ y: -6 }}
-                  className="relative rounded-lg border border-white/80 bg-white p-5 shadow-xl shadow-blue-900/10"
+                  className="relative rounded-2xl border border-white/10 bg-white/7 p-5 shadow-xl shadow-black/20 backdrop-blur"
                 >
-                  <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-lg bg-[#172033] text-white">
+                  <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#05070d]">
                     <lane.icon size={22} aria-hidden="true" />
                   </div>
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#244f8f]">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#8dbdff]">
                     0{index + 1}
                   </p>
-                  <h3 className="mt-2 text-xl font-black leading-7 text-[#172033]">{lane.label}</h3>
-                  <p className="mt-3 text-sm leading-6 text-stone-600">{lane.detail}</p>
+                  <h3 className="mt-2 text-xl font-black leading-7 text-white">{lane.label}</h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">{lane.detail}</p>
                 </motion.article>
               ))}
             </div>
@@ -1003,6 +1114,41 @@ function formatPhoneForBlur(value: string) {
   }
 
   return formatPhoneDisplay(value) || value.trim();
+}
+
+function cursorPositionForDigits(formattedValue: string, digitCount: number) {
+  if (digitCount <= 0) return 0;
+
+  let seenDigits = 0;
+
+  for (let index = 0; index < formattedValue.length; index += 1) {
+    if (/\d/.test(formattedValue[index])) {
+      seenDigits += 1;
+    }
+
+    if (seenDigits >= digitCount) {
+      return index + 1;
+    }
+  }
+
+  return formattedValue.length;
+}
+
+function handlePhoneInputFormatting(
+  event: ChangeEvent<HTMLInputElement>,
+  setFormattedValue: (value: string) => void
+) {
+  const input = event.currentTarget;
+  const cursor = input.selectionStart || input.value.length;
+  const digitsBeforeCursor = input.value.slice(0, cursor).replace(/\D/g, "").length;
+  const formatted = formatPhoneDisplay(input.value);
+
+  setFormattedValue(formatted);
+
+  window.requestAnimationFrame(() => {
+    const nextPosition = cursorPositionForDigits(formatted, digitsBeforeCursor);
+    input.setSelectionRange(nextPosition, nextPosition);
+  });
 }
 
 function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -1075,7 +1221,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#172033]/55 px-4 py-6 backdrop-blur-sm" role="presentation">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm" role="presentation">
       <div className="absolute inset-0" onClick={status === "calling" ? undefined : onClose} aria-hidden="true" />
       <motion.div
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
@@ -1084,17 +1230,17 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
         role="dialog"
         aria-modal="true"
         aria-labelledby="outbound-call-title"
-        className="relative w-full max-w-lg rounded-2xl border border-stone-200 bg-[#f6f2ea] p-5 shadow-2xl shadow-slate-950/25 sm:p-6"
+        className="relative w-full max-w-lg rounded-[1.35rem] border border-white/10 bg-[#0b1220] p-5 text-white shadow-2xl shadow-black/55 sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#0f766e]">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
               Live demo call
             </p>
-            <h2 id="outbound-call-title" className="mt-2 text-3xl font-black text-[#172033]">
+            <h2 id="outbound-call-title" className="mt-2 text-3xl font-black text-white">
               Let Nexa ring your phone.
             </h2>
-            <p className="mt-3 leading-7 text-stone-600">
+            <p className="mt-3 leading-7 text-slate-300">
               Enter your number and the NexCall Receptionist will call you with the booking-flow demo.
             </p>
           </div>
@@ -1102,7 +1248,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
             type="button"
             onClick={onClose}
             disabled={status === "calling"}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 transition hover:bg-stone-50 focus:outline-none focus:ring-4 focus:ring-stone-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/6 text-slate-200 transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close call demo modal"
           >
             <X size={19} aria-hidden="true" />
@@ -1110,22 +1256,22 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
 
         {status === "success" ? (
-          <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-            <p className="text-xl font-black text-[#172033]">Calling now.</p>
-            <p className="mt-2 leading-7 text-stone-700">
+          <div className="mt-6 rounded-xl border border-emerald-300/40 bg-emerald-300/10 p-5">
+            <p className="text-xl font-black text-white">Calling now.</p>
+            <p className="mt-2 leading-7 text-slate-200">
               Nexa is ringing your phone. Pick up and ask about booking, rescheduling, or missed calls.
             </p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-5 min-h-12 rounded-lg bg-[#244f8f] px-5 py-3 font-black text-white transition hover:bg-[#1c3f73] focus:outline-none focus:ring-4 focus:ring-blue-200"
+              className="mt-5 min-h-12 rounded-xl bg-white px-5 py-3 font-black text-[#05070d] transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
             >
               Done
             </button>
           </div>
         ) : (
           <form onSubmit={submitOutboundCall} className="mt-6 grid gap-4">
-            <label className="text-sm font-black text-[#172033]">
+            <label className="text-sm font-black text-slate-100">
               Phone number
               <input
                 ref={phoneInputRef}
@@ -1133,25 +1279,25 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
                 inputMode="tel"
                 autoComplete="tel"
                 required
-                placeholder="(301) 466-4605"
+                placeholder="(###) ###-####"
                 value={phone}
-                onChange={(event) => setPhone(formatPhoneDisplay(event.target.value))}
+                onChange={(event) => handlePhoneInputFormatting(event, setPhone)}
                 onBlur={(event) => setPhone(formatPhoneForBlur(event.target.value))}
-                className="mt-2 min-h-14 w-full rounded-xl border border-stone-300 bg-white px-4 text-lg font-bold text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f] focus:ring-4 focus:ring-blue-100"
+                className="mt-2 min-h-14 w-full rounded-xl border border-white/10 bg-white px-4 text-lg font-bold text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff] focus:ring-4 focus:ring-blue-300/20"
               />
             </label>
-            <p className="-mt-2 text-xs font-bold leading-5 text-stone-500">
+            <p className="-mt-2 text-xs font-bold leading-5 text-slate-400">
               US numbers can be entered as 10 digits; we format them automatically before calling.
             </p>
-            <label className="text-sm font-black text-[#172033]">
-              Name <span className="font-semibold text-stone-400">(optional)</span>
+            <label className="text-sm font-black text-slate-100">
+              Name <span className="font-semibold text-slate-400">(optional)</span>
               <input
                 type="text"
                 autoComplete="name"
                 placeholder="Your name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="mt-2 min-h-12 w-full rounded-xl border border-stone-300 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f] focus:ring-4 focus:ring-blue-100"
+                className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff] focus:ring-4 focus:ring-blue-300/20"
               />
             </label>
             {error ? (
@@ -1162,11 +1308,11 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
             <button
               type="submit"
               disabled={status === "calling"}
-              className="min-h-14 rounded-xl bg-[#244f8f] px-5 py-3 text-base font-black text-white shadow-lg shadow-blue-900/10 transition hover:bg-[#1c3f73] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-wait disabled:opacity-75"
+              className="min-h-14 rounded-xl bg-white px-5 py-3 text-base font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/20 disabled:cursor-wait disabled:opacity-75"
             >
               {status === "calling" ? "Calling Now..." : "Call Me Now"}
             </button>
-            <p className="text-xs font-bold leading-5 text-stone-500">
+            <p className="text-xs font-bold leading-5 text-slate-400">
               By submitting, you are asking for an automated demo call. Standard carrier rates may apply.
             </p>
           </form>
@@ -1178,7 +1324,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
 
 function TrustSignalBar() {
   return (
-    <section className="border-y border-stone-200 bg-white">
+    <section className="border-y border-white/10 bg-[#05070d]">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -1187,8 +1333,8 @@ function TrustSignalBar() {
         className="mx-auto grid max-w-7xl gap-3 px-4 py-5 sm:px-6 md:grid-cols-5 lg:px-8"
       >
         {trustSignals.map((signal) => (
-          <div key={signal} className="flex min-h-12 items-center gap-3 rounded-lg border border-stone-200 bg-[#f6f2ea] px-4 text-sm font-black text-[#172033]">
-            <Check className="shrink-0 text-[#0f766e]" size={18} aria-hidden="true" />
+          <div key={signal} className="flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-white/6 px-4 text-sm font-black text-slate-100 backdrop-blur">
+            <Check className="shrink-0 text-emerald-300" size={18} aria-hidden="true" />
             {signal}
           </div>
         ))}
@@ -1209,7 +1355,7 @@ function UseCaseStrip() {
   ];
 
   return (
-    <section className="border-y border-stone-200 bg-white py-4">
+    <section className="border-y border-white/10 bg-[#08111f] py-4">
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -1220,7 +1366,7 @@ function UseCaseStrip() {
           <a
             key={item}
             href="#demos"
-            className="shrink-0 rounded-full border border-stone-200 bg-[#f6f2ea] px-4 py-2 text-sm font-black text-[#172033] shadow-sm transition hover:border-[#244f8f] hover:bg-[#e8f0fc]"
+            className="shrink-0 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-black text-slate-200 shadow-sm transition hover:border-[#8dbdff]/50 hover:bg-white/10"
           >
             {item}
           </a>
@@ -1450,17 +1596,17 @@ function VoiceAgentDemos() {
   const progress = ((activeLine + (isPlaying ? 1 : 0)) / scenario.lines.length) * 100;
 
   return (
-    <section id="demos" className="border-b border-stone-200 bg-[#f6f2ea] py-16">
+    <section id="demos" className="border-b border-white/10 bg-[#05070d] py-16">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#244f8f]">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
               Hear It In Action
             </p>
-            <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
+            <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
               Pick a scenario and hear how the receptionist handles it.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-stone-600">
+            <p className="mt-5 text-lg leading-8 text-slate-300">
               These are original demo flows for common call types: scheduling, lead
               qualification, support, routing, and sensitive intake. Press play to animate
               the transcript and hear the AI lines through your browser.
@@ -1471,8 +1617,8 @@ function VoiceAgentDemos() {
                   key={demo.title}
                   className={`rounded-lg border p-4 text-left transition ${
                     selected === index
-                      ? "border-[#244f8f] bg-white shadow-lg shadow-stone-300/30"
-                      : "border-stone-200 bg-white/70 hover:bg-white"
+                      ? "border-[#8dbdff]/60 bg-white/10 shadow-lg shadow-black/25"
+                      : "border-white/10 bg-white/5 hover:bg-white/8"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -1482,17 +1628,17 @@ function VoiceAgentDemos() {
                       className="min-w-0 flex-1 text-left"
                       aria-pressed={selected === index}
                     >
-                      <p className="text-sm font-black text-[#172033]">{demo.title}</p>
-                      <p className="mt-1 text-xs font-bold text-stone-500">{demo.category}</p>
+                      <p className="text-sm font-black text-white">{demo.title}</p>
+                      <p className="mt-1 text-xs font-bold text-slate-400">{demo.category}</p>
                     </button>
                     <div className="flex shrink-0 items-center gap-2">
-                      <span className="rounded-full bg-[#e8f0fc] px-3 py-1 text-xs font-black text-[#244f8f]">
+                      <span className="rounded-full bg-[#8dbdff]/15 px-3 py-1 text-xs font-black text-blue-100">
                         {demo.duration}
                       </span>
                       <button
                         type="button"
                         onClick={() => void playDemo(index)}
-                        className="rounded-full bg-[#244f8f] px-3 py-1 text-xs font-black text-white"
+                        className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#05070d]"
                         aria-label={`Play ${demo.title} demo`}
                       >
                         Play
@@ -1504,7 +1650,7 @@ function VoiceAgentDemos() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-xl shadow-stone-300/30">
+          <div className="rounded-[1.35rem] border border-white/10 bg-white p-5 text-[#172033] shadow-2xl shadow-black/30">
             <audio
               ref={audioRef}
               src={playbackAudioUrl || undefined}
@@ -1821,127 +1967,78 @@ function IndustryMatrix() {
 }
 
 function HumanProof() {
-  const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    if (paused) return;
-    const timer = window.setInterval(() => {
-      setActive((current) => (current + 1) % reviews.length);
-    }, 4200);
-
-    return () => window.clearInterval(timer);
-  }, [paused]);
-
-  function move(direction: number) {
-    setActive((current) => (current + direction + reviews.length) % reviews.length);
-  }
-
-  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
-    if (info.offset.x < -70) move(1);
-    if (info.offset.x > 70) move(-1);
-  }
+  const stats = [
+    {
+      value: 500,
+      suffix: "+",
+      label: "Agent workflows",
+      description: "Receptionist scripts, routing paths, and lead-capture flows."
+    },
+    {
+      value: 10,
+      suffix: "+",
+      label: "Years of ops thinking",
+      description: "Built around practical front-desk process, not novelty."
+    },
+    {
+      value: 50,
+      suffix: "M+",
+      label: "Calls represented",
+      description: "Modeled around high-volume service patterns and handoff needs."
+    },
+    {
+      value: 99.9,
+      suffix: "%",
+      decimals: 1,
+      label: "Uptime target",
+      description: "Designed for the calls businesses cannot afford to miss."
+    }
+  ];
 
   return (
-    <section id="reviews" className="border-b border-stone-200 bg-[#f6f2ea] py-16">
-      <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+    <section id="reviews" className="relative overflow-hidden border-y border-white/10 bg-[#05070d] py-16">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(141,189,255,0.17),transparent_32rem),radial-gradient(circle_at_90%_60%,rgba(255,255,255,0.06),transparent_30rem)]" />
+      <motion.div {...sectionMotion} className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0f766e]">
-              Human Proof
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
+              Built To Keep Calls Moving
             </p>
-            <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
-              The best automation still feels like being taken care of.
+            <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
+              Businesses lose trust when the phone goes unanswered.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-stone-600">
-              Different teams, different customers, different accents and expectations.
-              The system should adapt to the business, not force everyone into one script.
+            <p className="mt-5 text-lg leading-8 text-slate-300">
+              NexCall keeps the first response consistent: answer fast, capture the
+              right details, book what can be booked, and route the rest with context.
             </p>
+            <div className="mt-7 rounded-2xl border border-white/10 bg-white/6 p-4">
+              <p className="text-sm font-black text-white">Live demo signal</p>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                The counters below animate to approved site metrics. They are not random
+                fake tickers, so the page feels premium without pretending to be telemetry.
+              </p>
+            </div>
           </div>
 
-          <div
-            className="overflow-hidden"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-          >
-            <motion.div
-              className="flex cursor-grab active:cursor-grabbing"
-              animate={{ x: `-${active * 100}%` }}
-              transition={{ type: "spring", stiffness: 210, damping: 26 }}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              onDragEnd={handleDragEnd}
-            >
-              {reviews.map((item) => (
-                <article key={item.name} className="min-w-full px-1">
-                  <div className="grid gap-5 rounded-lg border border-stone-200 bg-white p-5 shadow-xl shadow-stone-300/25 md:grid-cols-[220px_1fr]">
-                    <div className="relative h-64 w-full overflow-hidden rounded-lg md:h-full md:min-h-64">
-                      <Image
-                        fill
-                        sizes="(min-width: 768px) 220px, 100vw"
-                        className="object-cover"
-                        src={item.image}
-                        alt={`${item.name}, ${item.role}`}
-                      />
-                    </div>
-                    <div className="flex flex-col justify-between">
-                      <div>
-                        <div className="mb-4 flex gap-1 text-[#d97706]" aria-label="Five star review">
-                          {Array.from({ length: 5 }).map((_, index) => (
-                            <Star key={index} size={17} fill="currentColor" aria-hidden="true" />
-                          ))}
-                        </div>
-                        <p className="text-2xl font-black leading-8 text-[#172033]">
-                          &quot;{item.quote}&quot;
-                        </p>
-                      </div>
-                      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                          <p className="font-black text-[#172033]">{item.name}</p>
-                          <p className="text-sm text-stone-500">
-                            {item.role} - {item.industry}
-                          </p>
-                        </div>
-                        <p className="w-fit rounded-full bg-[#ecfdf5] px-4 py-2 text-sm font-black text-[#0f766e]">
-                          {item.stat}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </motion.div>
-            <div className="mt-5 flex items-center justify-between">
-              <div className="flex gap-2">
-                {reviews.map((item, index) => (
-                  <button
-                    key={item.name}
-                    type="button"
-                    onClick={() => setActive(index)}
-                    className={`h-2.5 rounded-full transition-all ${active === index ? "w-8 bg-[#244f8f]" : "w-2.5 bg-stone-300"}`}
-                    aria-label={`Show review from ${item.name}`}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {stats.map((stat) => (
+              <motion.article
+                key={stat.label}
+                whileHover={{ y: -4 }}
+                className="rounded-[1.35rem] border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/25 backdrop-blur"
+              >
+                <p className="text-5xl font-black tracking-tight text-white">
+                  <AnimatedCounter
+                    value={stat.value}
+                    suffix={stat.suffix}
+                    decimals={stat.decimals}
+                    durationMs={1500}
                   />
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => move(-1)}
-                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-stone-300 bg-white text-[#172033] shadow-sm transition hover:bg-stone-50"
-                  aria-label="Previous review"
-                >
-                  <ChevronLeft size={20} aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => move(1)}
-                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-stone-300 bg-white text-[#172033] shadow-sm transition hover:bg-stone-50"
-                  aria-label="Next review"
-                >
-                  <ChevronRight size={20} aria-hidden="true" />
-                </button>
-              </div>
-            </div>
+                </p>
+                <h3 className="mt-5 text-lg font-black text-slate-50">{stat.label}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{stat.description}</p>
+              </motion.article>
+            ))}
           </div>
         </div>
       </motion.div>
@@ -2079,12 +2176,12 @@ function JobsDone() {
   ];
 
   return (
-    <section className="bg-[#f6f2ea] py-16">
+    <section id="services" className="bg-[#08111f] py-16">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="text-sm font-black uppercase tracking-[0.16em] text-[#244f8f]">
-          Jobs Done
+        <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
+          Services
         </p>
-        <h2 className="mt-3 max-w-3xl text-4xl font-black text-[#172033] sm:text-5xl">
+        <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-5xl">
           The work of a strong front desk, available when your team is not.
         </h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -2100,46 +2197,45 @@ function JobsDone() {
 function HowItWorks() {
   const steps = [
     {
-      label: "Train",
-      title: "Load the business basics",
-      copy: "Website pages, FAQs, services, hours, locations, pricing rules, and approved answers become the receptionist's knowledge base."
+      label: "Answer",
+      title: "A call reaches NexCall",
+      copy: "The AI receptionist answers naturally, confirms the caller's intent, and keeps the conversation focused."
     },
     {
-      label: "Test",
-      title: "Simulate real calls first",
-      copy: "We test scheduling, caller corrections, noisy lines, accents, urgent requests, and questions the AI should hand off."
+      label: "Capture",
+      title: "The details become structured",
+      copy: "Name, phone, need, urgency, preferred time, and business context are captured without making the caller repeat themselves."
     },
     {
-      label: "Connect",
-      title: "Wire phone, calendar, SMS, and CRM",
-      copy: "Twilio handles the number. Your calendar handles availability. Automations send confirmations and team summaries."
+      label: "Book",
+      title: "The next step is routed",
+      copy: "NexCall books the slot when availability is clear, creates a request when it is not, and alerts your team."
     },
     {
-      label: "Improve",
-      title: "Review what callers actually ask",
-      copy: "Transcripts reveal missing FAQs, unclear routing rules, and opportunities to make the next call easier."
+      label: "Summarize",
+      title: "Your team gets the clean note",
+      copy: "Every qualified call becomes a short, useful summary instead of a voicemail with missing context."
     }
   ];
 
   return (
-    <section id="how-it-works" className="border-y border-stone-200 bg-white py-16">
+    <section id="how-it-works" className="border-y border-white/10 bg-[#05070d] py-16">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0f766e]">
+            <p className="text-sm font-black uppercase tracking-[0.16em] text-emerald-300">
               How It Works
             </p>
-            <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
-              A simple launch path beats a maze of features.
+            <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
+              From incoming call to clean next step in one flow.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-stone-600">
-              Buyers need to know the next step feels manageable. This rollout keeps
-              the first version focused on the calls most likely to create appointments
-              or save staff time.
+            <p className="mt-5 text-lg leading-8 text-slate-300">
+              NexCall stays easy to understand because the workflow mirrors what a
+              great receptionist already does: answer, listen, book, and brief the team.
             </p>
             <a
               href="#lead"
-              className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-lg bg-[#244f8f] px-5 py-3 font-black text-white shadow-lg shadow-blue-900/10 transition hover:bg-[#1c3f73]"
+              className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 py-3 font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200"
             >
               Map My First Flow
               <ArrowRight size={18} aria-hidden="true" />
@@ -2150,16 +2246,16 @@ function HowItWorks() {
               <motion.article
                 key={step.title}
                 whileHover={{ y: -4 }}
-                className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-6 shadow-sm"
+                className="rounded-[1.25rem] border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/20 backdrop-blur"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#244f8f]">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#05070d]">
                     {step.label}
                   </span>
-                  <span className="text-3xl font-black text-stone-300">0{index + 1}</span>
+                  <span className="text-3xl font-black text-white/20">0{index + 1}</span>
                 </div>
-                <h3 className="mt-8 text-2xl font-black text-[#172033]">{step.title}</h3>
-                <p className="mt-3 leading-7 text-stone-600">{step.copy}</p>
+                <h3 className="mt-8 text-2xl font-black text-white">{step.title}</h3>
+                <p className="mt-3 leading-7 text-slate-300">{step.copy}</p>
               </motion.article>
             ))}
           </div>
@@ -2181,13 +2277,13 @@ function FeatureCard({
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-lg hover:shadow-stone-300/30"
+      className="rounded-[1.25rem] border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/20 backdrop-blur transition-shadow hover:border-[#8dbdff]/40"
     >
-      <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-[#e8f0fc] text-[#244f8f]">
+      <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#05070d]">
         <Icon size={24} aria-hidden="true" />
       </div>
-      <h3 className="text-2xl font-black text-[#172033]">{title}</h3>
-      <p className="mt-3 leading-7 text-stone-600">{copy}</p>
+      <h3 className="text-2xl font-black text-white">{title}</h3>
+      <p className="mt-3 leading-7 text-slate-300">{copy}</p>
     </motion.div>
   );
 }
@@ -2251,34 +2347,34 @@ function Pricing() {
   }
 
   return (
-    <motion.section {...sectionMotion} id="pricing" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <motion.section {...sectionMotion} id="pricing" className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#244f8f]">
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
             Predictable Pricing
           </p>
-          <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
-            Flat monthly plans, no surprise per-minute anxiety.
+          <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
+            Clear plans for teams ready to stop missing calls.
           </h2>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-stone-600">
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
             Three choices keep the decision simple: start with answering, add live
             calendar booking, or connect deeper systems once the phone flow is proven.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             {pricingCues.map((cue) => (
-              <span key={cue} className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-black text-stone-600 shadow-sm">
+              <span key={cue} className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs font-black text-slate-300 shadow-sm">
                 {cue}
               </span>
             ))}
           </div>
         </div>
-        <div className="flex w-full max-w-xs rounded-lg border border-stone-200 bg-white p-1 shadow-sm">
+        <div className="flex w-full max-w-xs rounded-xl border border-white/10 bg-white/6 p-1 shadow-sm">
           {(["monthly", "yearly"] as const).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setBilling(option)}
-              className={`min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-black capitalize transition ${billing === option ? "bg-[#244f8f] text-white" : "text-stone-600 hover:text-[#172033]"}`}
+              className={`min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-black capitalize transition ${billing === option ? "bg-white text-[#05070d]" : "text-slate-300 hover:text-white"}`}
             >
               {option}
             </button>
@@ -2289,25 +2385,25 @@ function Pricing() {
         {plans.map((plan) => {
           const price = billing === "monthly" ? plan.monthly : Math.round(plan.monthly * 0.85);
           return (
-            <div key={plan.name} className={`relative rounded-lg border p-6 shadow-sm ${plan.featured ? "border-[#244f8f] bg-[#eef4ff]" : "border-stone-200 bg-white"}`}>
+            <div key={plan.name} className={`relative rounded-[1.35rem] border p-6 shadow-2xl shadow-black/20 ${plan.featured ? "border-[#8dbdff]/60 bg-[#111c2f]" : "border-white/10 bg-white/7"}`}>
               {plan.featured ? (
-                <p className="absolute right-5 top-5 rounded-full bg-[#244f8f] px-3 py-1 text-xs font-black uppercase text-white">
+                <p className="absolute right-5 top-5 rounded-full bg-[#8dbdff] px-3 py-1 text-xs font-black uppercase text-[#05070d]">
                   Best fit
                 </p>
               ) : null}
-              <h3 className="text-3xl font-black text-[#172033]">{plan.name}</h3>
-              <p className="mt-2 text-sm font-bold text-stone-500">{plan.limit}</p>
+              <h3 className="text-3xl font-black text-white">{plan.name}</h3>
+              <p className="mt-2 text-sm font-bold text-slate-400">{plan.limit}</p>
               <div className="mt-5 flex items-end gap-1">
-                <span className="text-5xl font-black text-[#172033]">${price.toLocaleString()}</span>
-                <span className="pb-2 text-stone-500">/mo{plan.plus ? "+" : ""}</span>
+                <span className="text-5xl font-black text-white">${price.toLocaleString()}</span>
+                <span className="pb-2 text-slate-400">/mo{plan.plus ? "+" : ""}</span>
               </div>
-              <p className="mt-2 text-sm text-stone-500">
+              <p className="mt-2 text-sm text-slate-400">
                 {billing === "yearly" ? "Billed yearly. Save 15%." : "Month-to-month after launch."}
               </p>
               <ul className="mt-7 space-y-3">
                 {plan.features.map((feature) => (
-                  <li key={feature} className="flex gap-3 text-sm leading-6 text-stone-700">
-                    <Check className="mt-0.5 shrink-0 text-[#0f766e]" size={18} aria-hidden="true" />
+                  <li key={feature} className="flex gap-3 text-sm leading-6 text-slate-300">
+                    <Check className="mt-0.5 shrink-0 text-emerald-300" size={18} aria-hidden="true" />
                     {feature}
                   </li>
                 ))}
@@ -2316,7 +2412,7 @@ function Pricing() {
                 type="button"
                 onClick={() => startCheckout(plan.id)}
                 disabled={checkoutLoading !== null}
-                className={`mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-lg px-5 py-3 text-base font-black transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${plan.featured ? "bg-[#244f8f] text-white hover:bg-[#1c3f73] focus:ring-blue-200" : "border border-stone-300 bg-white text-[#172033] hover:bg-stone-50 focus:ring-stone-200"}`}
+                className={`mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-base font-black transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${plan.featured ? "bg-white text-[#05070d] hover:bg-slate-200 focus:ring-blue-300/30" : "border border-white/15 bg-white/6 text-white hover:bg-white/10 focus:ring-blue-300/20"}`}
               >
                 {checkoutLoading === plan.id ? "Opening Checkout..." : `Start With ${plan.name}`}
               </button>
@@ -2325,7 +2421,7 @@ function Pricing() {
         })}
       </div>
       {checkoutError ? (
-        <p className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">
+        <p className="mt-5 rounded-xl border border-amber-300/40 bg-amber-300/10 p-4 text-sm font-bold text-amber-100">
           {checkoutError}
         </p>
       ) : null}
@@ -2368,25 +2464,25 @@ function FAQSection() {
   ];
 
   return (
-    <section id="faq" className="border-t border-stone-200 bg-[#f6f2ea] py-16">
+    <section id="faq" className="border-t border-white/10 bg-[#08111f] py-16">
       <motion.div {...sectionMotion} className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-black uppercase tracking-[0.16em] text-[#0f766e]">
+        <p className="text-center text-sm font-black uppercase tracking-[0.16em] text-emerald-300">
           FAQ
         </p>
-        <h2 className="mt-3 text-center text-4xl font-black text-[#172033] sm:text-5xl">
+        <h2 className="mt-3 text-center text-4xl font-black text-white sm:text-5xl">
           Everything a practical buyer asks before going live.
         </h2>
         <div className="mt-10 grid gap-3">
           {faqs.map((faq) => (
-            <details key={faq.question} className="group rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-black text-[#172033]">
+            <details key={faq.question} className="group rounded-2xl border border-white/10 bg-white/7 p-5 shadow-xl shadow-black/15">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-black text-white">
                 <span className="flex items-center gap-3">
-                  <HelpCircle className="shrink-0 text-[#244f8f]" size={21} aria-hidden="true" />
+                  <HelpCircle className="shrink-0 text-[#8dbdff]" size={21} aria-hidden="true" />
                   {faq.question}
                 </span>
                 <ChevronRight className="shrink-0 transition group-open:rotate-90" size={20} aria-hidden="true" />
               </summary>
-              <p className="mt-4 leading-7 text-stone-600">{faq.answer}</p>
+              <p className="mt-4 leading-7 text-slate-300">{faq.answer}</p>
             </details>
           ))}
         </div>
@@ -2449,15 +2545,17 @@ function ClosingLeadCapture() {
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              placeholder="(301) 466-4605"
+              placeholder="(###) ###-####"
               className="min-h-12 rounded-lg border border-stone-300 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f]"
               {...leadPhoneRegistration}
               value={leadPhoneValue}
               onChange={(event) => {
                 leadPhoneRegistration.onChange(event);
-                setValue("phone", formatPhoneDisplay(event.target.value), {
-                  shouldDirty: true,
-                  shouldValidate: true
+                handlePhoneInputFormatting(event, (value) => {
+                  setValue("phone", value, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
                 });
               }}
               onBlur={(event) => {
@@ -2524,20 +2622,20 @@ function ClosingLeadCapture() {
   const currentError = errors[steps[step].field]?.message || (step === 2 ? errors.phone?.message : undefined);
 
   return (
-    <section id="lead" className="border-t border-stone-200 bg-white py-16">
+    <section id="lead" className="border-t border-white/10 bg-[#05070d] py-16">
       <motion.div {...sectionMotion} className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.85fr_1fr] lg:px-8">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0f766e]">
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-emerald-300">
             Get Started
           </p>
-          <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
             See how your phones could feel next week.
           </h2>
-          <p className="mt-5 text-lg leading-8 text-stone-600">
+          <p className="mt-5 text-lg leading-8 text-slate-300">
             We will map your current call flow, find where leads go quiet, and send
             a short demo tailored to your business type and appointment flow.
           </p>
-          <p className="mt-4 rounded-lg border border-[#c8d7ef] bg-[#e8f0fc] p-4 text-sm font-bold leading-6 text-[#244f8f]">
+          <p className="mt-4 rounded-2xl border border-[#8dbdff]/30 bg-[#8dbdff]/10 p-4 text-sm font-bold leading-6 text-blue-100">
             Takes about 60 seconds. No card required for the demo request.
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -2545,7 +2643,7 @@ function ClosingLeadCapture() {
             <Badge icon={MessageSquareText} text="Calls, booking, and SMS" />
           </div>
         </div>
-        <form onSubmit={handleSubmit(submitLead)} className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-5 shadow-xl shadow-stone-300/30 sm:p-6">
+        <form onSubmit={handleSubmit(submitLead)} className="rounded-[1.35rem] border border-white/10 bg-white p-5 text-[#172033] shadow-2xl shadow-black/30 sm:p-6">
           <p className="mb-4 text-sm font-black uppercase tracking-[0.14em] text-[#244f8f]">
             Step {step + 1} of {steps.length}
           </p>
@@ -2720,30 +2818,30 @@ function LiveChatDock() {
         <motion.section
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-2xl shadow-stone-500/25"
+          className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1220] shadow-2xl shadow-black/45"
           aria-label="NexCall live chat"
         >
-          <div className="flex items-center justify-between gap-3 border-b border-stone-200 bg-[#f6f2ea] px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/6 px-4 py-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#05070d]">
                 <MessageSquareText size={20} aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-black text-[#172033]">Front desk assistant</p>
-                <p className="text-xs font-bold text-stone-500">Warm answers or human follow-up</p>
+                <p className="text-sm font-black text-white">Front desk assistant</p>
+                <p className="text-xs font-bold text-slate-400">Warm answers or human follow-up</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-[#172033] transition hover:bg-stone-50"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/6 text-slate-100 transition hover:bg-white/10"
               aria-label="Collapse live chat"
             >
               <Minus size={18} aria-hidden="true" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 border-b border-stone-200 bg-white p-2">
+          <div className="grid grid-cols-2 border-b border-white/10 bg-[#05070d] p-2">
             {[
               { key: "ai" as const, label: "Quick answer", icon: Bot },
               { key: "human" as const, label: "Human follow-up", icon: UserRound }
@@ -2753,7 +2851,7 @@ function LiveChatDock() {
                 type="button"
                 onClick={() => setMode(tab.key)}
                 className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-sm font-black transition ${
-                  mode === tab.key ? "bg-[#244f8f] text-white" : "text-stone-600 hover:bg-[#f6f2ea] hover:text-[#172033]"
+                  mode === tab.key ? "bg-white text-[#05070d]" : "text-slate-300 hover:bg-white/8 hover:text-white"
                 }`}
               >
                 <tab.icon size={16} aria-hidden="true" />
@@ -2763,13 +2861,13 @@ function LiveChatDock() {
           </div>
 
           {mode === "ai" ? (
-            <div className="bg-white">
+            <div className="bg-[#0b1220]">
               <div className="max-h-72 space-y-3 overflow-y-auto p-4">
                 {messages.map((message, index) => (
                   <div key={`${message.role}-${index}`} className={`flex ${message.role === "visitor" ? "justify-end" : "justify-start"}`}>
                     <div
                       className={`max-w-[86%] rounded-lg px-3 py-2 text-sm leading-6 ${
-                        message.role === "visitor" ? "bg-[#244f8f] text-white" : "bg-[#f6f2ea] text-[#172033]"
+                        message.role === "visitor" ? "bg-[#8dbdff] text-[#05070d]" : "bg-white/8 text-slate-100"
                       }`}
                     >
                       {message.text}
@@ -2782,7 +2880,7 @@ function LiveChatDock() {
                   </p>
                 ) : null}
               </div>
-              <form onSubmit={askQuestion} className="border-t border-stone-200 p-3">
+              <form onSubmit={askQuestion} className="border-t border-white/10 p-3">
                 <label className="sr-only" htmlFor="live-chat-question">
                   Ask NexCall a question
                 </label>
@@ -2793,25 +2891,25 @@ function LiveChatDock() {
                     onChange={(event) => setQuestion(event.target.value)}
                     placeholder={chatTerminated ? "Conversation ended" : "Ask about numbers, setup, booking..."}
                     disabled={chatTerminated}
-                    className="min-h-11 flex-1 rounded-lg border border-stone-300 px-3 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f]"
+                    className="min-h-11 flex-1 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff]"
                   />
                   <button
                     type="submit"
                     disabled={isAsking || chatTerminated}
-                    className="flex min-h-11 w-12 items-center justify-center rounded-lg bg-[#244f8f] text-white transition hover:bg-[#1c3f73] disabled:opacity-60"
+                    className="flex min-h-11 w-12 items-center justify-center rounded-lg bg-white text-[#05070d] transition hover:bg-slate-200 disabled:opacity-60"
                     aria-label="Send chat question"
                   >
                     <Send size={17} aria-hidden="true" />
                   </button>
                 </div>
-                <p className="mt-2 text-[11px] font-bold leading-4 text-stone-500">
+                <p className="mt-2 text-[11px] font-bold leading-4 text-slate-400">
                   Uses a tenant-aware business knowledge layer, 1M+ approved reply combinations, and a professional safety shutoff.
                 </p>
               </form>
             </div>
           ) : (
-            <form onSubmit={requestHuman} className="space-y-3 bg-white p-4">
-              <p className="text-sm leading-6 text-stone-600">
+            <form onSubmit={requestHuman} className="space-y-3 bg-[#0b1220] p-4">
+              <p className="text-sm leading-6 text-slate-300">
                 Send a quiet handoff to a person. No floating sales spam, just enough context to reply well.
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -2819,13 +2917,13 @@ function LiveChatDock() {
                   value={humanForm.name}
                   onChange={(event) => setHumanForm((current) => ({ ...current, name: event.target.value }))}
                   placeholder="Name"
-                  className="min-h-11 rounded-lg border border-stone-300 px-3 text-sm outline-none focus:border-[#244f8f]"
+                  className="min-h-11 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
                 />
                 <input
                   value={humanForm.business}
                   onChange={(event) => setHumanForm((current) => ({ ...current, business: event.target.value }))}
                   placeholder="Business type"
-                  className="min-h-11 rounded-lg border border-stone-300 px-3 text-sm outline-none focus:border-[#244f8f]"
+                  className="min-h-11 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
                 />
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -2835,16 +2933,20 @@ function LiveChatDock() {
                   value={humanForm.email}
                   onChange={(event) => setHumanForm((current) => ({ ...current, email: event.target.value }))}
                   placeholder="Email"
-                  className="min-h-11 rounded-lg border border-stone-300 px-3 text-sm outline-none focus:border-[#244f8f]"
+                  className="min-h-11 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
                 />
                 <input
                   type="tel"
                   required
                   value={humanForm.phone}
-                  onChange={(event) => setHumanForm((current) => ({ ...current, phone: formatPhoneDisplay(event.target.value) }))}
+                  onChange={(event) =>
+                    handlePhoneInputFormatting(event, (value) =>
+                      setHumanForm((current) => ({ ...current, phone: value }))
+                    )
+                  }
                   onBlur={(event) => setHumanForm((current) => ({ ...current, phone: formatPhoneForBlur(event.target.value) }))}
-                  placeholder="(301) 466-4605"
-                  className="min-h-11 rounded-lg border border-stone-300 px-3 text-sm outline-none focus:border-[#244f8f]"
+                  placeholder="(###) ###-####"
+                  className="min-h-11 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
                 />
               </div>
               <textarea
@@ -2852,11 +2954,11 @@ function LiveChatDock() {
                 value={humanForm.message}
                 onChange={(event) => setHumanForm((current) => ({ ...current, message: event.target.value }))}
                 placeholder="What should the person know?"
-                className="min-h-24 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none placeholder:text-stone-400 focus:border-[#244f8f]"
+                className="min-h-24 w-full rounded-lg border border-white/10 bg-white px-3 py-2 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff]"
               />
               <button
                 type="submit"
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#244f8f] px-4 py-2 text-sm font-black text-white transition hover:bg-[#1c3f73]"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-black text-[#05070d] transition hover:bg-slate-200"
               >
                 <UserRound size={17} aria-hidden="true" />
                 Send To A Person
@@ -2873,15 +2975,15 @@ function LiveChatDock() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="ml-auto flex min-h-12 items-center gap-3 rounded-lg border border-[#c8d7ef] bg-white px-4 py-3 text-left shadow-xl shadow-stone-500/20 transition hover:-translate-y-0.5 hover:bg-[#f6f2ea]"
+          className="ml-auto flex min-h-12 items-center gap-3 rounded-2xl border border-white/10 bg-[#0b1220] px-4 py-3 text-left shadow-xl shadow-black/30 transition hover:-translate-y-0.5 hover:bg-[#111c2f]"
           aria-label="Open NexCall live chat"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#244f8f] text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#05070d]">
             <MessageSquareText size={18} aria-hidden="true" />
           </span>
-          <span>
-            <span className="block text-sm font-black text-[#172033]">Ask the front desk</span>
-            <span className="block text-xs font-bold text-stone-500">AI or human follow-up</span>
+          <span className="hidden sm:block">
+            <span className="block text-sm font-black text-white">Ask the front desk</span>
+            <span className="block text-xs font-bold text-slate-400">AI or human follow-up</span>
           </span>
         </button>
       )}
@@ -2901,15 +3003,26 @@ function Footer() {
   ];
 
   return (
-    <footer className="border-t border-stone-200 bg-[#f6f2ea] px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-stone-500 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="font-black text-[#172033]">NexCall</p>
-          <p className="mt-1">Helpful phone automation with clear handoffs to real people.</p>
+    <footer className="border-t border-white/10 bg-black px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 text-sm text-slate-400 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <span className="relative h-12 w-12 overflow-hidden rounded-xl border border-white/10 bg-[#05070d] shadow-lg shadow-black/30">
+            <Image
+              src={brandAssets.icon}
+              alt=""
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
+          </span>
+          <div>
+            <p className="font-black text-white">NexCall</p>
+            <p className="mt-1">AI receptionist coverage with clear handoffs to real people.</p>
+          </div>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal links">
           {legalLinks.map((item) => (
-            <a key={item.href} href={item.href} className="font-bold transition hover:text-[#172033]">
+            <a key={item.href} href={item.href} className="font-bold transition hover:text-white">
               {item.label}
             </a>
           ))}

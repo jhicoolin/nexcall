@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getClientForPayload } from "@/lib/client-directory";
+import { notifyNexCallLead } from "@/lib/lead-notifications";
 import {
   cleanIdentifier,
   cleanText,
@@ -72,25 +73,44 @@ export async function POST(request: Request) {
 
   if (leadWebhookUrl) {
     if (!isAllowedServerUrl(leadWebhookUrl)) {
-      return NextResponse.json(
-        { ok: false, error: "Lead webhook URL must be a secure HTTPS URL." },
-        { status: 500 }
-      );
-    }
+      console.error("Lead webhook URL is not allowed", { source: lead.source });
+    } else {
+      try {
+        const response = await fetch(leadWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(lead)
+        });
 
-    const response = await fetch(leadWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(lead)
-    });
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { ok: false, error: "Lead webhook rejected the request." },
-        { status: 502 }
-      );
+        if (!response.ok) {
+          console.error("Lead webhook rejected the request", {
+            status: response.status,
+            source: lead.source
+          });
+        }
+      } catch (error) {
+        console.error("Lead webhook failed", {
+          source: lead.source,
+          message: error instanceof Error ? error.message : "Unknown lead webhook error"
+        });
+      }
     }
   }
 
-  return NextResponse.json({ ok: true });
+  const notification = await notifyNexCallLead({
+    subject: lead.source?.includes("chat") ? "New NexCall Contact Request" : "New NexCall Demo Request",
+    source: lead.source || "nexcall-site",
+    name: cleanText(rawPayload.name, 120) || lead.trucks,
+    email: lead.email,
+    phone: lead.phone,
+    businessName: lead.service,
+    inquiryType: lead.source?.includes("chat") ? "human follow-up" : "demo request",
+    message: lead.message || `Team size: ${lead.trucks}. Business type: ${lead.service}.`,
+    metadata: {
+      clientId: lead.clientId,
+      clientBusinessName: lead.clientBusinessName
+    }
+  });
+
+  return NextResponse.json({ ok: true, notification });
 }

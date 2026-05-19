@@ -7,6 +7,7 @@ import {
   Sparkles,
   Users
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -48,8 +49,14 @@ export default function AboutPage() {
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3 text-sm font-black text-[#172033]">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white">
-              <ShieldCheck size={21} aria-hidden="true" />
+            <span className="relative h-10 w-10 overflow-hidden rounded-lg bg-black shadow-sm">
+              <Image
+                src="/brand/nexcall-icon.png"
+                alt=""
+                fill
+                sizes="40px"
+                className="object-cover"
+              />
             </span>
             NEXCALL
           </Link>

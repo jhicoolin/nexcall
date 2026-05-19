@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getClientForPayload } from "@/lib/client-directory";
 import { inngest } from "@/inngest/client";
+import { createIcsEvent } from "@/lib/ics";
+import { notifyNexCallLead } from "@/lib/lead-notifications";
 import { cleanText, isValidPhone, readJsonObject, validationResponse } from "@/lib/security";
 
 type BookingPayload = {
@@ -63,10 +65,56 @@ export async function POST(request: Request) {
     source: "ai-receptionist-voice-agent"
   };
 
-  await inngest.send({
-    name: "booking/calendar.requested",
-    data: eventPayload
+  let queued = false;
+
+  try {
+    await inngest.send({
+      name: "booking/calendar.requested",
+      data: eventPayload
+    });
+    queued = true;
+  } catch (error) {
+    console.error("Calendar booking queue failed", {
+      clientId: eventPayload.clientId,
+      message: error instanceof Error ? error.message : "Unknown Inngest error"
+    });
+  }
+
+  const startDate = new Date(booking.start || "");
+  const icsContent = Number.isNaN(startDate.getTime())
+    ? null
+    : createIcsEvent({
+        start: startDate,
+        summary: "NexCall Booking Request",
+        description: [
+          `Name: ${booking.name}`,
+          `Phone: ${booking.phone}`,
+          `Address: ${booking.address}`,
+          `Service: ${booking.service}`,
+          `Urgency: ${booking.urgency || "Not provided"}`,
+          `Notes: ${booking.notes || "No notes provided"}`
+        ].join("\n"),
+        uidPrefix: "nexcall-booking"
+      });
+
+  const notification = await notifyNexCallLead({
+    subject: "New NexCall Demo Request",
+    source: "calendar-booking",
+    name: booking.name,
+    phone: booking.phone,
+    businessName: eventPayload.clientBusinessName,
+    inquiryType: "calendar booking",
+    appointmentType: booking.service,
+    requestedTime: booking.start,
+    notes: booking.notes,
+    icsContent,
+    metadata: {
+      queued,
+      tenantId: eventPayload.tenantId,
+      urgency: booking.urgency,
+      address: booking.address
+    }
   });
 
-  return NextResponse.json({ ok: true, queued: true });
+  return NextResponse.json({ ok: true, queued, notification });
 }
