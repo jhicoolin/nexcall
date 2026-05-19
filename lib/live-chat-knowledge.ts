@@ -1,16 +1,16 @@
 export const liveChatModelDefault = "deepset/roberta-base-squad2";
 
 export const liveChatKnowledge = `
-Revenue Guard is an AI receptionist and live front-office system for businesses that take customer calls.
+NexCall is an AI receptionist and live front-office system for businesses that take customer calls.
 It answers calls, qualifies leads, books or reschedules appointments, sends SMS confirmations, routes complex calls to a human, and sends clean summaries to the team.
 
 The service works for many business types including dental offices, medical clinics, salons, auto repair, legal offices, agencies, contractors, local shops, restaurants, real estate, insurance, retail, fitness, wellness, home services, and professional services.
 
 The safest setup is hybrid. AI handles repeatable calls and a human receives complex, sensitive, emotional, urgent, high-value, or policy-sensitive calls.
 
-Revenue Guard uses Twilio behind the scenes for phone numbers and call routing. The agency can assign each client an AI receptionist number from its managed number pool. A client can keep their existing business number by forwarding missed, after-hours, overflow, or all calls into the assigned AI number. A client only needs their own Twilio account if they specifically want to own and manage the carrier account directly.
+NexCall uses Twilio behind the scenes for phone numbers and call routing. The agency can assign each client an AI receptionist number from its managed number pool. A client can keep their existing business number by forwarding missed, after-hours, overflow, or all calls into the assigned AI number. A client only needs their own Twilio account if they specifically want to own and manage the carrier account directly.
 
-Revenue Guard is designed to connect with Google Calendar, Microsoft Calendar, Cal.com, Calendly, Stripe, Zapier, Make, n8n, Airtable, Google Sheets, HubSpot, Salesforce, Zoho, Pipedrive, GoHighLevel, Zendesk, Freshdesk, Housecall Pro, Jobber, ServiceTitan, Dentrix, Follow Up Boss, SMS, WhatsApp workflows, email follow-up, and team alerts.
+NexCall is designed to connect with Google Calendar, Microsoft Calendar, Cal.com, Calendly, Stripe, Zapier, Make, n8n, Airtable, Google Sheets, HubSpot, Salesforce, Zoho, Pipedrive, GoHighLevel, Zendesk, Freshdesk, Housecall Pro, Jobber, ServiceTitan, Dentrix, Follow Up Boss, SMS, WhatsApp workflows, email follow-up, and team alerts.
 
 The public website has scenario demos for appointment scheduling, lead qualification, restaurant concierge calls, customer support, AI IVR routing, and legal intake.
 
@@ -22,7 +22,7 @@ Growth includes everything in Appointment plus CRM or sheet integration, multipl
 
 The launch setup requires a domain, hosting such as Vercel, Stripe, Twilio, a voice agent platform, a calendar system, an automation layer, lead storage, and optionally professional email, privacy policy, terms, business entity, bank account, and live human fallback provider.
 
-The website supports uploaded MP3 demo clips, optional Hugging Face TTS generation for approved scenario demos only, and browser speech fallback. Hugging Face voice model options documented for testing include Kokoro, Chatterbox, Qwen3-TTS CustomVoice, and VibeVoice Realtime. The live chat is text question-answering only and does not use humanized TTS.
+The website supports uploaded MP3 demo clips, optional ElevenLabs TTS generation for approved scenario demos only, and browser speech fallback. The live chat is text-only and does not generate spoken audio.
 
 The live chat on the website is intentionally collapsed by default so it feels like a quiet front-desk tab instead of an advertisement. Visitors can ask the AI a question or request human follow-up.
 `;
@@ -39,7 +39,7 @@ export function fallbackChatAnswer(question: string) {
   }
 
   if (normalized.includes("twilio") || normalized.includes("phone") || normalized.includes("number")) {
-    return "Revenue Guard can manage Twilio for you. We assign the business an AI receptionist number, connect it to that client's voice agent, and optionally forward or port the client's existing number later.";
+    return "NexCall can manage Twilio for you. We assign the business an AI receptionist number, connect it to that client's voice agent, and optionally forward or port the client's existing number later.";
   }
 
   if (normalized.includes("calendar") || normalized.includes("book") || normalized.includes("reschedule")) {
@@ -51,8 +51,8 @@ export function fallbackChatAnswer(question: string) {
   }
 
   if (normalized.includes("business") || normalized.includes("industry") || normalized.includes("work for")) {
-    return "Revenue Guard can work for businesses with repeat call patterns, including clinics, salons, auto repair, law firms, restaurants, agencies, real estate, retail, and home services.";
+    return "NexCall can work for businesses with repeat call patterns, including clinics, salons, auto repair, law firms, restaurants, agencies, real estate, retail, and home services.";
   }
 
-  return "Revenue Guard answers calls, qualifies leads, books appointments, sends SMS confirmations, and gives your team clean summaries. For a specific setup question, use the Human follow-up tab and we will route it to the team.";
+  return "NexCall answers calls, qualifies leads, books appointments, sends SMS confirmations, and gives your team clean summaries. For a specific setup question, use the Human follow-up tab and we will route it to the team.";
 }

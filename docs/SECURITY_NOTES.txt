@@ -7,7 +7,7 @@ No public website can honestly be promised as impossible to exploit. The right g
 What is currently hardened:
 
 1. Secrets stay server-side
-   Stripe, Hugging Face, Twilio forwarding URLs, and webhook URLs belong in .env.local or Vercel environment variables.
+   Stripe, ElevenLabs, Twilio forwarding URLs, and webhook URLs belong in .env.local or Vercel environment variables.
    Do not paste real secrets into client code, README files, screenshots, or public repos.
 
 2. Legal and transparency pages are present
@@ -19,11 +19,11 @@ What is currently hardened:
    Shared helpers in lib/security.ts validate JSON content type, limit request body size, remove control characters and angle brackets, validate email and phone formats, and reject oversized payloads.
 
 4. Scenario-only TTS
-   app/api/tts/huggingface/route.ts rejects custom visitor text.
-   Humanized TTS models can only generate approved scenario demo scripts from lib/huggingface-voice-lab.ts.
+   app/api/tts/elevenlabs/route.ts rejects custom visitor text.
+   Humanized TTS can only generate approved scenario demo scripts from lib/nexcall-voice-demos.ts.
 
 5. Text-only chat
-   app/api/chat/huggingface/route.ts answers from approved site context and falls back to local approved answers.
+   app/api/chat/nexcall/route.ts answers from approved site context and falls back to local approved answers.
    It does not call the TTS route.
 
 6. Webhook URL safety
@@ -56,8 +56,8 @@ What still needs to happen before public launch:
 4. Add rate limiting.
    Add Vercel WAF, Cloudflare, Upstash rate limiting, or equivalent protection for:
    - /api/leads
-   - /api/chat/huggingface
-   - /api/tts/huggingface
+   - /api/chat/nexcall
+   - /api/tts/elevenlabs
    - /api/checkout
 
 5. Validate Twilio signatures.

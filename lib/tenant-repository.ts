@@ -86,13 +86,13 @@ function demoTenant(): TenantRuntimeConfig {
   return {
     id: "demo",
     slug: "demo",
-    businessName: "Revenue Guard Demo",
+    businessName: "NexCall Demo",
     twilioPhoneNumber: phone,
     assignedTwilioNumber: phone,
     phoneNumbers: [phone],
     systemPrompt:
       process.env.DEFAULT_RECEPTIONIST_SYSTEM_PROMPT ||
-      "You are a warm, concise AI receptionist. Ask one question at a time, verify contact details, book only when availability is confirmed, and escalate complex requests to a human.",
+      "Answer with: Thanks for calling [Client Business], this is NexCall. Then act as a warm, concise AI receptionist. Ask one question at a time, verify contact details, book only when availability is confirmed, and escalate complex requests to a human.",
     calendarWebhookUrl: process.env.CALENDAR_WEBHOOK_URL || "",
     leadWebhookUrl: process.env.LEAD_WEBHOOK_URL || "",
     smsWebhookUrl: process.env.SMS_WEBHOOK_URL || "",
@@ -100,7 +100,7 @@ function demoTenant(): TenantRuntimeConfig {
     speechToTextModelId: process.env.HUGGINGFACE_STT_MODEL || "openai/whisper-large-v3-turbo",
     llmModelId: process.env.HUGGINGFACE_LLM_MODEL || "mistralai/Mistral-7B-Instruct-v0.3",
     timezone: "America/New_York",
-    greeting: "Thanks for calling Revenue Guard. I can help with appointments, questions, and follow-up.",
+    greeting: "Thanks for calling NexCall. I can help with appointments, questions, and follow-up.",
     calendarProvider: "Demo calendar",
     crmProvider: "Demo lead storage",
     voiceProvider: (process.env.DEFAULT_VOICE_PROVIDER as TenantRuntimeConfig["voiceProvider"]) || "VAPI",

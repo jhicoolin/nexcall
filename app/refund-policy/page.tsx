@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Refund Policy | Revenue Guard AI",
-  description: "Refund, cancellation, setup fee, and subscription policy for Revenue Guard AI."
+  title: "Refund Policy | NexCall",
+  description: "Refund, cancellation, setup fee, and subscription policy for NexCall."
 };
 
 export default function RefundPolicyPage() {
@@ -29,7 +29,7 @@ export default function RefundPolicyPage() {
       <p>Send the business name, billing email, plan, purchase date, and reason for the request through the website contact form or configured support email. We review refund requests in good faith and may ask for call logs, issue details, or account information to evaluate the request.</p>
 
       <h2>No False Guarantees</h2>
-      <p>Revenue Guard AI does not guarantee a specific revenue increase, close rate, appointment volume, or ROI unless a written agreement states a specific measurable promise.</p>
+      <p>NexCall does not guarantee a specific revenue increase, close rate, appointment volume, or ROI unless a written agreement states a specific measurable promise.</p>
     </LegalPage>
   );
 }

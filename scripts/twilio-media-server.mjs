@@ -193,7 +193,7 @@ function handleTwilioMessage(session, message) {
 
 const server = http.createServer((request, response) => {
   response.writeHead(200, { "Content-Type": "text/plain" });
-  response.end("Revenue Guard Twilio Media Server is running.\n");
+  response.end("NexCall Twilio Media Server is running.\n");
 });
 
 server.on("upgrade", (request, socket) => {

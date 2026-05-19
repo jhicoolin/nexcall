@@ -12,7 +12,7 @@ const openings = [
   "Yes, and the setup is handled for you.",
   "Good question.",
   "Short version: yes.",
-  "That is one of the main things Revenue Guard is built for.",
+  "That is one of the main things NexCall is built for.",
   "You do not have to figure that out alone.",
   "For most businesses, the answer is yes.",
   "That is exactly the kind of front-desk work this handles.",
@@ -64,7 +64,7 @@ const topics: ChatTopic[] = [
     keywords: ["twilio", "number", "phone"],
     title: "Assigned AI number",
     answer:
-      "Revenue Guard can manage the Twilio setup from our side. We assign your business an AI receptionist number, connect it to your tenant profile, and route calls to your voice agent. If you already have a business number, you can forward calls to the AI number or port that number later. You do not need to open your own Twilio account unless you specifically want to own the carrier account directly."
+      "NexCall can manage the Twilio setup from our side. We assign your business an AI receptionist number, connect it to your tenant profile, and route calls to your voice agent. If you already have a business number, you can forward calls to the AI number or port that number later. You do not need to open your own Twilio account unless you specifically want to own the carrier account directly."
   },
   {
     keywords: ["existing", "number", "forward"],
@@ -94,7 +94,7 @@ const topics: ChatTopic[] = [
     keywords: ["crm", "hubspot", "salesforce"],
     title: "CRM handoff",
     answer:
-      "Revenue Guard can send caller details into a CRM, spreadsheet, or workflow tool. The common first version is HubSpot, Google Sheets, Airtable, Make, Zapier, or n8n. Larger teams can connect deeper CRMs once the core call flow is proven."
+      "NexCall can send caller details into a CRM, spreadsheet, or workflow tool. The common first version is HubSpot, Google Sheets, Airtable, Make, Zapier, or n8n. Larger teams can connect deeper CRMs once the core call flow is proven."
   },
   {
     keywords: ["sms", "text", "confirmation"],

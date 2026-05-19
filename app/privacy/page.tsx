@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Revenue Guard AI",
-  description: "How Revenue Guard AI describes data collection, use, retention, and privacy choices."
+  title: "Privacy Policy | NexCall",
+  description: "How NexCall describes data collection, use, retention, and privacy choices."
 };
 
 export default function PrivacyPolicyPage() {
@@ -43,7 +43,7 @@ export default function PrivacyPolicyPage() {
       <p>You may request access, correction, or deletion of personal information by contacting us through {supportContact}. Some records may need to be retained for security, billing, dispute resolution, or legal reasons.</p>
 
       <h2>Important Regulated Data Notice</h2>
-      <p>Do not submit health, legal, financial, payment-card, government ID, or other sensitive regulated information unless a signed agreement and the required compliance setup are in place. Revenue Guard AI does not claim HIPAA, PCI, SOC 2, GDPR, CCPA, legal, medical, or financial compliance by default.</p>
+      <p>Do not submit health, legal, financial, payment-card, government ID, or other sensitive regulated information unless a signed agreement and the required compliance setup are in place. NexCall does not claim HIPAA, PCI, SOC 2, GDPR, CCPA, legal, medical, or financial compliance by default.</p>
 
       <h2>Security</h2>
       <p>We use practical safeguards such as server-side secrets, webhook validation, rate limiting, input validation, and encrypted storage for sensitive tenant webhooks where configured. No internet service can guarantee absolute security.</p>

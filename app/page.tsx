@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { huggingFaceVoiceOptions, type HuggingFaceScenarioId } from "@/lib/huggingface-voice-lab";
+import { nexCallVoiceOptions, type NexCallScenarioId } from "@/lib/nexcall-voice-demos";
 
 const sectionMotion = {
   initial: { opacity: 0, y: 20 },
@@ -80,7 +80,7 @@ type VoiceProfile = {
 };
 
 type DemoScenario = {
-  id: HuggingFaceScenarioId;
+  id: NexCallScenarioId;
   title: string;
   category: string;
   tags: string[];
@@ -536,13 +536,13 @@ const integrationGroups = [
   }
 ];
 
-const huggingFaceTtsEnabled = process.env.NEXT_PUBLIC_ENABLE_HF_TTS_DEMOS === "true";
+const elevenLabsTtsEnabled = process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS === "true";
 
 const trustSignals = [
   "Calendar-first setup",
   "Human fallback paths",
   "Twilio-ready phone routing",
-  "Stripe checkout wired",
+  "Secure Stripe checkout path",
   "Reviewed May 2026"
 ];
 
@@ -588,7 +588,7 @@ export default function Home() {
       <FrontOfficeSignalMap />
       <ProblemSnapshot />
       <VoiceAgentDemos />
-      <HuggingFaceVoiceLab />
+      <VoiceQualityLab />
       <JobsDone />
       <HowItWorks />
       <HumanProof />
@@ -609,12 +609,12 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-stone-200/80 bg-[#f6f2ea]/88 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <a href="#top" className="flex items-center gap-3" aria-label="Revenue Guard home">
+        <a href="#top" className="flex items-center gap-3" aria-label="NexCall home">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white shadow-sm">
             <ShieldCheck size={21} aria-hidden="true" />
           </span>
           <span className="text-lg font-black tracking-wide text-[#172033] sm:text-xl">
-            REVENUE GUARD
+            NEXCALL
           </span>
         </a>
         <div className="hidden items-center gap-7 text-sm font-semibold text-stone-600 md:flex">
@@ -664,7 +664,7 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             A receptionist that answers like a person and works like a system.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600 sm:text-xl">
-            Revenue Guard picks up missed calls, books open slots, handles simple
+            NexCall picks up missed calls, books open slots, handles simple
             reschedules, and sends clean notes to your team with human backup for the
             calls that need judgment.
           </p>
@@ -907,14 +907,14 @@ function FrontOfficeSignalMap() {
         <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.16em] text-[#244f8f]">
-              Not A Brochure
+              What NexCall Does
             </p>
             <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
-              Show the buyer the moment their phone stops being a bottleneck.
+              One clear path from missed call to booked next step.
             </h2>
             <p className="mt-5 text-lg leading-8 text-stone-600">
-              Instead of asking visitors to imagine automation, this layout shows the
-              work changing hands: call, context, booking, confirmation, and team action.
+              NexCall answers, verifies intent, checks the right workflow, and sends
+              your team the summary they need to act without chasing voicemail.
             </p>
           </div>
 
@@ -966,9 +966,43 @@ function normalizeOutboundPhoneInput(value: string) {
 
   if (raw.startsWith("+")) return `+${digits}`;
   if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
   if (digits.length > 10 && digits.length <= 15) return `+${digits}`;
 
   return raw;
+}
+
+function isValidOutboundPhoneInput(value: string) {
+  return /^\+[1-9]\d{1,14}$/.test(normalizeOutboundPhoneInput(value));
+}
+
+function formatPhoneDisplay(value: string) {
+  const raw = value.trim();
+  const digits = raw.replace(/\D/g, "");
+  const nationalDigits = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+
+  if (raw.startsWith("+") && !(digits.length === 11 && digits.startsWith("1"))) {
+    return raw.slice(0, 18);
+  }
+
+  const limited = nationalDigits.slice(0, 10);
+
+  if (limited.length === 0) return "";
+  if (limited.length < 4) return limited;
+  if (limited.length < 7) return `(${limited.slice(0, 3)}) ${limited.slice(3)}`;
+
+  return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
+}
+
+function formatPhoneForBlur(value: string) {
+  const normalized = normalizeOutboundPhoneInput(value);
+  const digits = normalized.replace(/\D/g, "");
+
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `+1 ${formatPhoneDisplay(digits.slice(1))}`;
+  }
+
+  return formatPhoneDisplay(value) || value.trim();
 }
 
 function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -1009,7 +1043,15 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
     setError("");
     setStatus("calling");
     const normalizedPhone = normalizeOutboundPhoneInput(phone);
-    setPhone(normalizedPhone);
+
+    if (!isValidOutboundPhoneInput(phone)) {
+      setPhone(formatPhoneDisplay(phone));
+      setError("Enter a valid phone number with country code. US numbers can be typed as 10 digits.");
+      setStatus("error");
+      return;
+    }
+
+    setPhone(formatPhoneForBlur(phone));
 
     try {
       const response = await fetch("/api/outbound-call", {
@@ -1050,10 +1092,10 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
               Live demo call
             </p>
             <h2 id="outbound-call-title" className="mt-2 text-3xl font-black text-[#172033]">
-              Let Ms. Lisa ring your phone.
+              Let Nexa ring your phone.
             </h2>
             <p className="mt-3 leading-7 text-stone-600">
-              Enter your number and the AI receptionist will call you with the booking-flow demo.
+              Enter your number and the NexCall Receptionist will call you with the booking-flow demo.
             </p>
           </div>
           <button
@@ -1071,7 +1113,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
             <p className="text-xl font-black text-[#172033]">Calling now.</p>
             <p className="mt-2 leading-7 text-stone-700">
-              Ms. Lisa is ringing your phone. Pick up and ask about booking, rescheduling, or missed calls.
+              Nexa is ringing your phone. Pick up and ask about booking, rescheduling, or missed calls.
             </p>
             <button
               type="button"
@@ -1091,14 +1133,15 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
                 inputMode="tel"
                 autoComplete="tel"
                 required
-                placeholder="+1 555 123 4567"
+                placeholder="(301) 466-4605"
                 value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                onChange={(event) => setPhone(formatPhoneDisplay(event.target.value))}
+                onBlur={(event) => setPhone(formatPhoneForBlur(event.target.value))}
                 className="mt-2 min-h-14 w-full rounded-xl border border-stone-300 bg-white px-4 text-lg font-bold text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f] focus:ring-4 focus:ring-blue-100"
               />
             </label>
             <p className="-mt-2 text-xs font-bold leading-5 text-stone-500">
-              US numbers can be entered as 10 digits; we will format them as +1 automatically.
+              US numbers can be entered as 10 digits; we format them automatically before calling.
             </p>
             <label className="text-sm font-black text-[#172033]">
               Name <span className="font-semibold text-stone-400">(optional)</span>
@@ -1254,7 +1297,7 @@ function VoiceAgentDemos() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [generatedAudioUrl, setGeneratedAudioUrl] = useState("");
-  const [generatedScenarioId, setGeneratedScenarioId] = useState<HuggingFaceScenarioId | "">("");
+  const [generatedScenarioId, setGeneratedScenarioId] = useState<NexCallScenarioId | "">("");
   const [ttsStatus, setTtsStatus] = useState("");
   const [ttsError, setTtsError] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1346,8 +1389,8 @@ function VoiceAgentDemos() {
     };
   }, [isPlaying, scenario, voiceProfile, playbackAudioUrl]);
 
-  async function buildHuggingFaceAudio(target: DemoScenario) {
-    const response = await fetch("/api/tts/huggingface", {
+  async function buildNexCallAudio(target: DemoScenario) {
+    const response = await fetch("/api/tts/elevenlabs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scenarioId: target.id })
@@ -1355,7 +1398,7 @@ function VoiceAgentDemos() {
 
     if (!response.ok) {
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(data?.error || "Hugging Face voice generation is not ready yet.");
+      throw new Error(data?.error || "NexCall AI voice generation is not ready yet.");
     }
 
     return URL.createObjectURL(await response.blob());
@@ -1377,10 +1420,10 @@ function VoiceAgentDemos() {
     setIsPlaying(false);
     setTtsError("");
 
-    if (!target.audioUrl && huggingFaceTtsEnabled && generatedScenarioId !== target.id) {
-      setTtsStatus("Creating Hugging Face voice clip...");
+    if (!target.audioUrl && elevenLabsTtsEnabled && generatedScenarioId !== target.id) {
+      setTtsStatus("Creating NexCall AI voice clip...");
       try {
-        const nextAudioUrl = await buildHuggingFaceAudio(target);
+        const nextAudioUrl = await buildNexCallAudio(target);
         setGeneratedScenarioId(target.id);
         setGeneratedAudioUrl((currentAudioUrl) => {
           if (currentAudioUrl) {
@@ -1388,15 +1431,15 @@ function VoiceAgentDemos() {
           }
           return nextAudioUrl;
         });
-        setTtsStatus("Hugging Face voice clip ready");
+        setTtsStatus("NexCall AI voice clip ready");
       } catch (error) {
         setTtsStatus("Using browser fallback voice");
-        setTtsError(error instanceof Error ? error.message : "Hugging Face TTS failed.");
+        setTtsError(error instanceof Error ? error.message : "NexCall AI voice generation failed.");
       }
     } else if (target.audioUrl) {
       setTtsStatus("Using uploaded studio clip");
     } else if (generatedScenarioId === target.id && generatedAudioUrl) {
-      setTtsStatus("Using generated Hugging Face clip");
+      setTtsStatus("Using generated NexCall AI clip");
     } else {
       setTtsStatus("Using browser fallback voice");
     }
@@ -1493,8 +1536,8 @@ function VoiceAgentDemos() {
                     <p className="mt-1 text-xs leading-5 text-stone-500">
                       {playbackAudioUrl
                         ? "Uses an uploaded or generated humanized voice clip."
-                        : huggingFaceTtsEnabled
-                          ? "Will try Hugging Face TTS, then falls back to browser speech."
+                        : elevenLabsTtsEnabled
+                          ? "Will try ElevenLabs voice audio, then falls back to browser speech."
                           : "Auto-selects the most natural installed voice."}
                     </p>
                   </div>
@@ -1590,7 +1633,7 @@ function VoiceAgentDemos() {
   );
 }
 
-function HuggingFaceVoiceLab() {
+function VoiceQualityLab() {
   return (
     <section className="border-b border-stone-200 bg-white py-16">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -1603,9 +1646,9 @@ function HuggingFaceVoiceLab() {
               Use model-generated voices that feel calm, local, and real.
             </h2>
             <p className="mt-5 text-lg leading-8 text-stone-600">
-              The demo layer supports browser speech, uploaded MP3 clips, and optional
-              Hugging Face TTS through a server route. For launch, generate one polished
-              clip per scenario and keep the live phone agent on the same voice style.
+              The demo layer supports uploaded MP3 clips, browser fallback speech, and optional
+              ElevenLabs voice generation through a server route. For launch, use one polished
+              clip per scenario and keep the live phone agent in the same voice style.
             </p>
             <div className="mt-6 rounded-lg border border-[#c8d7ef] bg-[#eef4ff] p-4">
               <p className="text-sm font-black text-[#172033]">Launch rule</p>
@@ -1618,12 +1661,9 @@ function HuggingFaceVoiceLab() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            {huggingFaceVoiceOptions.map((option, index) => (
-              <motion.a
-                key={option.model}
-                href={option.url}
-                target="_blank"
-                rel="noreferrer"
+            {nexCallVoiceOptions.map((option, index) => (
+              <motion.article
+                key={option.name}
                 whileHover={{ y: -5 }}
                 className="group rounded-lg border border-stone-200 bg-[#f6f2ea] p-5 shadow-sm transition hover:border-[#244f8f] hover:bg-white hover:shadow-lg hover:shadow-stone-300/30"
               >
@@ -1640,17 +1680,17 @@ function HuggingFaceVoiceLab() {
                 <p className="mt-3 text-sm leading-6 text-stone-600">{option.note}</p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-bold text-stone-600">
-                    {option.model}
+                    {option.provider}
                   </span>
                   <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-bold text-stone-600">
-                    {option.license}
+                    {option.envHint}
                   </span>
                 </div>
                 <p className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#172033] group-hover:text-[#244f8f]">
-                  View on Hugging Face
+                  Server-side voice only
                   <ArrowRight size={16} aria-hidden="true" />
                 </p>
-              </motion.a>
+              </motion.article>
             ))}
           </div>
         </div>
@@ -1672,7 +1712,7 @@ function IntegrationDirectory() {
               Connect the phone call to the systems that run your business.
             </h2>
             <p className="mt-5 text-lg leading-8 text-stone-600">
-              Revenue Guard is designed around your existing stack: calendars, phone
+              NexCall is designed around your existing stack: calendars, phone
               systems, CRMs, help desks, payment links, and workflow tools. Product
               names below are compatibility examples, not sponsorships.
             </p>
@@ -2298,7 +2338,7 @@ function FAQSection() {
     {
       question: "Do clients need to create their own Twilio account?",
       answer:
-        "No. The done-for-you path is that Revenue Guard manages the Twilio number pool and assigns each client an AI receptionist number. If the client already has a business number, they can forward missed, overflow, after-hours, or all calls to the AI number. A client only needs their own Twilio account if they specifically want to own the carrier account directly."
+        "No. The done-for-you path is that NexCall manages the Twilio number pool and assigns each client an AI receptionist number. If the client already has a business number, they can forward missed, overflow, after-hours, or all calls to the AI number. A client only needs their own Twilio account if they specifically want to own the carrier account directly."
     },
     {
       question: "Does the demo audio actually work?",
@@ -2362,12 +2402,19 @@ function ClosingLeadCapture() {
     register,
     handleSubmit,
     trigger,
+    setValue,
+    watch,
     formState: { errors, isSubmitSuccessful, isSubmitting }
   } = useForm<LeadForm>({
     mode: "onBlur",
     defaultValues: { name: "", trucks: "", service: "", email: "", phone: "" }
   });
   const [outboundState, setOutboundState] = useState<"idle" | "saving" | "calling" | "success" | "error">("idle");
+  const leadPhoneValue = watch("phone");
+  const leadPhoneRegistration = register("phone", {
+    required: "Enter the best phone number.",
+    validate: (value) => isValidOutboundPhoneInput(value) || "Enter a valid phone number. US numbers can be typed as 10 digits."
+  });
 
   const steps = [
     {
@@ -2391,14 +2438,36 @@ function ClosingLeadCapture() {
       )
     },
     {
-      label: "Where should Ms. Lisa call you?",
+      label: "Where should Nexa call you?",
       field: "email" as const,
       input: (
         <div className="mt-3 grid gap-3">
           <input type="text" placeholder="Name (optional)" className="min-h-12 rounded-lg border border-stone-300 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f]" {...register("name")} />
           <div className="grid gap-3 sm:grid-cols-2">
             <input type="email" placeholder="Work email" className="min-h-12 rounded-lg border border-stone-300 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f]" {...register("email", { required: "Enter your work email.", pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email address." } })} />
-            <input type="tel" placeholder="+1 555 123 4567" className="min-h-12 rounded-lg border border-stone-300 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f]" {...register("phone", { required: "Enter the best phone number.", minLength: { value: 7, message: "Enter a real phone number." } })} />
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="(301) 466-4605"
+              className="min-h-12 rounded-lg border border-stone-300 bg-white px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#244f8f]"
+              {...leadPhoneRegistration}
+              value={leadPhoneValue}
+              onChange={(event) => {
+                leadPhoneRegistration.onChange(event);
+                setValue("phone", formatPhoneDisplay(event.target.value), {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+              onBlur={(event) => {
+                leadPhoneRegistration.onBlur(event);
+                setValue("phone", formatPhoneForBlur(event.target.value), {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            />
           </div>
         </div>
       )
@@ -2419,7 +2488,7 @@ function ClosingLeadCapture() {
       await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ ...data, phone: normalizeOutboundPhoneInput(data.phone) })
       }).catch(() => null);
 
       setOutboundState("calling");
@@ -2438,7 +2507,7 @@ function ClosingLeadCapture() {
         const message = result?.error || "The call could not be started. Please try again from the Call Demo button.";
         setLeadError(message);
         setOutboundState("error");
-        throw new Error(message);
+        return;
       }
 
       setOutboundState("success");
@@ -2449,7 +2518,6 @@ function ClosingLeadCapture() {
           : "Network error. Please check your connection and try again.";
       setLeadError(message);
       setOutboundState("error");
-      throw new Error(message);
     }
   }
 
@@ -2490,7 +2558,7 @@ function ClosingLeadCapture() {
             <div className="rounded-lg bg-[#ecfdf5] p-5">
               <p className="text-2xl font-black text-[#172033]">Calling now.</p>
               <p className="mt-2 leading-7 text-stone-600">
-                Ms. Lisa is ringing your phone with the live booking-flow demo.
+                Nexa is ringing your phone with the live booking-flow demo.
               </p>
             </div>
           ) : (
@@ -2572,7 +2640,7 @@ function LiveChatDock() {
     setMessages((current) => [...current, { role: "visitor", text: cleanQuestion }]);
 
     try {
-      const response = await fetch("/api/chat/huggingface", {
+      const response = await fetch("/api/chat/nexcall", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: cleanQuestion })
@@ -2630,7 +2698,7 @@ function LiveChatDock() {
         trucks: humanForm.name || "Chat visitor",
         service: humanForm.business || "Live chat handoff",
         email: humanForm.email,
-        phone: humanForm.phone,
+        phone: normalizeOutboundPhoneInput(humanForm.phone),
         message: humanForm.message,
         source: "ai-receptionist-live-chat-human-handoff"
       })
@@ -2653,7 +2721,7 @@ function LiveChatDock() {
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-2xl shadow-stone-500/25"
-          aria-label="Revenue Guard live chat"
+          aria-label="NexCall live chat"
         >
           <div className="flex items-center justify-between gap-3 border-b border-stone-200 bg-[#f6f2ea] px-4 py-3">
             <div className="flex items-center gap-3">
@@ -2716,7 +2784,7 @@ function LiveChatDock() {
               </div>
               <form onSubmit={askQuestion} className="border-t border-stone-200 p-3">
                 <label className="sr-only" htmlFor="live-chat-question">
-                  Ask Revenue Guard a question
+                  Ask NexCall a question
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -2773,8 +2841,9 @@ function LiveChatDock() {
                   type="tel"
                   required
                   value={humanForm.phone}
-                  onChange={(event) => setHumanForm((current) => ({ ...current, phone: event.target.value }))}
-                  placeholder="Phone"
+                  onChange={(event) => setHumanForm((current) => ({ ...current, phone: formatPhoneDisplay(event.target.value) }))}
+                  onBlur={(event) => setHumanForm((current) => ({ ...current, phone: formatPhoneForBlur(event.target.value) }))}
+                  placeholder="(301) 466-4605"
                   className="min-h-11 rounded-lg border border-stone-300 px-3 text-sm outline-none focus:border-[#244f8f]"
                 />
               </div>
@@ -2805,7 +2874,7 @@ function LiveChatDock() {
           type="button"
           onClick={() => setOpen(true)}
           className="ml-auto flex min-h-12 items-center gap-3 rounded-lg border border-[#c8d7ef] bg-white px-4 py-3 text-left shadow-xl shadow-stone-500/20 transition hover:-translate-y-0.5 hover:bg-[#f6f2ea]"
-          aria-label="Open Revenue Guard live chat"
+          aria-label="Open NexCall live chat"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#244f8f] text-white">
             <MessageSquareText size={18} aria-hidden="true" />
@@ -2835,7 +2904,7 @@ function Footer() {
     <footer className="border-t border-stone-200 bg-[#f6f2ea] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-stone-500 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="font-black text-[#172033]">Revenue Guard AI</p>
+          <p className="font-black text-[#172033]">NexCall</p>
           <p className="mt-1">Helpful phone automation with clear handoffs to real people.</p>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal links">

@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const highCostRoutes = [
   "/api/ai/respond",
+  "/api/tts/elevenlabs",
   "/api/tts/huggingface",
+  "/api/chat/nexcall",
   "/api/chat/huggingface",
   "/api/twilio/voice",
   "/api/calendar-booking",
@@ -21,19 +23,19 @@ type LimitConfig = {
 const standardLimit: LimitConfig = {
   limit: 120,
   windowSeconds: 60,
-  prefix: "rg:rl:standard"
+  prefix: "nexcall:rl:standard"
 };
 
 const highCostLimit: LimitConfig = {
   limit: 20,
   windowSeconds: 60,
-  prefix: "rg:rl:high-cost"
+  prefix: "nexcall:rl:high-cost"
 };
 
 const webhookLimit: LimitConfig = {
   limit: 300,
   windowSeconds: 60,
-  prefix: "rg:rl:webhooks"
+  prefix: "nexcall:rl:webhooks"
 };
 
 function getIp(request: NextRequest) {

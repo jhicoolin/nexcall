@@ -8,7 +8,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://router.huggingface.co https://api.vapi.ai https://*.upstash.io https://*.inngest.com https://api.inngest.com wss://*.livekit.cloud wss://*.twilio.com",
+  "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://api.elevenlabs.io https://api.vapi.ai https://*.upstash.io https://*.inngest.com https://api.inngest.com wss://*.livekit.cloud wss://*.twilio.com",
   "media-src 'self' blob: data:",
   "frame-src 'self' https://checkout.stripe.com",
   "upgrade-insecure-requests"

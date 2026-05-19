@@ -3,8 +3,8 @@ import Link from "next/link";
 import { LegalPage, legalLinks } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Legal Center | Revenue Guard AI",
-  description: "Legal, privacy, AI transparency, refund, cookie, compliance, and accessibility notices for Revenue Guard AI."
+  title: "Legal Center | NexCall",
+  description: "Legal, privacy, AI transparency, refund, cookie, compliance, and accessibility notices for NexCall."
 };
 
 export default function LegalCenterPage() {
@@ -12,7 +12,7 @@ export default function LegalCenterPage() {
     <LegalPage
       eyebrow="Legal Center"
       title="Legal and Transparency Center"
-      summary="A central place for the policies and notices buyers can review before using Revenue Guard AI."
+      summary="A central place for the policies and notices buyers can review before using NexCall."
     >
       <div className="grid gap-3 sm:grid-cols-2">
         {legalLinks.map((item) => (

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Cookie Notice | Revenue Guard AI",
-  description: "Cookie and similar technology notice for Revenue Guard AI."
+  title: "Cookie Notice | NexCall",
+  description: "Cookie and similar technology notice for NexCall."
 };
 
 export default function CookieNoticePage() {

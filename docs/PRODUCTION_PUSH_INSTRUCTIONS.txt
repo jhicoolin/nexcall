@@ -89,7 +89,7 @@ Post-deploy smoke checks:
 2. Click Call Demo.
 3. Enter a real phone number in +1 format.
 4. Confirm the modal shows Calling Now.
-5. Confirm the ElevenLabs conversation starts from Ms. Lisa.
+5. Confirm the ElevenLabs conversation starts from Nexa.
 6. Trigger a test booking phrase in the call.
 7. Confirm Cal.com receives a booking payload through /api/calendar.
 

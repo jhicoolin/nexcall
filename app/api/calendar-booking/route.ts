@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     ...booking,
     tenantId: booking.clientId || client?.id || "demo",
     clientId: booking.clientId || client?.id || "demo",
-    clientBusinessName: client?.businessName || "Revenue Guard Demo",
+    clientBusinessName: client?.businessName || "NexCall Demo",
     businessPhone: booking.businessPhone || client?.assignedTwilioNumber,
     calendarProvider: client?.calendarProvider || "Unassigned",
     createdAt: new Date().toISOString(),

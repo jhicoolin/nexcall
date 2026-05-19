@@ -40,7 +40,10 @@ export function getPriceId(planId: string, billing: CheckoutBilling) {
     return null;
   }
 
-  const envName = billing === "yearly" ? plan.yearlyEnv : plan.monthlyEnv;
+  const envName = getPriceEnvName(planId, billing);
+
+  if (!envName) return null;
+
   const priceId = process.env[envName];
 
   if (!priceId || priceId.includes("replace_me")) {
@@ -48,4 +51,14 @@ export function getPriceId(planId: string, billing: CheckoutBilling) {
   }
 
   return priceId;
+}
+
+export function getPriceEnvName(planId: string, billing: CheckoutBilling) {
+  const plan = getCheckoutPlan(planId);
+
+  if (!plan) {
+    return null;
+  }
+
+  return billing === "yearly" ? plan.yearlyEnv : plan.monthlyEnv;
 }

@@ -1,13 +1,13 @@
-# AI Receptionist
+# NexCall
 
-Launch-ready Next.js sales site for an AI receptionist business.
+Launch-ready Next.js sales site for the NexCall AI receptionist business.
 
 ## What Is Included
 
 - Warm, diverse homepage with scenario demos and industry sections
 - Multi-scenario voice demo UI with browser speech playback
-- Hugging Face voice lab section and optional server-side TTS route
-- Collapsed live chat with Hugging Face question-answering and human follow-up tabs
+- ElevenLabs-ready voice quality section and optional server-side TTS route
+- Collapsed live chat with tenant-aware NexCall quick answers and human follow-up tabs
 - Stripe Checkout API route for monthly/yearly subscriptions
 - Stripe webhook receiver for successful checkout events
 - Checkout success and cancel pages
@@ -65,13 +65,13 @@ docs/UX_RESEARCH_NOTES.txt
 
 That file explains the page order and conversion/credibility logic behind the layout.
 
-For voice model choices, read:
+For voice demo setup, read:
 
 ```text
 docs/VOICE_LAB_RESEARCH.txt
 ```
 
-That file explains the Hugging Face voice shortlist, the optional scenario-only TTS route, and why uploaded MP3 clips are still the safest public-launch demo layer.
+That file is legacy research. The launch-facing site now uses uploaded MP3 clips, browser fallback speech, or the server-side ElevenLabs TTS route.
 
 For live chat setup, read:
 
@@ -103,7 +103,7 @@ For the backend-only multi-tenant engine, read:
 docs/BACKEND_MULTI_TENANT_ENGINE.txt
 ```
 
-That file covers the strict tenant schema, Twilio switchboard, WebSocket media bridge, Hugging Face STT/LLM/TTS pipeline, booking extractor, and Vercel DNS checklist.
+That file covers the strict tenant schema, Twilio switchboard, WebSocket media bridge, legacy native voice pipeline, booking extractor, and Vercel DNS checklist.
 
 For the enterprise security/database/voice/jobs/admin upgrade, read:
 
@@ -151,10 +151,12 @@ That file explains what belongs in the MarcoPolo workspace folder and why genera
 - `app/accessibility/page.tsx` - accessibility statement
 - `app/api/checkout/route.ts` - Stripe Checkout session creation
 - `app/api/stripe/webhook/route.ts` - Stripe webhook receiver
-- `app/api/chat/huggingface/route.ts` - tenant-aware front-desk chat route
+- `app/api/chat/nexcall/route.ts` - tenant-aware NexCall front-desk chat route
+- `app/api/chat/huggingface/route.ts` - legacy compatibility alias for older deployments
 - `app/api/leads/route.ts` - lead capture forwarding
 - `app/api/twilio/voice/route.ts` - Twilio voice forwarding
-- `app/api/tts/huggingface/route.ts` - optional Hugging Face TTS generation
+- `app/api/tts/elevenlabs/route.ts` - optional ElevenLabs scenario-only TTS generation
+- `app/api/tts/huggingface/route.ts` - legacy lab route, not used by the launch UI
 - `app/api/calendar-booking/route.ts` - booking webhook forwarding
 - `app/api/ai/respond/route.ts` - tenant-aware AI turn processor for live calls
 - `app/api/inngest/route.ts` - Inngest durable background job endpoint
@@ -165,10 +167,10 @@ That file explains what belongs in the MarcoPolo workspace folder and why genera
 - `lib/tenant-repository.ts` - database-first tenant repository
 - `prisma/schema.prisma` - Supabase/Postgres schema
 - `middleware.ts` - Upstash API rate limiting
-- `lib/huggingface-receptionist-pipeline.ts` - STT, LLM, TTS, and Twilio audio conversion pipeline
+- `lib/huggingface-receptionist-pipeline.ts` - legacy native voice pipeline for lab testing
 - `services/receptionist/*` - master prompt, business knowledge, safety shutoff, and web chat engine
 - `inngest/functions.ts` - retrying background jobs
 - `scripts/twilio-media-server.mjs` - standalone WebSocket bridge for Twilio Media Streams
 - `lib/live-chat-knowledge.ts` - approved context and fallback answers for live chat
-- `lib/huggingface-voice-lab.ts` - Hugging Face model shortlist and scenario mapping
+- `lib/nexcall-voice-demos.ts` - NexCall voice scenario scripts and ElevenLabs demo mapping
 - `.env.example` - all required configuration placeholders

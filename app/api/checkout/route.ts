@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCheckoutPlan, getPriceId, type CheckoutBilling } from "@/lib/checkout-plans";
+import { getCheckoutPlan, getPriceEnvName, getPriceId, type CheckoutBilling } from "@/lib/checkout-plans";
 import { cleanIdentifier, cleanText, getSafeSiteOrigin, isValidEmail, readJsonObject, validationResponse } from "@/lib/security";
 
 type CheckoutRequest = {
@@ -22,6 +22,7 @@ export async function POST(request: Request) {
   const email = cleanText(rawBody.email, 254);
   const plan = getCheckoutPlan(planId);
   const priceId = getPriceId(planId, billing);
+  const priceEnvName = getPriceEnvName(planId, billing);
 
   if (!plan) {
     return NextResponse.json(
@@ -31,11 +32,13 @@ export async function POST(request: Request) {
   }
 
   if (!priceId) {
+    console.warn("Stripe Checkout price ID missing", { planId, billing, priceEnvName });
+
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "Checkout is not configured for this plan yet. Add the matching Stripe price ID in .env.local or Vercel."
+        error: "Online checkout for this plan is being connected. Book a demo and we can start your setup manually.",
+        missingConfig: priceEnvName
       },
       { status: 503 }
     );
@@ -58,8 +61,10 @@ export async function POST(request: Request) {
     const secretKey = process.env.STRIPE_SECRET_KEY;
 
     if (!secretKey || secretKey.includes("replace_me")) {
+      console.warn("Stripe Checkout secret key missing or placeholder");
+
       return NextResponse.json(
-        { ok: false, error: "STRIPE_SECRET_KEY is not configured." },
+        { ok: false, error: "Online checkout is temporarily unavailable. Book a demo and we can complete setup manually." },
         { status: 500 }
       );
     }
@@ -103,13 +108,27 @@ export async function POST(request: Request) {
     const session = (await stripeResponse.json()) as { url?: string; error?: { message?: string } };
 
     if (!stripeResponse.ok || !session.url) {
-      throw new Error(session.error?.message || "Stripe did not return a checkout URL.");
+      console.error("Stripe Checkout session creation failed", {
+        status: stripeResponse.status,
+        planId: plan.id,
+        billing,
+        message: session.error?.message
+      });
+
+      throw new Error("Stripe did not return a checkout URL.");
     }
 
     return NextResponse.json({ ok: true, url: session.url });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Stripe checkout failed.";
+    console.error("Checkout route failed", {
+      planId: plan?.id,
+      billing,
+      message: error instanceof Error ? error.message : "Unknown checkout error"
+    });
 
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Checkout could not open right now. Please book a demo and we will follow up." },
+      { status: 500 }
+    );
   }
 }

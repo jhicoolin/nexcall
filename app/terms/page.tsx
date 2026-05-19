@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | Revenue Guard AI",
-  description: "Terms governing use of the Revenue Guard AI website and services."
+  title: "Terms of Service | NexCall",
+  description: "Terms governing use of the NexCall website and services."
 };
 
 export default function TermsPage() {
@@ -11,13 +11,13 @@ export default function TermsPage() {
     <LegalPage
       eyebrow="Terms"
       title="Terms of Service"
-      summary="These terms describe the baseline rules for using the Revenue Guard AI website, demos, checkout, and AI receptionist services."
+      summary="These terms describe the baseline rules for using the NexCall website, demos, checkout, and AI receptionist services."
     >
       <h2>Acceptance</h2>
       <p>By using the website, submitting a form, calling a demo number, purchasing a plan, or using the service, you agree to these terms. If you do not agree, do not use the service.</p>
 
       <h2>Service Description</h2>
-      <p>Revenue Guard AI provides AI receptionist workflows that may answer calls, capture lead details, qualify requests, book appointments, send summaries, trigger SMS or calendar workflows, and route calls to humans when configured.</p>
+      <p>NexCall provides AI receptionist workflows that may answer calls, capture lead details, qualify requests, book appointments, send summaries, trigger SMS or calendar workflows, and route calls to humans when configured.</p>
 
       <h2>No Professional Advice</h2>
       <p>The service is not a law firm, medical provider, financial adviser, emergency service, or licensed professional service. AI responses should not be treated as legal, medical, financial, tax, safety, or emergency advice.</p>
@@ -43,7 +43,7 @@ export default function TermsPage() {
       <p>We aim to provide reliable service but do not guarantee uninterrupted access. Telephony, AI, calendar, payment, hosting, and network providers can experience downtime or degraded service.</p>
 
       <h2>Limitation of Liability</h2>
-      <p>To the maximum extent allowed by law, Revenue Guard AI is not liable for indirect, incidental, consequential, special, punitive, lost-profit, lost-revenue, lost-data, or lost-business damages arising from use or inability to use the service.</p>
+      <p>To the maximum extent allowed by law, NexCall is not liable for indirect, incidental, consequential, special, punitive, lost-profit, lost-revenue, lost-data, or lost-business damages arising from use or inability to use the service.</p>
 
       <h2>Changes</h2>
       <p>We may update these terms as the product, laws, or providers change. Continued use after updates means you accept the revised terms.</p>

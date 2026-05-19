@@ -34,6 +34,19 @@ function normalizePhoneNumber(phone) {
   return digits;
 }
 
+function maskPhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.length > 4 ? `***${digits.slice(-4)}` : 'unknown';
+}
+
+function cleanLeadName(value) {
+  return String(value || '')
+    .replace(/[<>{}[\]\\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80) || 'Valued Lead';
+}
+
 function getUpstashConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -161,7 +174,13 @@ export async function POST(request) {
       );
     }
 
-    console.log(`Initiating automated demo pipeline for ${name || 'Valued Lead'} at phone: ${normalizedPhone}`);
+    const leadName = cleanLeadName(name);
+
+    console.log("Initiating automated demo pipeline", {
+      leadNameProvided: leadName !== "Valued Lead",
+      phone: maskPhone(normalizedPhone),
+      user_timezone: user_timezone || "America/New_York"
+    });
 
     // Build standard outbound request structure mapped directly to ElevenLabs endpoints
     const response = await fetch('https://api.elevenlabs.io/v1/convai/twilio/outbound-call', {
@@ -176,7 +195,7 @@ export async function POST(request) {
         to_number: normalizedPhone,
         conversation_initiation_client_data: {
           custom_vars: {
-            lead_name: name || "Valued Lead",
+            lead_name: leadName,
             user_timezone: user_timezone || "America/New_York",
             twilio_from_number: twilioFromNumber
           }
@@ -187,8 +206,12 @@ export async function POST(request) {
     const responseData = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      console.error("ElevenLabs Outbound Engine Rejection:", responseData);
-      return NextResponse.json({ error: "Failed to prompt ElevenLabs engine.", details: responseData }, { status: response.status });
+      console.error("ElevenLabs Outbound Engine Rejection", {
+        status: response.status,
+        phone: maskPhone(normalizedPhone),
+        message: responseData?.detail?.message || responseData?.message || "Provider rejected request"
+      });
+      return NextResponse.json({ error: "Failed to start the demo call. Check the ElevenLabs agent phone configuration." }, { status: response.status });
     }
 
     return NextResponse.json(
@@ -204,6 +227,6 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("Outbound API server error:", error);
-    return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

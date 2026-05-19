@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "AI Disclosure | Revenue Guard AI",
-  description: "Transparent explanation of how AI is used in Revenue Guard AI receptionist workflows."
+  title: "AI Disclosure | NexCall",
+  description: "Transparent explanation of how AI is used in NexCall receptionist workflows."
 };
 
 export default function AiDisclosurePage() {

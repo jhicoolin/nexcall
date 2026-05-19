@@ -1,4 +1,4 @@
-REVENUE GUARD AI - FULL LAUNCH SETUP
+NEXCALL - FULL LAUNCH SETUP
 Last updated: May 13, 2026
 
 This project is built so the website can go public after you buy/configure the outside services below. The code already includes the landing page, Stripe Checkout, lead capture, Twilio voice forwarding, calendar booking forwarding, demo pages, and setup docs.
@@ -7,7 +7,7 @@ For client phone routing, voice-agent setup, and operations, read:
 
 CLIENT_OPERATIONS_SETUP.txt
 
-For the pure backend multi-tenant Twilio/Hugging Face engine, read:
+For the pure backend multi-tenant Twilio/native lab engine, read:
 
 BACKEND_MULTI_TENANT_ENGINE.txt
 
@@ -142,16 +142,15 @@ NEXT_PUBLIC_DEMO_AUDIO_SUPPORT_URL=""
 NEXT_PUBLIC_DEMO_AUDIO_IVR_URL=""
 NEXT_PUBLIC_DEMO_AUDIO_LEGAL_URL=""
 
-NEXT_PUBLIC_ENABLE_HF_TTS_DEMOS="false"
-HUGGINGFACE_API_TOKEN=""
-HUGGINGFACE_QA_MODEL="deepset/roberta-base-squad2"
-HUGGINGFACE_TTS_MODEL="ResembleAI/chatterbox"
-HUGGINGFACE_TTS_MODEL_APPOINTMENT="ResembleAI/chatterbox"
-HUGGINGFACE_TTS_MODEL_LEAD="hexgrad/Kokoro-82M"
-HUGGINGFACE_TTS_MODEL_RESTAURANT="ResembleAI/chatterbox"
-HUGGINGFACE_TTS_MODEL_SUPPORT="microsoft/VibeVoice-Realtime-0.5B"
-HUGGINGFACE_TTS_MODEL_IVR="hexgrad/Kokoro-82M"
-HUGGINGFACE_TTS_MODEL_LEGAL="ResembleAI/chatterbox"
+NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS="false"
+ELEVENLABS_API_KEY=""
+ELEVENLABS_AGENT_ID=""
+ELEVENLABS_AGENT_PHONE_NUMBER_ID=""
+ELEVENLABS_DEMO_VOICE_ID=""
+ELEVENLABS_VOICE_ID_APPOINTMENT=""
+ELEVENLABS_VOICE_ID_LEAD=""
+ELEVENLABS_VOICE_ID_SUPPORT=""
+ELEVENLABS_TTS_MODEL="eleven_multilingual_v2"
 
 STRIPE_SETUP_FEE_PRICE_ID=""
 STRIPE_AUTOMATIC_TAX_ENABLED="false"
@@ -191,9 +190,9 @@ app/checkout/cancel/page.tsx
 What to do in Stripe:
 
 1. Create three products:
-   - Revenue Guard Starter
-   - Revenue Guard Appointment
-   - Revenue Guard Growth
+   - NexCall Starter
+   - NexCall Appointment
+   - NexCall Growth
 
 2. For each product, create two recurring prices:
    - Monthly
@@ -282,7 +281,7 @@ If you use the native live-call engine instead of an external voice-agent provid
 2. Set TWILIO_MEDIA_STREAM_URL to its secure WSS URL.
 3. Set AI_TURN_ENDPOINT to your Vercel /api/ai/respond route.
 4. Set matching AI_TURN_API_TOKEN values in Vercel and the media server host.
-5. Add each client's systemPrompt and huggingFaceModelId in the admin dashboard.
+5. Add each client's systemPrompt, voice provider, phone routing, and calendar rules in the admin dashboard.
 
 5. Configure incoming SMS:
 
@@ -328,11 +327,11 @@ The site now supports three voice layers:
 1. Uploaded audio clips
    Best for public launch. Generate or record one polished MP3 per scenario, put files in public/audio, and set the NEXT_PUBLIC_DEMO_AUDIO_* values.
 
-2. Optional Hugging Face TTS generation
-   Route: app/api/tts/huggingface/route.ts
-   Add HUGGINGFACE_API_TOKEN and set NEXT_PUBLIC_ENABLE_HF_TTS_DEMOS="true" to let the demo create scenario audio server-side.
-   The route accepts scenario IDs only and uses approved server-side scenario scripts. It rejects custom text so these humanized voice models are not used for the live chat or arbitrary visitor prompts.
-   Keep this disabled for paid traffic until latency, reliability, and model output quality are tested.
+2. Optional ElevenLabs TTS generation
+   Route: app/api/tts/elevenlabs/route.ts
+   Add ELEVENLABS_API_KEY, ELEVENLABS_DEMO_VOICE_ID, and set NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS="true" to let the demo create scenario audio server-side.
+   The route accepts scenario IDs only and uses approved server-side scenario scripts. It rejects custom text so humanized voice generation is not used for the live chat or arbitrary visitor prompts.
+   Keep this disabled for paid traffic until latency, reliability, and phone-speaker quality are tested.
 
 3. Browser fallback voices
    The demo automatically picks the most natural installed browser voice it can find for each scenario. It uses different male/female voice profiles depending on the call type.
@@ -346,25 +345,18 @@ Recommended public-site voice profiles:
 - AI IVR / Financial Routing: steady male voice, precise and trustworthy.
 - Legal Intake: empathetic female voice, slower and reassuring.
 
-Recommended Hugging Face voice shortlist:
+Recommended ElevenLabs launch setup:
 
-1. Kokoro: hexgrad/Kokoro-82M
-   Best for fast, low-cost open-weight demo clips.
+1. Create one primary NexCall demo voice for booking calls.
+2. Optionally create separate voice IDs for lead qualification and support.
+3. Store voice IDs in Vercel as ELEVENLABS_DEMO_VOICE_ID, ELEVENLABS_VOICE_ID_LEAD, and ELEVENLABS_VOICE_ID_SUPPORT.
+4. Keep ELEVENLABS_API_KEY server-side only.
 
-2. Chatterbox: ResembleAI/chatterbox
-   Best for warmer expressive call demos, multilingual experiments, and voice-agent style clips.
-
-3. Qwen3-TTS CustomVoice: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
-   Best for custom voice design and more controlled brand style.
-
-4. VibeVoice Realtime: microsoft/VibeVoice-Realtime-0.5B
-   Best for low-latency streaming experiments.
-
-Read VOICE_LAB_RESEARCH.txt for source links and model notes.
+Read VOICE_LAB_RESEARCH.txt only as legacy research notes.
 
 Recommended voice quality path:
 
-1. Test the Hugging Face shortlist and your voice-agent provider voices.
+1. Test your ElevenLabs and voice-agent provider voices by phone, not only laptop speakers.
 2. Pick one male and one female voice style that sound calm on a phone speaker.
 3. Generate one MP3 per scenario.
 4. Put the MP3 files in:
@@ -392,7 +384,7 @@ NEXT_PUBLIC_DEMO_AUDIO_LEGAL_URL="/audio/legal-intake.mp3"
 6. For the real phone agent, use the same voice personality inside your voice-agent platform.
 
 Current research note:
-Hugging Face currently has active voice/TTS Spaces and model cards worth testing for this product. Kokoro is small and permissively licensed, Chatterbox is designed for expressive voice-agent style speech, Qwen3-TTS is worth testing for custom voice design, and VibeVoice Realtime is worth testing for streaming response timing. ElevenLabs and Vapi remain strong paid voice-agent options. Test voices by phone, not only through laptop speakers.
+The launch site is configured around ElevenLabs for server-side voice generation and outbound conversational demo calls. Keep any older native voice-engine experiments isolated from paid traffic until latency, quality, and reliability are proven.
 
 Minimum agent capabilities to configure:
 
@@ -409,7 +401,7 @@ Minimum agent capabilities to configure:
 
 Recommended first prompt:
 
-You are Revenue Guard, a warm professional receptionist for an appointment-based business. Answer quickly, ask one question at a time, verify contact details, book or reschedule only from real calendar availability, and summarize the call for the team. Do not invent pricing, credentials, availability, staff names, or policies. If the caller is upset, high-value, complex, asks for a human, or the answer is not in the approved knowledge base, transfer or escalate.
+You are NexCall, a warm professional receptionist for an appointment-based business. Answer quickly, ask one question at a time, verify contact details, book or reschedule only from real calendar availability, and summarize the call for the team. Do not invent pricing, credentials, availability, staff names, or policies. If the caller is upset, high-value, complex, asks for a human, or the answer is not in the approved knowledge base, transfer or escalate.
 
 ============================================================
 7. LIVE CHAT SETUP
@@ -419,28 +411,21 @@ The site includes a collapsed front-desk chat tab. It stays down by default so i
 
 Files:
 
-app/api/chat/huggingface/route.ts
+app/api/chat/nexcall/route.ts
 lib/live-chat-knowledge.ts
 LIVE_CHAT_SETUP.txt
 
 The chat has two tabs:
 
 1. AI answer
-   Uses Hugging Face question-answering over approved Revenue Guard site context.
-   Default model:
-   deepset/roberta-base-squad2
+   Uses the tenant-aware NexCall front-desk engine over approved site and business context.
    This is text-only. It does not call the humanized TTS route.
 
 2. Human follow-up
    Posts a human handoff into /api/leads with source:
    ai-receptionist-live-chat-human-handoff
 
-To enable Hugging Face QA:
-
-HUGGINGFACE_API_TOKEN="your_hf_token"
-HUGGINGFACE_QA_MODEL="deepset/roberta-base-squad2"
-
-If Hugging Face is not configured, the route returns safe local fallback answers so the UI does not break.
+No external chat model key is required for the default launch chat. The route returns safe local fallback answers so the UI does not break.
 
 Read:
 
@@ -590,24 +575,10 @@ Research sources checked:
   https://docs.vapi.ai/providers/voice/vapi-voices
 - Vapi ElevenLabs voice integration:
   https://docs.vapi.ai/customization/custom-voices/elevenlabs
-- Hugging Face Spaces voice search:
-  https://huggingface.co/spaces?q=voice
-- Hugging Face Text-to-Speech task:
-  https://huggingface.co/tasks/text-to-speech
-- Kokoro TTS model:
-  https://huggingface.co/hexgrad/Kokoro-82M
-- Chatterbox TTS model:
-  https://huggingface.co/ResembleAI/chatterbox
-- Qwen3-TTS CustomVoice model:
-  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
-- VibeVoice Realtime model:
-  https://huggingface.co/microsoft/VibeVoice-Realtime-0.5B
-- Hugging Face question-answering Spaces category:
-  https://huggingface.co/spaces?category=question-answering
-- Hugging Face Inference Providers question-answering docs:
-  https://huggingface.co/docs/inference-providers/tasks/question-answering
-- deepset roberta-base-squad2 model:
-  https://huggingface.co/deepset/roberta-base-squad2
+- ElevenLabs Conversational AI docs:
+  https://elevenlabs.io/docs/conversational-ai/overview
+- ElevenLabs outbound calls:
+  https://elevenlabs.io/docs/conversational-ai/phone-numbers/twilio-outbound
 
 Patterns from successful AI receptionist companies:
 

@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   const lead = {
     ...payload,
     clientId: payload.clientId || client?.id || "demo",
-    clientBusinessName: client?.businessName || "Revenue Guard Demo",
+    clientBusinessName: client?.businessName || "NexCall Demo",
     createdAt: new Date().toISOString()
   };
   const leadWebhookUrl = client?.leadWebhookUrl || process.env.LEAD_WEBHOOK_URL;

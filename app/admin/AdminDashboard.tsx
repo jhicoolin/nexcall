@@ -136,7 +136,7 @@ export default function AdminDashboard() {
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.25em] text-blue-700">
-              Revenue Guard Command
+              NexCall Command
             </p>
             <h1 className="text-4xl font-black">Admin dashboard</h1>
           </div>

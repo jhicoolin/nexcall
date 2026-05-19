@@ -15,10 +15,10 @@ QUICK ANSWER TAB
 
 Route:
 
-app/api/chat/huggingface/route.ts
+app/api/chat/nexcall/route.ts
 
 Important:
-The route name is kept for backwards compatibility, but the chat now uses a tenant-aware front-desk engine instead of live Hugging Face question-answering.
+The launch route uses a tenant-aware front-desk engine with approved NexCall answers and a safety shutoff.
 
 Main files:
 
@@ -58,7 +58,7 @@ Twilio wording:
 
 The chat should not tell buyers to create Twilio themselves. The buyer-facing offer is done-for-you:
 
-- Revenue Guard manages the Twilio number pool.
+- NexCall manages the Twilio number pool.
 - Each client is assigned an AI receptionist number.
 - Existing business numbers can forward missed, overflow, after-hours, or all calls into the AI number.
 - A client only needs their own Twilio account if they want to own the carrier account directly.

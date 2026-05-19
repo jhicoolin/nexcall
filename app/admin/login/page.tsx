@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
         onSubmit={submit}
         className="mx-auto flex max-w-md flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-8 shadow-xl"
       >
-        <p className="text-sm font-bold uppercase tracking-[0.25em] text-blue-700">Revenue Guard Admin</p>
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-blue-700">NexCall Admin</p>
         <h1 className="text-3xl font-black">Command center login</h1>
         <input
           value={token}

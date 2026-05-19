@@ -36,7 +36,7 @@ export function LegalPage({ eyebrow, title, summary, children }: LegalPageProps)
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white">
               <ShieldCheck size={21} aria-hidden="true" />
             </span>
-            REVENUE GUARD
+            NEXCALL
           </Link>
           <Link
             href="/"
@@ -56,7 +56,7 @@ export function LegalPage({ eyebrow, title, summary, children }: LegalPageProps)
         <p className="mt-4 text-sm font-bold text-stone-500">Last updated: {legalLastUpdated}</p>
 
         <div className="mt-10 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-bold leading-6 text-amber-950">
-          These pages are transparency notices for Revenue Guard AI. They are not legal advice and should be reviewed
+          These pages are transparency notices for NexCall. They are not legal advice and should be reviewed
           by qualified counsel before processing regulated data or launching in a jurisdiction with specific notice
           requirements.
         </div>

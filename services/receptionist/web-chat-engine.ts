@@ -32,7 +32,7 @@ const openings = [
   "Yes, and the setup is handled for you.",
   "Good question.",
   "Short version: yes.",
-  "That is one of the main things Revenue Guard is built for.",
+  "That is one of the main things NexCall is built for.",
   "You do not have to figure that out alone.",
   "For most businesses, yes.",
   "That is exactly the kind of front-desk work this handles.",
@@ -171,7 +171,7 @@ const topics: ChatTopic[] = [
     keywords: ["twilio", "number", "phone"],
     title: "Assigned AI number",
     answer:
-      "Revenue Guard manages the phone-number setup from the agency side. We assign the client an AI receptionist number from the managed Twilio pool, connect it to that tenant, and route calls to the right voice agent. Existing business numbers can forward missed, overflow, after-hours, or all calls into the assigned AI number. A client only needs their own Twilio account if they want carrier ownership."
+      "NexCall manages the phone-number setup from the agency side. We assign the client an AI receptionist number from the managed Twilio pool, connect it to that tenant, and route calls to the right voice agent. Existing business numbers can forward missed, overflow, after-hours, or all calls into the assigned AI number. A client only needs their own Twilio account if they want carrier ownership."
   },
   {
     keywords: ["existing", "number", "forward"],
@@ -387,7 +387,7 @@ export function answerFrontDeskChat(question: string): WebChatAnswer {
     : {
         title: "General front-office fit",
         keywords: ["business", "calls", "intake"],
-        answer: `I can talk about that in a business-focused way. ${buildGeneralBusinessLens(normalized)} Revenue Guard adapts through the client profile: business type, services, FAQs, booking rules, escalation rules, and approved language. If a caller asks something outside that profile, the AI collects details and routes it to a person instead of guessing.`,
+        answer: `I can talk about that in a business-focused way. ${buildGeneralBusinessLens(normalized)} NexCall adapts through the client profile: business type, services, FAQs, booking rules, escalation rules, and approved language. If a caller asks something outside that profile, the AI collects details and routes it to a person instead of guessing.`,
         needsHuman: true
       };
   const opening = randomChoice(openings);

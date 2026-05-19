@@ -7,14 +7,20 @@ import {
   Sparkles,
   Users
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About NexCall | AI Receptionist Built for Real Businesses",
+  description:
+    "Learn how NexCall builds AI receptionist workflows around fast answering, clear booking, human fallback, and trustworthy caller experiences."
+};
 
 const values = [
   {
     icon: Headphones,
     title: "Answer quickly, hand off gracefully",
-    copy: "Automation should never trap a caller. Revenue Guard is built around clear routing, human fallback, and useful summaries."
+    copy: "Automation should never trap a caller. NexCall is built around clear routing, human fallback, and useful summaries."
   },
   {
     icon: CalendarCheck,
@@ -45,14 +51,15 @@ export default function AboutPage() {
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white">
               <ShieldCheck size={21} aria-hidden="true" />
             </span>
-            REVENUE GUARD
+            NEXCALL
           </Link>
           <Link
             href="/"
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-black text-[#172033] shadow-sm transition hover:bg-stone-50"
           >
             <ArrowLeft size={17} aria-hidden="true" />
-            Back Home
+            <span className="hidden sm:inline">Back Home</span>
+            <span className="sm:hidden">Home</span>
           </Link>
         </nav>
       </header>
@@ -67,30 +74,14 @@ export default function AboutPage() {
             Our mission is to make every good customer conversation reachable.
           </h1>
           <p className="mt-6 text-lg leading-8 text-stone-600">
-            Revenue Guard exists for the businesses that are busy enough to miss calls
+            NexCall exists for the businesses that are busy enough to miss calls
             but personal enough to care how every caller is treated. We build AI phone
             reception around useful service, not spectacle: answer, understand, book,
             route, summarize, and improve.
           </p>
         </div>
 
-        <div className="rounded-lg border border-stone-200 bg-white p-6 shadow-xl shadow-stone-300/30">
-          <div className="relative h-72 w-full overflow-hidden rounded-lg">
-            <Image
-              fill
-              priority
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
-              src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80"
-              alt="Diverse team gathered around a table discussing customer service"
-            />
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <Stat value="24/7" label="Call coverage path" />
-            <Stat value="Human" label="Fallback first" />
-            <Stat value="Weekly" label="Quality review" />
-          </div>
-        </div>
+        <AboutCommandCenter />
       </section>
 
       <section className="border-y border-stone-200 bg-white py-16">
@@ -168,6 +159,50 @@ function Stat({ value, label }: { value: string; label: string }) {
     <div className="rounded-lg bg-[#f6f2ea] p-4 text-center">
       <p className="text-2xl font-black text-[#172033]">{value}</p>
       <p className="mt-1 text-sm font-bold text-stone-500">{label}</p>
+    </div>
+  );
+}
+
+function AboutCommandCenter() {
+  const rows = [
+    { icon: Headphones, label: "Caller asks for help", value: "Answered instantly" },
+    { icon: CalendarCheck, label: "Booking rules checked", value: "Approved slots only" },
+    { icon: Users, label: "Judgment call detected", value: "Human fallback ready" }
+  ];
+
+  return (
+    <div className="rounded-lg border border-stone-200 bg-white p-6 shadow-xl shadow-stone-300/30">
+      <div className="rounded-lg border border-[#d7c08a] bg-[#111827] p-5 text-white">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#d9a536]">
+              NexCall Command Center
+            </p>
+            <h2 className="mt-2 text-2xl font-black">Every call gets a clear next step.</h2>
+          </div>
+          <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-200">
+            live-ready
+          </span>
+        </div>
+        <div className="mt-6 grid gap-3">
+          {rows.map((row) => (
+            <div key={row.label} className="flex flex-col items-start justify-between gap-3 rounded-lg bg-white/10 p-4 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#d9a536] text-[#111827]">
+                  <row.icon size={19} aria-hidden="true" />
+                </span>
+                <p className="font-bold">{row.label}</p>
+              </div>
+              <p className="text-sm font-black text-[#f7d984]">{row.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <Stat value="24/7" label="Coverage path" />
+        <Stat value="Human" label="Fallback first" />
+        <Stat value="Weekly" label="Quality review" />
+      </div>
     </div>
   );
 }

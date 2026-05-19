@@ -7,17 +7,57 @@ const EVENT_TYPE_MAP = {
   default: process.env.CAL_EVENT_DEMO_ID
 };
 
+function isValidEmail(value) {
+  return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
+}
+
+function isValidDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isValidTime(value) {
+  return typeof value === "string" && /^\d{2}:\d{2}$/.test(value);
+}
+
+function maskEmail(value) {
+  if (!isValidEmail(value)) return "invalid-or-missing";
+
+  const [name, domain] = value.split("@");
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
 export async function POST(request) {
   try {
     const payload = await request.json();
-    console.log("Incoming ElevenLabs Webhook Payload:", JSON.stringify(payload, null, 2));
 
     const { caller_name, caller_email, appointment_date, appointment_time, meeting_type, user_timezone } = payload;
+    console.log("Incoming calendar booking request", {
+      meeting_type,
+      appointment_date,
+      appointment_time,
+      caller_email: maskEmail(caller_email),
+      user_timezone: user_timezone || "not-provided"
+    });
 
     if (!caller_email || !appointment_date || !appointment_time) {
       return NextResponse.json(
         { error: "Missing required booking fields (email, date, or time)." },
         { status: 400 }
+      );
+    }
+
+    if (!isValidEmail(caller_email) || !isValidDate(appointment_date) || !isValidTime(appointment_time)) {
+      return NextResponse.json(
+        { error: "Invalid booking fields. Use a valid email, YYYY-MM-DD date, and HH:mm time." },
+        { status: 400 }
+      );
+    }
+
+    if (!process.env.CAL_API_KEY) {
+      console.warn("Cal.com API key is missing");
+      return NextResponse.json(
+        { error: "Calendar booking is not configured yet." },
+        { status: 503 }
       );
     }
 
@@ -45,7 +85,12 @@ export async function POST(request) {
       }
     };
 
-    console.log("Sending Payload to Cal.com v2:", JSON.stringify(bookingPayload, null, 2));
+    console.log("Sending booking request to Cal.com v2", {
+      eventTypeId,
+      start: startTimeIso,
+      attendeeTimeZone,
+      caller_email: maskEmail(caller_email)
+    });
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), CAL_REQUEST_TIMEOUT_MS);
@@ -64,7 +109,12 @@ export async function POST(request) {
       });
     } catch (error) {
       if (error?.name === "AbortError") {
-        console.error("Cal.com booking timeout after 8 seconds:", bookingPayload);
+        console.error("Cal.com booking timeout after 8 seconds", {
+          eventTypeId,
+          start: startTimeIso,
+          attendeeTimeZone,
+          caller_email: maskEmail(caller_email)
+        });
         return NextResponse.json({
           status: "timeout_fallback",
           message: "Cal.com did not confirm within 8 seconds. The booking request should be treated as pending confirmation.",
@@ -103,7 +153,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("Fatal internal server error in calendar route:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

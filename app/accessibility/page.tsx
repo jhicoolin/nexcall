@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
-  title: "Accessibility Statement | Revenue Guard AI",
-  description: "Accessibility statement and feedback process for Revenue Guard AI."
+  title: "Accessibility Statement | NexCall",
+  description: "Accessibility statement and feedback process for NexCall."
 };
 
 export default function AccessibilityPage() {
@@ -11,7 +11,7 @@ export default function AccessibilityPage() {
     <LegalPage
       eyebrow="Accessibility"
       title="Accessibility Statement"
-      summary="Revenue Guard AI aims to provide a website that is usable by as many people as possible."
+      summary="NexCall aims to provide a website that is usable by as many people as possible."
     >
       <h2>Our Goal</h2>
       <p>We aim to keep the website readable, keyboard-friendly, responsive, and understandable across common devices, browsers, and assistive technologies.</p>
