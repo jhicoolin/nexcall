@@ -49,13 +49,13 @@ export default function AboutPage() {
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3 text-sm font-black text-[#172033]">
-            <span className="relative h-10 w-10 overflow-hidden rounded-lg bg-black shadow-sm">
+            <span className="relative h-11 w-11 drop-shadow-[0_0_14px_rgba(36,79,143,0.24)]">
               <Image
-                src="/brand/nexcall-icon.png"
+                src="/brand/nexcall-mark-transparent.png"
                 alt=""
                 fill
-                sizes="40px"
-                className="object-cover"
+                sizes="44px"
+                className="object-contain"
               />
             </span>
             NEXCALL
@@ -123,8 +123,8 @@ export default function AboutPage() {
           </h2>
           <p className="mt-5 text-lg leading-8 text-stone-600">
             A strong rollout does not begin with every possible feature. It begins with
-            the repeatable call types that create revenue or relieve staff: booking,
-            rescheduling, lead intake, FAQs, routing, and after-hours coverage.
+            the repeatable call types that create revenue or relieve staff: appointment
+            requests, rescheduling, lead intake, FAQs, routing, and after-hours coverage.
           </p>
         </div>
         <ol className="grid gap-3">

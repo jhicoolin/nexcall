@@ -5,6 +5,8 @@ const E164_PHONE_PATTERN = /^\+[1-9]\d{1,14}$/;
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 3;
 const rateLimitStore = globalThis.__outboundCallRateLimitStore || new Map();
+const CALL_SUCCESS_MESSAGE = "Your demo call is starting now.";
+const CALL_FAILURE_MESSAGE = "We could not start the demo call right now. Please try again or contact NexCall.";
 
 globalThis.__outboundCallRateLimitStore = rateLimitStore;
 
@@ -66,30 +68,38 @@ async function checkHourlyRateLimit(ip) {
   if (upstash) {
     const resetAt = (rateLimitBucket() + 1) * RATE_LIMIT_WINDOW_MS;
     const key = `nexcall:outbound-call:${rateLimitBucket()}:${ip}`;
-    const response = await fetch(`${upstash.url}/pipeline`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${upstash.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([
-        ['INCR', key],
-        ['EXPIRE', key, Math.ceil(RATE_LIMIT_WINDOW_MS / 1000) + 30]
-      ])
-    });
+    try {
+      const response = await fetch(`${upstash.url}/pipeline`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${upstash.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([
+          ['INCR', key],
+          ['EXPIRE', key, Math.ceil(RATE_LIMIT_WINDOW_MS / 1000) + 30]
+        ])
+      });
 
-    if (!response.ok) {
-      return { allowed: false, remaining: 0, resetAt };
+      if (response.ok) {
+        const results = await response.json().catch(() => []);
+        const count = Number(results?.[0]?.result || 0);
+
+        return {
+          allowed: count <= RATE_LIMIT_MAX_REQUESTS,
+          remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - count),
+          resetAt
+        };
+      }
+
+      console.warn("Outbound call rate limiter unavailable; using in-memory limiter", {
+        status: response.status
+      });
+    } catch (error) {
+      console.warn("Outbound call rate limiter unavailable; using in-memory limiter", {
+        message: error instanceof Error ? error.message : "Unknown rate limiter error"
+      });
     }
-
-    const results = await response.json().catch(() => []);
-    const count = Number(results?.[0]?.result || 0);
-
-    return {
-      allowed: count <= RATE_LIMIT_MAX_REQUESTS,
-      remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - count),
-      resetAt
-    };
   }
 
   const existing = rateLimitStore.get(ip);
@@ -119,6 +129,13 @@ async function checkHourlyRateLimit(ip) {
   };
 }
 
+export async function GET() {
+  return NextResponse.json(
+    { success: false, message: "Method not allowed." },
+    { status: 405, headers: { Allow: "POST" } }
+  );
+}
+
 export async function POST(request) {
   try {
     let body;
@@ -126,7 +143,11 @@ export async function POST(request) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Invalid JSON body." }, { status: 400 });
+    }
+
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ success: false, message: "Invalid request body." }, { status: 400 });
     }
 
     const { name, phone, user_timezone } = body || {};
@@ -143,14 +164,14 @@ export async function POST(request) {
       "";
 
     if (!phone) {
-      return NextResponse.json({ error: "Phone number is mandatory." }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Phone number is mandatory." }, { status: 400 });
     }
 
     const normalizedPhone = normalizePhoneNumber(phone);
 
     if (!E164_PHONE_PATTERN.test(normalizedPhone)) {
       return NextResponse.json(
-        { error: "Invalid phone number format. Please include your country code (e.g., +1)." },
+        { success: false, message: "Invalid phone number format. Please include your country code (e.g., +1)." },
         { status: 400 }
       );
     }
@@ -160,7 +181,7 @@ export async function POST(request) {
 
     if (!limit.allowed) {
       return NextResponse.json(
-        { error: "Too many demo call requests. Please try again in about 5 minutes." },
+        { success: false, message: "Too many demo call requests. Please try again in about 5 minutes." },
         {
           status: 429,
           headers: {
@@ -185,10 +206,7 @@ export async function POST(request) {
       });
 
       return NextResponse.json(
-        {
-          error: "Outbound call provider is not configured.",
-          setup: "Add ELEVENLABS_API_KEY, ELEVENLABS_AGENT_ID, and ELEVENLABS_AGENT_PHONE_NUMBER_ID in Vercel Production env vars."
-        },
+        { success: false, message: CALL_FAILURE_MESSAGE },
         { status: 503 }
       );
     }
@@ -239,11 +257,19 @@ export async function POST(request) {
         phone: maskPhone(normalizedPhone),
         message: responseData?.detail?.message || responseData?.message || "Provider rejected request"
       });
-      return NextResponse.json({ error: "The demo call could not start, but your request was captured. The NexCall team can follow up." }, { status: response.status });
+      return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: response.status });
+    }
+
+    if (responseData?.success !== true) {
+      console.error("ElevenLabs Outbound Engine returned unsuccessful payload", {
+        phone: maskPhone(normalizedPhone),
+        providerMessage: responseData?.message || "Missing provider success flag"
+      });
+      return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
     }
 
     return NextResponse.json(
-      { success: true, data: responseData },
+      { success: true, message: CALL_SUCCESS_MESSAGE },
       {
         status: 200,
         headers: {
@@ -257,6 +283,6 @@ export async function POST(request) {
     console.error("Outbound API server error", {
       message: error instanceof Error ? error.message : "Unknown outbound call error"
     });
-    return NextResponse.json({ error: "The demo call could not start, but your request was captured. Please try again shortly." }, { status: 502 });
+    return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
   }
 }

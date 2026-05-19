@@ -1,7 +1,7 @@
 {
   "name": "NexCall",
   "short_name": "NexCall",
-  "description": "AI receptionist that answers calls, books appointments, and captures leads.",
+  "description": "AI receptionist that answers calls, captures leads, supports appointment requests, and sends clean notes.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#05070D",

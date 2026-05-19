@@ -93,110 +93,54 @@ const voiceProfiles: Record<VoiceProfileKey, VoiceProfile> = {
     tone: "calm, helpful, front-desk friendly",
     rate: 0.92,
     pitch: 1.04,
-    preferredNames: [
-      "Microsoft Jenny",
-      "Microsoft Aria",
-      "Samantha",
-      "Ava",
-      "Victoria",
-      "Google US English",
-      "Zira",
-      "Tessa",
-      "Karen",
-      "Moira"
-    ]
+    preferredNames: ["Samantha", "Ava", "Victoria", "Tessa", "Karen", "Moira"]
   },
   confidentMale: {
     label: "Confident male",
     tone: "clear, consultative, never salesy",
     rate: 0.91,
     pitch: 0.96,
-    preferredNames: [
-      "Microsoft Guy",
-      "Microsoft Ryan",
-      "Alex",
-      "Daniel",
-      "Google UK English Male",
-      "Google US English",
-      "Mark",
-      "David"
-    ]
+    preferredNames: ["Alex", "Daniel", "Mark", "David"]
   },
   brightFemale: {
     label: "Bright female",
     tone: "welcoming, polished, concierge-style",
     rate: 0.96,
     pitch: 1.08,
-    preferredNames: [
-      "Microsoft Aria",
-      "Samantha",
-      "Serena",
-      "Ava",
-      "Google US English",
-      "Victoria",
-      "Zira",
-      "Moira"
-    ]
+    preferredNames: ["Samantha", "Serena", "Ava", "Victoria", "Moira"]
   },
   calmMale: {
     label: "Calm male",
     tone: "patient, steady, support-focused",
     rate: 0.9,
     pitch: 0.94,
-    preferredNames: [
-      "Microsoft Guy",
-      "Microsoft Davis",
-      "Alex",
-      "Daniel",
-      "Google UK English Male",
-      "Google US English",
-      "Mark",
-      "David"
-    ]
+    preferredNames: ["Alex", "Daniel", "Mark", "David"]
   },
   steadyMale: {
     label: "Steady male",
     tone: "precise, trustworthy, routing-oriented",
     rate: 0.88,
     pitch: 0.92,
-    preferredNames: [
-      "Microsoft Guy",
-      "Microsoft Ryan",
-      "Daniel",
-      "Alex",
-      "Google UK English Male",
-      "Google US English",
-      "Mark",
-      "David"
-    ]
+    preferredNames: ["Daniel", "Alex", "Mark", "David"]
   },
   empatheticFemale: {
     label: "Empathetic female",
     tone: "gentle, reassuring, sensitive-intake ready",
     rate: 0.88,
     pitch: 1.02,
-    preferredNames: [
-      "Microsoft Jenny",
-      "Microsoft Aria",
-      "Samantha",
-      "Serena",
-      "Ava",
-      "Victoria",
-      "Google US English",
-      "Zira"
-    ]
+    preferredNames: ["Samantha", "Serena", "Ava", "Victoria"]
   }
 };
 
 const voiceDemos: DemoScenario[] = [
   {
     id: "appointment",
-    title: "Appointment Scheduling",
+    title: "Appointment Request",
     category: "Healthcare Receptionist",
-    tags: ["Real-time booking", "Reschedule", "SMS confirmation"],
+    tags: ["Appointment request", "Reschedule", "Follow-up"],
     summary:
       "A patient needs to move an appointment and get confirmation without waiting on hold.",
-    result: "Appointment rescheduled",
+    result: "Appointment request captured",
     duration: "0:46",
     voiceProfile: "warmFemale",
     audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_APPOINTMENT_URL || "",
@@ -218,7 +162,7 @@ const voiceDemos: DemoScenario[] = [
       },
       {
         speaker: "Receptionist",
-        text: "Done. Your appointment is confirmed for Thursday at 4:15 PM, and I just sent the details.",
+        text: "I captured that request and made sure your team has the details.",
         duration: 3200
       }
     ]
@@ -264,7 +208,7 @@ const voiceDemos: DemoScenario[] = [
     tags: ["Receptionist", "FAQ", "Confirmation"],
     summary:
       "A guest asks about availability, patio seating, and dietary notes during a busy service rush.",
-    result: "Reservation confirmed",
+    result: "Reservation request captured",
     duration: "0:53",
     voiceProfile: "brightFemale",
     audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_RESTAURANT_URL || "",
@@ -286,7 +230,7 @@ const voiceDemos: DemoScenario[] = [
       },
       {
         speaker: "Receptionist",
-        text: "You're confirmed for four on the patio at 8 PM. I sent the confirmation text.",
+        text: "I captured the patio request for four at 8 PM and made sure the team has the details.",
         duration: 2800
       }
     ]
@@ -397,17 +341,8 @@ const voiceDemos: DemoScenario[] = [
 
 const elevenLabsTtsEnabled = process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS === "true";
 
-const trustSignals = [
-  "Answers 24/7",
-  "Supports appointment requests",
-  "Captures lead details",
-  "Routes urgent calls",
-  "Sends clean summaries"
-];
-
 const brandAssets = {
-  logo: "/brand/nexcall-logo.png",
-  icon: "/brand/nexcall-icon.png"
+  mark: "/brand/nexcall-mark-transparent.png"
 } as const;
 
 type AnimatedCounterProps = {
@@ -552,13 +487,13 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#05070d]/82 backdrop-blur-2xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <a href="#top" className="flex items-center gap-3" aria-label="NexCall home">
-          <span className="relative h-11 w-11 overflow-hidden rounded-xl border border-white/10 bg-black shadow-lg shadow-blue-950/30">
+          <span className="relative h-12 w-12 drop-shadow-[0_0_18px_rgba(141,189,255,0.22)]">
             <Image
-              src={brandAssets.icon}
+              src={brandAssets.mark}
               alt=""
               fill
-              sizes="44px"
-              className="object-cover"
+              sizes="48px"
+              className="object-contain"
               priority
             />
           </span>
@@ -649,16 +584,6 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             requests, and sends your team clean notes. Customers get a fast response.
             Your team gets the next step.
           </p>
-          <div className="mt-6 flex max-w-2xl flex-wrap gap-2">
-            {trustSignals.map((item) => (
-              <span
-                key={item}
-                className="rounded-full border border-white/10 bg-white/7 px-3 py-1 text-sm font-bold text-slate-300 shadow-sm backdrop-blur"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
@@ -676,6 +601,9 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
               <ArrowRight size={18} aria-hidden="true" />
             </a>
           </div>
+          <p className="mt-4 text-sm font-bold text-slate-400">
+            No card required for demo requests. Human fallback available when needed.
+          </p>
         </motion.div>
         <HeroCallJourney />
       </div>
@@ -693,7 +621,7 @@ function HeroCallJourney() {
     {
       icon: MessageSquareText,
       label: "Intent detected",
-      detail: "Caller need, urgency, and contact details are confirmed."
+      detail: "Caller need, urgency, and contact details are captured."
     },
     {
       icon: CalendarCheck,
@@ -722,8 +650,8 @@ function HeroCallJourney() {
         <div className="metal-panel overflow-hidden rounded-[1.25rem] p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <Image src={brandAssets.icon} alt="" fill sizes="48px" className="object-cover" />
+              <span className="relative h-12 w-12 shrink-0 drop-shadow-[0_0_18px_rgba(141,189,255,0.24)]">
+                <Image src={brandAssets.mark} alt="" fill sizes="48px" className="object-contain" />
               </span>
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-[#8dbdff]">
@@ -750,18 +678,8 @@ function HeroCallJourney() {
                 live
               </span>
             </div>
-            <div className="mt-5 space-y-4">
-              <motion.div
-                initial={{ opacity: 0.7, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, repeat: Infinity, repeatType: "reverse", repeatDelay: 4 }}
-                className="rounded-2xl bg-white/10 p-4 text-sm font-bold leading-6 text-slate-100"
-              >
-                &quot;Can someone see me today? I need to change my appointment.&quot;
-              </motion.div>
-              <div className="ml-auto rounded-2xl bg-[#8dbdff] p-4 text-sm font-bold leading-6 text-[#05070d]">
-                &quot;I can help. I found two openings and can move you without a callback.&quot;
-              </div>
+            <div className="mt-5 rounded-2xl bg-white/10 p-4 text-sm font-bold leading-6 text-slate-100">
+              &quot;Can someone see me today? I need to change my appointment.&quot;
             </div>
             <div className="mt-5 rounded-2xl border border-blue-200/15 bg-blue-300/10 p-4">
               <p className="text-xs font-black uppercase tracking-[0.14em] text-[#8dbdff]">
@@ -776,9 +694,6 @@ function HeroCallJourney() {
               <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-200">
                 Call Path
               </p>
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-slate-200">
-                4 steps
-              </span>
             </div>
             <div className="relative mt-5 space-y-3">
               <div className="absolute bottom-6 left-[15px] top-6 w-px bg-white/20" />
@@ -814,9 +729,6 @@ function HeroCallJourney() {
                 Caller need, phone, preferred time, urgency, and handoff note in one place.
               </p>
             </div>
-            <span className="w-fit rounded-full bg-[#0f766e]/10 px-3 py-1 text-xs font-black text-[#0f766e]">
-              ready
-            </span>
           </div>
         </div>
       </div>
@@ -825,6 +737,17 @@ function HeroCallJourney() {
 }
 
 type OutboundStatus = "idle" | "calling" | "success" | "error";
+
+const NEXCALL_PUBLIC_EMAIL = "nexcall@proton.me";
+const NEXCALL_PUBLIC_PHONE_DISPLAY = "(202) 200-6578";
+const NEXCALL_PUBLIC_PHONE_TEL = "+12022006578";
+const CALL_DEMO_FAILURE_MESSAGE = "We could not start the demo call right now. Please try again or contact NexCall.";
+
+type OutboundCallResponse = {
+  success?: boolean;
+  message?: string;
+  error?: string;
+};
 
 function getBrowserTimeZone() {
   try {
@@ -914,6 +837,25 @@ function handlePhoneInputFormatting(
   });
 }
 
+function CallDemoFallbackNotice({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+      <p>{message}</p>
+      <p className="mt-2 text-red-800">
+        You can also reach NexCall at{" "}
+        <a className="underline underline-offset-2" href={`mailto:${NEXCALL_PUBLIC_EMAIL}`}>
+          {NEXCALL_PUBLIC_EMAIL}
+        </a>{" "}
+        or{" "}
+        <a className="underline underline-offset-2" href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`}>
+          {NEXCALL_PUBLIC_PHONE_DISPLAY}
+        </a>
+        .
+      </p>
+    </div>
+  );
+}
+
 function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -968,10 +910,10 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone: normalizedPhone, user_timezone: getBrowserTimeZone() })
       });
+      const result = (await response.json().catch(() => null)) as OutboundCallResponse | null;
 
-      if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as { error?: string } | null;
-        setError(result?.error || "The call could not be started. Please try again.");
+      if (!response.ok || result?.success !== true) {
+        setError(result?.message || result?.error || CALL_DEMO_FAILURE_MESSAGE);
         setStatus("error");
         return;
       }
@@ -1004,7 +946,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
               Let Nexa ring your phone.
             </h2>
             <p className="mt-3 leading-7 text-slate-300">
-              Enter your number and the NexCall Receptionist will call you with the booking-flow demo.
+              Enter your number and the NexCall Receptionist will call you with the front-desk demo.
             </p>
           </div>
           <button
@@ -1020,9 +962,9 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
 
         {status === "success" ? (
           <div className="mt-6 rounded-xl border border-emerald-300/40 bg-emerald-300/10 p-5">
-            <p className="text-xl font-black text-white">Calling now.</p>
+            <p className="text-xl font-black text-white">Your demo call is starting now.</p>
             <p className="mt-2 leading-7 text-slate-200">
-              Nexa is ringing your phone. Pick up and ask about booking, rescheduling, or missed calls.
+              Nexa is ringing your phone. Pick up and ask about appointment requests, rescheduling, or missed calls.
             </p>
             <button
               type="button"
@@ -1064,9 +1006,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
               />
             </label>
             {error ? (
-              <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
-                {error}
-              </p>
+              <CallDemoFallbackNotice message={error} />
             ) : null}
             <button
               type="submit"
@@ -1095,28 +1035,18 @@ function TrustSignalBar() {
 
   return (
     <section className="border-y border-white/10 bg-[#05070d]">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.45 }}
-        className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8"
-      >
+      <div className="mx-auto grid max-w-7xl gap-7 px-4 py-8 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
         <div>
           <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
-            Proof in the first minute
+            Proof, not noise
           </p>
           <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
             Built for businesses that cannot afford missed calls.
           </h2>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
-            {trustSignals.map((signal) => (
-              <div key={signal} className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/6 px-4 text-sm font-black text-slate-100 backdrop-blur">
-                <Check className="shrink-0 text-emerald-300" size={17} aria-hidden="true" />
-                {signal}
-              </div>
-            ))}
-          </div>
+          <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
+            A tight operating layer for answered calls, captured details, appointment
+            requests, urgent routing, and clean team notes.
+          </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-4 lg:content-center">
           {stats.map((stat) => (
@@ -1135,7 +1065,7 @@ function TrustSignalBar() {
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -1153,8 +1083,10 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
   const featuredVoiceDemos = voiceDemos.slice(0, 3);
   const scenario = featuredVoiceDemos[selected] || featuredVoiceDemos[0];
   const voiceProfile = voiceProfiles[scenario.voiceProfile];
-  const selectedBrowserVoice = selectHumanVoice(availableVoices, voiceProfile);
   const playbackAudioUrl = scenario.audioUrl || (generatedScenarioId === scenario.id ? generatedAudioUrl : "");
+  const callerPreview = scenario.lines.find((line) => line.speaker === "Caller") || scenario.lines[0];
+  const receptionistPreview =
+    scenario.lines.find((line) => line.speaker === "Receptionist") || scenario.lines[1] || scenario.lines[0];
 
   useEffect(() => {
     if (!("speechSynthesis" in window)) return;
@@ -1300,9 +1232,9 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
   const progress = ((activeLine + (isPlaying ? 1 : 0)) / scenario.lines.length) * 100;
 
   return (
-    <section id="demos" className="border-b border-white/10 bg-[#05070d] py-16">
+    <section id="demos" className="border-b border-white/10 bg-[#05070d] py-14">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr]">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
               Experience NexCall
@@ -1323,41 +1255,22 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
               <Phone size={18} aria-hidden="true" />
               Try a Real Demo Call
             </button>
-            <div className="mt-8 grid gap-3">
+            <div className="mt-7 grid gap-2">
               {featuredVoiceDemos.map((demo, index) => (
-                <div
+                <button
                   key={demo.title}
+                  type="button"
+                  onClick={() => setSelected(index)}
+                  aria-pressed={selected === index}
                   className={`rounded-2xl border p-4 text-left transition ${
                     selected === index
                       ? "border-[#8dbdff]/60 bg-white/10 shadow-lg shadow-black/25"
                       : "border-white/10 bg-white/5 hover:bg-white/8"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setSelected(index)}
-                      className="min-w-0 flex-1 text-left"
-                      aria-pressed={selected === index}
-                    >
-                      <p className="text-sm font-black text-white">{demo.title}</p>
-                      <p className="mt-1 text-xs font-bold text-slate-400">{demo.category}</p>
-                    </button>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="rounded-full bg-[#8dbdff]/15 px-3 py-1 text-xs font-black text-blue-100">
-                        {demo.duration}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => void playDemo(index)}
-                        className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#05070d] transition hover:bg-slate-200"
-                        aria-label={`Play ${demo.title} demo`}
-                      >
-                        Play
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  <p className="text-sm font-black text-white">{demo.title}</p>
+                  <p className="mt-1 text-xs font-bold text-slate-400">{demo.category}</p>
+                </button>
               ))}
             </div>
           </div>
@@ -1376,31 +1289,10 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
                 </p>
                 <h3 className="mt-2 text-3xl font-black text-[#172033]">{scenario.title}</h3>
                 <p className="mt-2 max-w-2xl text-stone-600">{scenario.summary}</p>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-3">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-[#244f8f]">
-                      Tone
-                    </p>
-                    <p className="mt-1 text-sm font-black text-[#172033]">Natural receptionist voice</p>
-                    <p className="mt-1 text-xs leading-5 text-stone-500">{voiceProfile.tone}</p>
-                  </div>
-                  <div className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-3">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0f766e]">
-                      Demo preview
-                    </p>
-                    <p className="mt-1 text-sm font-black text-[#172033]">
-                      {playbackAudioUrl || selectedBrowserVoice ? "Preview ready" : "Ready to play"}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-stone-500">
-                      Hear a short, illustrative call flow before placing a real demo call.
-                    </p>
-                  </div>
-                </div>
-                {ttsStatus ? (
-                  <p className="mt-4 rounded-lg border border-[#c8d7ef] bg-[#eef4ff] px-3 py-2 text-xs font-bold text-[#244f8f]">
-                    {ttsStatus}
-                  </p>
-                ) : null}
+                <p className="mt-4 text-sm font-bold text-[#244f8f]">
+                  Tone: natural, calm, front-desk friendly.
+                </p>
+                {ttsStatus ? <p className="mt-2 text-xs font-bold text-stone-500">{ttsStatus}</p> : null}
                 {ttsError ? (
                   <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-900">
                     {ttsError}
@@ -1417,14 +1309,6 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
               </button>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {scenario.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-[#f6f2ea] px-3 py-1 text-xs font-black text-stone-600">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-
             <div className="mt-6 rounded-lg bg-[#172033] p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -1438,7 +1322,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
                 </p>
               </div>
               <div className="mt-5 flex h-12 items-end gap-1">
-                {Array.from({ length: 28 }).map((_, index) => (
+                {Array.from({ length: 18 }).map((_, index) => (
                   <motion.span
                     key={index}
                     animate={{ height: isPlaying ? [12, 36 + ((index * 7) % 18), 14] : 14 + ((index * 9) % 22) }}
@@ -1454,31 +1338,19 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
                   transition={{ duration: 0.3 }}
                 />
               </div>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {scenario.lines.map((line, index) => (
-                <motion.div
-                  key={`${scenario.title}-${line.text}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{
-                    opacity: index <= activeLine ? 1 : 0.28,
-                    y: index <= activeLine ? 0 : 12
-                  }}
-                  className={`flex ${line.speaker === "Receptionist" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[88%] rounded-lg px-4 py-3 ${
-                      line.speaker === "Receptionist"
-                        ? "bg-[#244f8f] text-white"
-                        : "bg-[#f1ede5] text-[#172033]"
-                    }`}
-                  >
-                    <p className="text-xs font-black uppercase opacity-70">{line.speaker}</p>
-                    <p className="mt-1 text-sm font-semibold leading-6">{line.text}</p>
-                  </div>
-                </motion.div>
-              ))}
+              <div className="mt-5 grid gap-3">
+                <div className="rounded-xl bg-white/10 p-4">
+                  <p className="text-xs font-black uppercase text-white/60">Caller</p>
+                  <p className="mt-1 text-sm font-semibold leading-6">{callerPreview.text}</p>
+                </div>
+                <div className="rounded-xl bg-[#9cc5ff] p-4 text-[#05070d]">
+                  <p className="text-xs font-black uppercase opacity-70">NexCall</p>
+                  <p className="mt-1 text-sm font-black leading-6">{receptionistPreview.text}</p>
+                </div>
+              </div>
+              <p className="mt-4 rounded-xl border border-white/10 bg-white/8 p-4 text-sm font-black text-blue-100">
+                Outcome: {scenario.result}
+              </p>
             </div>
             <p className="mt-5 rounded-xl border border-stone-200 bg-[#f6f2ea] p-3 text-xs font-bold leading-5 text-stone-600">
               This preview is illustrative. For the clearest test, place a real demo
@@ -1496,32 +1368,32 @@ function JobsDone() {
     {
       title: "AI Call Answering",
       icon: Phone,
-      copy: "NexCall picks up with a polished receptionist voice when your team cannot."
+      copy: "NexCall answers missed and overflow calls with a polished first response."
     },
     {
       title: "Appointment Requests",
       icon: CalendarCheck,
-      copy: "Captures the caller's need, preferred timing, and next step so scheduling can move forward."
+      copy: "Captures timing, caller details, and intent so scheduling can move forward."
     },
     {
       title: "Lead Capture",
       icon: ClipboardList,
-      copy: "Collects names, numbers, urgency, and context so your team can follow up cleanly."
+      copy: "Collects names, numbers, urgency, and needs so your team can follow up cleanly."
     },
     {
       title: "After-Hours Coverage",
       icon: Clock3,
-      copy: "Gives callers a professional response at night, on weekends, and during busy hours."
+      copy: "Nights, weekends, and busy hours still get a professional answer."
     },
     {
       title: "Call Routing",
       icon: Workflow,
-      copy: "Routes urgent, complex, or high-value calls to the right person with context attached."
+      copy: "Urgent or high-value calls can be directed to the right person with context."
     },
     {
       title: "Human Backup Handoff",
       icon: Users,
-      copy: "Keeps judgment-heavy calls moving to a real person instead of forcing a guess."
+      copy: "When judgment is needed, NexCall helps move the call to a real person."
     }
   ];
 
@@ -1536,7 +1408,7 @@ function JobsDone() {
         </h2>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
           NexCall is not legacy phone support outsourcing. It is the first response layer
-          for calls, booking, intake, routing, and clean handoffs.
+          for calls, appointment requests, intake, routing, and clean handoffs.
         </p>
         <div className="mt-7 flex flex-wrap gap-2">
           {industries.map((item) => (
@@ -1560,12 +1432,12 @@ function HowItWorks() {
     {
       label: "Answer",
       title: "NexCall picks up",
-      copy: "The AI receptionist answers with a polished voice and keeps the caller moving."
+      copy: "NexCall picks up before callers hit voicemail."
     },
     {
       label: "Understand",
       title: "The need is identified",
-      copy: "It confirms the caller's reason, urgency, contact details, and preferred next step."
+      copy: "It captures the caller's need, contact details, and urgency."
     },
     {
       label: "Act",
@@ -1575,7 +1447,7 @@ function HowItWorks() {
     {
       label: "Report",
       title: "Your team gets context",
-      copy: "The call becomes a clean summary with the caller, need, urgency, and next step."
+      copy: "Your team gets a clean note with the next step."
     }
   ];
 
@@ -1659,7 +1531,7 @@ function Pricing() {
       name: "Starter",
       monthly: 149,
       limit: "Up to 120 calls/mo",
-      features: ["24/7 answering", "Lead qualification", "SMS summaries", "Basic FAQs", "Simple call routing"]
+      features: ["24/7 answering", "Lead qualification", "Clean call summaries", "Basic FAQs", "Simple call routing"]
     },
     {
       id: "appointment",
@@ -1667,7 +1539,7 @@ function Pricing() {
       monthly: 199,
       featured: true,
       limit: "Up to 250 calls/mo",
-      features: ["Everything in Starter", "Calendar booking", "Reschedules and cancellations", "2-way text follow-up", "Human fallback rules"]
+      features: ["Everything in Starter", "Appointment request support", "Reschedule and cancellation intake", "Follow-up messaging", "Human fallback rules"]
     },
     {
       id: "growth",
@@ -1675,13 +1547,8 @@ function Pricing() {
       monthly: 349,
       plus: true,
       limit: "Higher call volume",
-      features: ["Everything in Appointment", "CRM or sheet integration", "Multiple appointment types", "Custom voice scripting", "Monthly performance review"]
+      features: ["Everything in Appointment", "Business system handoff", "Multiple appointment types", "Custom call scripts", "Monthly performance review"]
     }
-  ];
-  const pricingCues = [
-    "Recommended starting point is Appointment",
-    "Secure checkout opens when you choose a plan",
-    "No account creation before payment"
   ];
 
   async function startCheckout(planId: string) {
@@ -1718,16 +1585,13 @@ function Pricing() {
             Clear plans for teams ready to stop missing calls.
           </h2>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-            Three choices keep the decision simple: start with answering, add live
-            calendar booking, or connect deeper systems once the phone flow is proven.
+            Three choices keep the decision simple: start with answering, add
+            appointment request support, or connect deeper handoffs once the phone
+            flow is proven.
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {pricingCues.map((cue) => (
-              <span key={cue} className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs font-black text-slate-300 shadow-sm">
-                {cue}
-              </span>
-            ))}
-          </div>
+          <p className="mt-4 text-sm font-bold text-slate-400">
+            No card required for demo requests. Secure checkout opens when you choose a plan.
+          </p>
         </div>
         <div className="flex w-full max-w-xs rounded-xl border border-white/10 bg-white/6 p-1 shadow-sm">
           {(["monthly", "yearly"] as const).map((option) => (
@@ -1810,7 +1674,7 @@ function FAQSection() {
     {
       question: "Can NexCall help with appointment requests?",
       answer:
-        "Yes. NexCall can collect appointment details, preferred times, and caller context so your team can confirm or complete the booking."
+        "Yes. NexCall can collect appointment details, preferred times, and caller context so your team can confirm the next step."
     },
     {
       question: "What happens if the AI is unsure?",
@@ -1975,11 +1839,10 @@ function ClosingLeadCapture() {
           user_timezone: getBrowserTimeZone()
         })
       });
+      const result = (await response.json().catch(() => null)) as OutboundCallResponse | null;
 
-      if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as { error?: string } | null;
-        const message = result?.error || "The call could not be started. Please try again from the Call Demo button.";
-        setLeadError(message);
+      if (!response.ok || result?.success !== true) {
+        setLeadError(result?.message || result?.error || CALL_DEMO_FAILURE_MESSAGE);
         setOutboundState("error");
         return;
       }
@@ -2017,7 +1880,7 @@ function ClosingLeadCapture() {
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             <Badge icon={Users} text="Built for many industries" />
-            <Badge icon={MessageSquareText} text="Calls, booking, and SMS" />
+            <Badge icon={MessageSquareText} text="Calls, notes, and follow-up" />
           </div>
         </div>
         <form onSubmit={handleSubmit(submitLead)} className="rounded-[1.35rem] border border-white/10 bg-white p-5 text-[#172033] shadow-2xl shadow-black/30 sm:p-6">
@@ -2033,7 +1896,7 @@ function ClosingLeadCapture() {
             <div className="rounded-lg bg-[#ecfdf5] p-5">
               <p className="text-2xl font-black text-[#172033]">Calling now.</p>
               <p className="mt-2 leading-7 text-stone-600">
-                Nexa is ringing your phone with the live booking-flow demo.
+                Nexa is ringing your phone with the live front-desk demo.
               </p>
             </div>
           ) : (
@@ -2044,9 +1907,9 @@ function ClosingLeadCapture() {
               </label>
               {currentError ? <p className="mt-3 text-sm font-bold text-red-600">{currentError}</p> : null}
               {leadError ? (
-                <p className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
-                  {leadError}
-                </p>
+                <div className="mt-3">
+                  <CallDemoFallbackNotice message={leadError} />
+                </div>
               ) : null}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 {step > 0 ? (
@@ -2265,7 +2128,7 @@ function LiveChatDock() {
                     id="live-chat-question"
                     value={question}
                     onChange={(event) => setQuestion(event.target.value)}
-                    placeholder={chatTerminated ? "Conversation ended" : "Ask about numbers, setup, booking..."}
+                    placeholder={chatTerminated ? "Conversation ended" : "Ask about numbers, setup, appointments..."}
                     disabled={chatTerminated}
                     className="min-h-11 flex-1 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff]"
                   />
@@ -2397,13 +2260,13 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 text-sm text-slate-400 md:grid-cols-[1.4fr_0.8fr_0.9fr_1fr]">
         <div>
           <div className="flex items-center gap-4">
-            <span className="relative h-12 w-12 overflow-hidden rounded-xl border border-white/10 bg-[#05070d] shadow-lg shadow-black/30">
+            <span className="relative h-12 w-12 drop-shadow-[0_0_18px_rgba(141,189,255,0.18)]">
               <Image
-                src={brandAssets.icon}
+                src={brandAssets.mark}
                 alt=""
                 fill
                 sizes="48px"
-                className="object-cover"
+                className="object-contain"
               />
             </span>
             <div>
@@ -2436,8 +2299,11 @@ function Footer() {
         </div>
         <div>
           <p className="font-black text-white">Contact</p>
-          <a href="mailto:nexcall@proton.me" className="mt-4 block font-bold text-slate-200 transition hover:text-white">
-            nexcall@proton.me
+          <a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="mt-4 block font-bold text-slate-200 transition hover:text-white">
+            {NEXCALL_PUBLIC_EMAIL}
+          </a>
+          <a href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`} className="mt-3 block font-bold text-slate-200 transition hover:text-white">
+            {NEXCALL_PUBLIC_PHONE_DISPLAY}
           </a>
           <p className="mt-3 leading-6">Demo calls and setup requests are captured through the site forms.</p>
         </div>

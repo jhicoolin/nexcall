@@ -1,6 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
-import { ShieldCheck } from "lucide-react";
 
 type LegalPageProps = {
   eyebrow: string;
@@ -33,8 +33,14 @@ export function LegalPage({ eyebrow, title, summary, children }: LegalPageProps)
       <header className="border-b border-stone-200 bg-white/85 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3 text-sm font-black text-[#172033]">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#244f8f] text-white">
-              <ShieldCheck size={21} aria-hidden="true" />
+            <span className="relative h-11 w-11 drop-shadow-[0_0_14px_rgba(36,79,143,0.24)]">
+              <Image
+                src="/brand/nexcall-mark-transparent.png"
+                alt=""
+                fill
+                sizes="44px"
+                className="object-contain"
+              />
             </span>
             NEXCALL
           </Link>
@@ -76,4 +82,3 @@ export function LegalPage({ eyebrow, title, summary, children }: LegalPageProps)
     </main>
   );
 }
-
