@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About NexCall | AI Receptionist Built for Real Businesses",
   description:
-    "Learn how NexCall builds AI receptionist workflows around fast answering, clear booking, human fallback, and trustworthy caller experiences."
+    "Learn how NexCall helps businesses answer calls, capture details, support appointment requests, and create clean handoffs."
 };
 
 const values = [
@@ -25,22 +25,22 @@ const values = [
   },
   {
     icon: CalendarCheck,
-    title: "Make booking the center",
-    copy: "The best receptionist flow ends with a clean next step: a booked appointment, a routed request, or a documented follow-up."
+    title: "Keep the next step clear",
+    copy: "The best receptionist flow ends with a usable outcome: an appointment request, a routed call, or a documented follow-up."
   },
   {
     icon: ShieldCheck,
     title: "Stay inside approved answers",
-    copy: "Agents should use your calendar, FAQs, policies, and knowledge base instead of inventing pricing, availability, or promises."
+    copy: "Your receptionist should use approved business information instead of inventing pricing, availability, or promises."
   }
 ];
 
 const steps = [
   "Map your current call flow and missed-lead points.",
   "Build the first receptionist around one or two high-value call types.",
-  "Connect phone, calendar, CRM, SMS, and human fallback.",
+  "Teach it your hours, policies, intake questions, and handoff rules.",
   "Test with simulated calls before real customers reach it.",
-  "Review transcripts and improve the playbook every week."
+  "Review summaries and improve the playbook every week."
 ];
 
 export default function AboutPage() {
@@ -82,9 +82,9 @@ export default function AboutPage() {
           </h1>
           <p className="mt-6 text-lg leading-8 text-stone-600">
             NexCall exists for the businesses that are busy enough to miss calls
-            but personal enough to care how every caller is treated. We build AI phone
-            reception around useful service, not spectacle: answer, understand, book,
-            route, summarize, and improve.
+            but personal enough to care how every caller is treated. We build AI
+            reception around useful service, not spectacle: answer, understand, route,
+            capture, summarize, and improve.
           </p>
         </div>
 
@@ -173,7 +173,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 function AboutCommandCenter() {
   const rows = [
     { icon: Headphones, label: "Caller asks for help", value: "Answered instantly" },
-    { icon: CalendarCheck, label: "Booking rules checked", value: "Approved slots only" },
+    { icon: CalendarCheck, label: "Appointment request captured", value: "Next step clear" },
     { icon: Users, label: "Judgment call detected", value: "Human fallback ready" }
   ];
 

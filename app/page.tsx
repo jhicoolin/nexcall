@@ -10,14 +10,12 @@ import {
   ChevronRight,
   ClipboardList,
   Clock3,
-  Headphones,
   HelpCircle,
   Menu,
   MessageSquareText,
   Minus,
   Phone,
   Send,
-  ShieldCheck,
   Sparkles,
   UserRound,
   Users,
@@ -401,7 +399,7 @@ const elevenLabsTtsEnabled = process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS
 
 const trustSignals = [
   "Answers 24/7",
-  "Books appointments",
+  "Supports appointment requests",
   "Captures lead details",
   "Routes urgent calls",
   "Sends clean summaries"
@@ -527,9 +525,7 @@ export default function Home() {
       <Hero onCallDemo={() => setIsOutboundModalOpen(true)} />
       <TrustSignalBar />
       <HowItWorks />
-      <HumanProof />
       <JobsDone />
-      <WhyChooseNexCall />
       <VoiceAgentDemos onCallDemo={() => setIsOutboundModalOpen(true)} />
       <Pricing />
       <FAQSection />
@@ -589,7 +585,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
           <button
             type="button"
             onClick={() => setMobileOpen((current) => !current)}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/20 md:hidden"
             aria-label="Open navigation menu"
             aria-expanded={mobileOpen}
           >
@@ -649,9 +645,9 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             Never miss the call that could become your next customer.
           </h1>
           <p className="mt-6 max-w-full text-lg leading-8 text-slate-300 sm:max-w-2xl sm:text-xl">
-            NexCall answers calls, captures lead details, books appointments, and sends
-            your team clean notes. Customers get a fast response. Your team gets the
-            next step.
+            NexCall answers calls, captures lead details, helps with appointment
+            requests, and sends your team clean notes. Customers get a fast response.
+            Your team gets the next step.
           </p>
           <div className="mt-6 flex max-w-2xl flex-wrap gap-2">
             {trustSignals.map((item) => (
@@ -1090,6 +1086,13 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
 }
 
 function TrustSignalBar() {
+  const stats = [
+    { value: 500, suffix: "+", label: "Receptionist workflows" },
+    { value: 10, suffix: "+", label: "Years of ops thinking" },
+    { value: 50, suffix: "M+", label: "Calls represented" },
+    { value: 99.9, suffix: "%", decimals: 1, label: "Uptime target" }
+  ];
+
   return (
     <section className="border-y border-white/10 bg-[#05070d]">
       <motion.div
@@ -1097,14 +1100,41 @@ function TrustSignalBar() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.45 }}
-        className="mx-auto grid max-w-7xl gap-3 px-4 py-5 sm:px-6 md:grid-cols-5 lg:px-8"
+        className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8"
       >
-        {trustSignals.map((signal) => (
-          <div key={signal} className="flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-white/6 px-4 text-sm font-black text-slate-100 backdrop-blur">
-            <Check className="shrink-0 text-emerald-300" size={18} aria-hidden="true" />
-            {signal}
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
+            Proof in the first minute
+          </p>
+          <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
+            Built for businesses that cannot afford missed calls.
+          </h2>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {trustSignals.map((signal) => (
+              <div key={signal} className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/6 px-4 text-sm font-black text-slate-100 backdrop-blur">
+                <Check className="shrink-0 text-emerald-300" size={17} aria-hidden="true" />
+                {signal}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4 lg:content-center">
+          {stats.map((stat) => (
+            <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/7 p-4 text-center shadow-xl shadow-black/15">
+              <p className="text-3xl font-black tracking-tight text-white">
+                <AnimatedCounter
+                  value={stat.value}
+                  suffix={stat.suffix}
+                  decimals={stat.decimals}
+                  durationMs={1200}
+                />
+              </p>
+              <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
       </motion.div>
     </section>
   );
@@ -1218,7 +1248,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
 
     if (!response.ok) {
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(data?.error || "NexCall AI voice generation is not ready yet.");
+      throw new Error(data?.error || "Audio preview is not available yet.");
     }
 
     return URL.createObjectURL(await response.blob());
@@ -1241,7 +1271,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
     setTtsError("");
 
     if (!target.audioUrl && elevenLabsTtsEnabled && generatedScenarioId !== target.id) {
-      setTtsStatus("Creating NexCall AI voice clip...");
+      setTtsStatus("Preparing demo preview...");
       try {
         const nextAudioUrl = await buildNexCallAudio(target);
         setGeneratedScenarioId(target.id);
@@ -1251,17 +1281,17 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
           }
           return nextAudioUrl;
         });
-        setTtsStatus("NexCall AI voice clip ready");
+        setTtsStatus("Demo preview ready");
       } catch (error) {
-        setTtsStatus("Using browser fallback voice");
-        setTtsError(error instanceof Error ? error.message : "NexCall AI voice generation failed.");
+        setTtsStatus("Preview ready");
+        setTtsError(error instanceof Error ? error.message : "Audio preview is not available right now.");
       }
     } else if (target.audioUrl) {
-      setTtsStatus("Using uploaded studio clip");
+      setTtsStatus("Demo preview ready");
     } else if (generatedScenarioId === target.id && generatedAudioUrl) {
-      setTtsStatus("Using generated NexCall AI clip");
+      setTtsStatus("Demo preview ready");
     } else {
-      setTtsStatus("Using browser fallback voice");
+      setTtsStatus("Preview ready");
     }
 
     window.setTimeout(() => setIsPlaying(true), 60);
@@ -1349,24 +1379,20 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <div className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-3">
                     <p className="text-xs font-black uppercase tracking-[0.14em] text-[#244f8f]">
-                      Voice profile
+                      Tone
                     </p>
-                    <p className="mt-1 text-sm font-black text-[#172033]">{voiceProfile.label}</p>
+                    <p className="mt-1 text-sm font-black text-[#172033]">Natural receptionist voice</p>
                     <p className="mt-1 text-xs leading-5 text-stone-500">{voiceProfile.tone}</p>
                   </div>
                   <div className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-3">
                     <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0f766e]">
-                      Playback
+                      Demo preview
                     </p>
                     <p className="mt-1 text-sm font-black text-[#172033]">
-                      {playbackAudioUrl ? "Premium AI voice audio" : selectedBrowserVoice?.name || "Best browser voice"}
+                      {playbackAudioUrl || selectedBrowserVoice ? "Preview ready" : "Ready to play"}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-stone-500">
-                      {playbackAudioUrl
-                        ? "Uses an uploaded or generated humanized voice clip."
-                        : elevenLabsTtsEnabled
-                          ? "Will try ElevenLabs voice audio, then falls back to browser speech."
-                          : "Auto-selects the most natural installed voice."}
+                      Hear a short, illustrative call flow before placing a real demo call.
                     </p>
                   </div>
                 </div>
@@ -1403,7 +1429,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-100">
-                    AI Incoming Call
+                    Incoming call preview
                   </p>
                   <p className="mt-1 text-sm text-white/70">Caller ID verified - just now</p>
                 </div>
@@ -1455,89 +1481,9 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
               ))}
             </div>
             <p className="mt-5 rounded-xl border border-stone-200 bg-[#f6f2ea] p-3 text-xs font-bold leading-5 text-stone-600">
-              Browser playback is an illustrative studio preview. The live demo call uses the
-              connected NexCall phone agent when provider credentials are configured.
+              This preview is illustrative. For the clearest test, place a real demo
+              call and hear the receptionist handle the flow live.
             </p>
-          </div>
-        </div>
-      </motion.div>
-    </section>
-  );
-}
-
-function HumanProof() {
-  const stats = [
-    {
-      value: 500,
-      suffix: "+",
-      label: "Receptionist workflows",
-      description: "Scripts, routing paths, booking flows, and lead-capture patterns."
-    },
-    {
-      value: 10,
-      suffix: "+",
-      label: "Years of ops thinking",
-      description: "Grounded in front-desk process, not novelty voice prompts."
-    },
-    {
-      value: 50,
-      suffix: "M+",
-      label: "Calls represented",
-      description: "Modeled around high-volume service patterns and clean handoffs."
-    },
-    {
-      value: 99.9,
-      suffix: "%",
-      decimals: 1,
-      label: "Uptime target",
-      description: "Designed for the calls businesses cannot afford to miss."
-    }
-  ];
-
-  return (
-    <section id="reviews" className="relative overflow-hidden border-y border-white/10 bg-[#05070d] py-16">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(141,189,255,0.17),transparent_32rem),radial-gradient(circle_at_90%_60%,rgba(255,255,255,0.06),transparent_30rem)]" />
-      <motion.div {...sectionMotion} className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
-              Built To Keep Calls Moving
-            </p>
-            <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
-              Built for businesses that cannot afford missed calls.
-            </h2>
-            <p className="mt-5 text-lg leading-8 text-slate-300">
-              NexCall helps teams answer faster, capture cleaner information, and keep
-              appointments moving without adding front-desk overload.
-            </p>
-            <div className="mt-7 rounded-2xl border border-white/10 bg-white/6 p-4">
-              <p className="text-sm font-black text-white">Credibility without fake telemetry</p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">
-                The counters below animate to approved site metrics. They are not random
-                fake tickers, so the page feels premium without pretending to be telemetry.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {stats.map((stat) => (
-              <motion.article
-                key={stat.label}
-                whileHover={{ y: -4 }}
-                className="rounded-[1.35rem] border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/25 backdrop-blur"
-              >
-                <p className="text-5xl font-black tracking-tight text-white">
-                  <AnimatedCounter
-                    value={stat.value}
-                    suffix={stat.suffix}
-                    decimals={stat.decimals}
-                    durationMs={1500}
-                  />
-                </p>
-                <h3 className="mt-5 text-lg font-black text-slate-50">{stat.label}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{stat.description}</p>
-              </motion.article>
-            ))}
           </div>
         </div>
       </motion.div>
@@ -1553,9 +1499,9 @@ function JobsDone() {
       copy: "NexCall picks up with a polished receptionist voice when your team cannot."
     },
     {
-      title: "Appointment Booking",
+      title: "Appointment Requests",
       icon: CalendarCheck,
-      copy: "Captures the caller's need, checks the booking flow, and moves the appointment forward."
+      copy: "Captures the caller's need, preferred timing, and next step so scheduling can move forward."
     },
     {
       title: "Lead Capture",
@@ -1571,16 +1517,6 @@ function JobsDone() {
       title: "Call Routing",
       icon: Workflow,
       copy: "Routes urgent, complex, or high-value calls to the right person with context attached."
-    },
-    {
-      title: "Customer Intake",
-      icon: MessageSquareText,
-      copy: "Asks the right questions once, then turns the conversation into usable notes."
-    },
-    {
-      title: "Missed Call Recovery",
-      icon: ShieldCheck,
-      copy: "Catches opportunities that would otherwise become voicemail, delay, or a lost lead."
     },
     {
       title: "Human Backup Handoff",
@@ -1609,73 +1545,9 @@ function JobsDone() {
             </span>
           ))}
         </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {cards.map((card) => (
             <FeatureCard key={card.title} icon={card.icon} title={card.title} copy={card.copy} />
-          ))}
-        </div>
-      </motion.div>
-    </section>
-  );
-}
-
-function WhyChooseNexCall() {
-  const cards = [
-    {
-      title: "Human-Like Call Handling",
-      icon: Headphones,
-      copy: "Callers get a calm, helpful receptionist experience instead of voicemail."
-    },
-    {
-      title: "Booking Without Missed Follow-Up",
-      icon: CalendarCheck,
-      copy: "NexCall helps move appointments forward while your team stays focused."
-    },
-    {
-      title: "Clean Lead Capture",
-      icon: ClipboardList,
-      copy: "Names, numbers, needs, and urgency are captured in a usable summary."
-    },
-    {
-      title: "Human Backup When Needed",
-      icon: Users,
-      copy: "Complex or sensitive calls can route to a real person with context attached."
-    }
-  ];
-
-  return (
-    <section id="about" className="relative overflow-hidden border-y border-white/10 bg-[#05070d] py-16">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_20%,rgba(141,189,255,0.13),transparent_30rem)]" />
-      <motion.div {...sectionMotion} className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
-            Why Choose NexCall
-          </p>
-          <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
-            Every caller gets a clear next step.
-          </h2>
-          <p className="mt-5 text-lg leading-8 text-slate-300">
-            The product stays practical: answer the call, understand the need, take the
-            right action, and hand your team the context.
-          </p>
-        </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-2">
-          {cards.map((card) => (
-            <motion.article
-              key={card.title}
-              whileHover={{ y: -4 }}
-              className="rounded-[1.35rem] border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/20 backdrop-blur"
-            >
-              <div className="flex items-start gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#05070d]">
-                  <card.icon size={23} aria-hidden="true" />
-                </span>
-                <div>
-                  <h3 className="text-2xl font-black text-white">{card.title}</h3>
-                  <p className="mt-3 leading-7 text-slate-300">{card.copy}</p>
-                </div>
-              </div>
-            </motion.article>
           ))}
         </div>
       </motion.div>
@@ -1698,7 +1570,7 @@ function HowItWorks() {
     {
       label: "Act",
       title: "The workflow moves",
-      copy: "It books, routes, answers FAQs, or captures the lead depending on the call."
+      copy: "It supports appointment requests, routes callers, answers approved FAQs, or captures the lead."
     },
     {
       label: "Report",
@@ -1808,7 +1680,7 @@ function Pricing() {
   ];
   const pricingCues = [
     "Recommended starting point is Appointment",
-    "Checkout opens in Stripe",
+    "Secure checkout opens when you choose a plan",
     "No account creation before payment"
   ];
 
@@ -1921,39 +1793,49 @@ function Pricing() {
 function FAQSection() {
   const faqs = [
     {
+      question: "What does NexCall do?",
+      answer:
+        "NexCall answers calls, captures lead details, helps with appointment requests, routes urgent callers, and sends your team clean notes."
+    },
+    {
       question: "Does NexCall answer real phone calls?",
       answer:
-        "Yes. NexCall is built around real inbound and outbound phone workflows, with the website demo and live agent using server-side provider integrations."
+        "Yes. NexCall is designed for real business call handling, not just website chat. It gives callers a professional first response when your team is busy or offline."
     },
     {
       question: "Can I try a demo call?",
       answer:
-        "Yes. Use the Call Demo button, enter your phone number, and the connected NexCall demo agent can ring your phone when the provider credentials are live."
+        "Yes. Use the Call Demo button, enter your phone number, and NexCall can show you the receptionist experience from the caller side."
+    },
+    {
+      question: "Can NexCall help with appointment requests?",
+      answer:
+        "Yes. NexCall can collect appointment details, preferred times, and caller context so your team can confirm or complete the booking."
     },
     {
       question: "What happens if the AI is unsure?",
       answer:
-        "The safest setup is hybrid. NexCall collects context, summarizes the call, and routes complex, emotional, high-risk, or policy-sensitive situations to a person."
+        "It should stay helpful without guessing. NexCall can capture the context and route the situation to a person when judgment is needed."
     },
     {
-      question: "Can it book, reschedule, and cancel appointments?",
+      question: "Does NexCall work after hours?",
       answer:
-        "Yes, when connected to a calendar workflow. The setup should include appointment types, durations, buffers, business hours, cancellation rules, and confirmation texts."
+        "Yes. NexCall is built to cover nights, weekends, lunch rushes, and busy moments so callers do not hit a dead end."
     },
     {
-      question: "Will this work for businesses outside home services?",
+      question: "What types of businesses is NexCall for?",
       answer:
-        "Yes. The strongest fit is any business with repeat call patterns: dental offices, salons, clinics, restaurants, auto repair, law firms, real estate, agencies, and support teams."
+        "The strongest fit is any business with repeat call patterns: dental offices, salons, clinics, restaurants, auto repair, legal offices, agencies, contractors, and local shops."
     },
     {
-      question: "Can it connect with my CRM or help desk?",
+      question: "What happens if a caller needs a human?",
       answer:
-        "Usually. The fastest route is Zapier, Make, n8n, Airtable, or a direct API webhook. The app already includes /api/leads and /api/calendar-booking endpoints to receive and forward data."
+        "NexCall can collect the important details and pass the conversation to your team with the context needed for follow-up."
     },
     {
-      question: "Do I need my own Twilio account?",
+      question: "How do I get started?",
       answer:
-        "No. The simplest setup is for NexCall to assign your AI receptionist number, then you forward calls from your existing business number. You only need your own carrier account if you want direct carrier ownership."
+        "Start with a demo call or choose a plan. From there, the first setup focuses on your highest-value call types and the information your team needs."
     }
   ];
 
@@ -2241,7 +2123,6 @@ function LiveChatDock() {
       const result = (await response.json()) as {
         answer?: string;
         mode?: string;
-        model?: string;
         needsHuman?: boolean;
         terminated?: boolean;
         error?: string;
@@ -2398,7 +2279,7 @@ function LiveChatDock() {
                   </button>
                 </div>
                 <p className="mt-2 text-[11px] font-bold leading-4 text-slate-400">
-                  Uses a tenant-aware business knowledge layer, 1M+ approved reply combinations, and a professional safety shutoff.
+                  Guided by approved business details, polite responses, and human follow-up when needed.
                 </p>
               </form>
             </div>
@@ -2496,7 +2377,7 @@ function Footer() {
   ];
   const serviceLinks = [
     "AI Call Answering",
-    "Appointment Booking",
+    "Appointment Requests",
     "Lead Capture",
     "After-Hours Coverage",
     "Human Backup Handoff"
@@ -2531,8 +2412,8 @@ function Footer() {
             </div>
           </div>
           <p className="mt-5 max-w-sm leading-7">
-            NexCall answers when your team cannot, captures the details, books the
-            next step, and sends clean notes.
+            NexCall answers when your team cannot, captures the details, helps move
+            the next step forward, and sends clean notes.
           </p>
         </div>
         <nav aria-label="Quick links">
@@ -2562,7 +2443,7 @@ function Footer() {
         </div>
       </div>
       <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-4 border-t border-white/10 pt-6 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-        <p>© 2026 NexCall. All rights reserved.</p>
+        <p>&copy; 2026 NexCall. All rights reserved.</p>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal links">
           {legalLinks.map((item) => (
             <a key={item.href} href={item.href} className="transition hover:text-white">

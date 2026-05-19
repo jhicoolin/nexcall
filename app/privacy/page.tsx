@@ -22,22 +22,22 @@ export default function PrivacyPolicyPage() {
       <h2>How We Use Information</h2>
       <ul>
         <li>To respond to demo, audit, sales, and support requests.</li>
-        <li>To route calls, qualify leads, book appointments, send confirmations, and create summaries.</li>
+        <li>To route calls, qualify leads, support appointment requests, send confirmations, and create summaries.</li>
         <li>To operate payments, subscriptions, onboarding, security, analytics, and customer support.</li>
-        <li>To improve prompts, workflows, call handling quality, and client-specific receptionist settings.</li>
+        <li>To improve call handling quality and client-specific receptionist settings.</li>
       </ul>
 
       <h2>Service Providers</h2>
-      <p>The service may rely on providers such as hosting, database, telephony, payment, voice AI, email, SMS, analytics, calendar, CRM, and workflow automation platforms. These providers should be configured with appropriate account settings, access controls, and data-processing terms before production use.</p>
+      <p>The service may rely on trusted service partners to operate the website, process payments, support communications, provide analytics, and deliver customer support. These partners should be configured with appropriate account settings, access controls, and data-processing terms before production use.</p>
 
       <h2>Payment Data</h2>
-      <p>Payments are handled through Stripe Checkout or another configured payment provider. We do not intentionally store full card numbers in this application.</p>
+      <p>Payments are handled through a secure payment processor. We do not intentionally store full card numbers in this application.</p>
 
       <h2>Client Data and Call Data</h2>
-      <p>Each client is configured as a tenant with its own phone routing, prompts, calendar destinations, and approved business rules. Client webhook URLs and sensitive integration values should be stored server-side or encrypted in the tenant database, not hardcoded into public code.</p>
+      <p>Each client can have its own approved business rules, contact preferences, handoff rules, and receptionist settings. Sensitive setup details should be stored securely and should not be placed in public code or public-facing content.</p>
 
       <h2>Retention</h2>
-      <p>Retention periods should be configured according to client needs, legal requirements, and provider settings. Call transcripts and summaries should be retained only as long as they are useful for service, support, billing, compliance, or legitimate business needs.</p>
+      <p>Retention periods should be configured according to client needs, legal requirements, and business settings. Call records and summaries should be retained only as long as they are useful for service, support, billing, compliance, or legitimate business needs.</p>
 
       <h2>Your Choices</h2>
       <p>You may request access, correction, or deletion of personal information by contacting us through {supportContact}. Some records may need to be retained for security, billing, dispute resolution, or legal reasons.</p>
@@ -46,11 +46,10 @@ export default function PrivacyPolicyPage() {
       <p>Do not submit health, legal, financial, payment-card, government ID, or other sensitive regulated information unless a signed agreement and the required compliance setup are in place. NexCall does not claim HIPAA, PCI, SOC 2, GDPR, CCPA, legal, medical, or financial compliance by default.</p>
 
       <h2>Security</h2>
-      <p>We use practical safeguards such as server-side secrets, webhook validation, rate limiting, input validation, and encrypted storage for sensitive tenant webhooks where configured. No internet service can guarantee absolute security.</p>
+      <p>We use practical safeguards to protect information, reduce abuse, and limit access to sensitive setup details. No internet service can guarantee absolute security.</p>
 
       <h2>Contact</h2>
       <p>For privacy questions, use {supportContact}.</p>
     </LegalPage>
   );
 }
-

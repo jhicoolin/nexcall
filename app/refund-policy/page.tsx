@@ -17,13 +17,13 @@ export default function RefundPolicyPage() {
       <p>Subscriptions are billed according to the plan selected at checkout or in a signed agreement. A cancellation stops future renewal charges, but does not automatically refund past periods that have already been delivered.</p>
 
       <h2>Setup Fees</h2>
-      <p>Setup, onboarding, custom prompt work, phone routing, workflow configuration, and integration work may be non-refundable once work begins because the labor is performed for the specific client.</p>
+      <p>Setup, onboarding, custom receptionist scripting, call-flow planning, and client-specific configuration may be non-refundable once work begins because the labor is performed for the specific client.</p>
 
       <h2>Good-Faith Review Window</h2>
       <p>If a plan includes a written money-back or pilot guarantee, that promise must appear in the signed order form, checkout terms, or written agreement. Do not rely on verbal refund promises that are not written into the client agreement.</p>
 
       <h2>Provider Costs</h2>
-      <p>Third-party costs such as phone numbers, AI minutes, SMS, usage overages, payment processor fees, or special integrations may be non-refundable if those providers already charged for usage.</p>
+      <p>Usage-based costs, communication charges, payment processing fees, or special setup expenses may be non-refundable if those costs have already been incurred.</p>
 
       <h2>How to Request a Refund</h2>
       <p>Send the business name, billing email, plan, purchase date, and reason for the request through the website contact form or configured support email. We review refund requests in good faith and may ask for call logs, issue details, or account information to evaluate the request.</p>
@@ -33,4 +33,3 @@ export default function RefundPolicyPage() {
     </LegalPage>
   );
 }
-
