@@ -108,6 +108,13 @@ async function checkHourlyRateLimit(ip) {
 export async function POST(request) {
   try {
     const { name, phone, user_timezone } = await request.json();
+    const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+    const elevenLabsAgentId = process.env.ELEVENLABS_AGENT_ID;
+    const agentPhoneNumberId =
+      process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID ||
+      process.env.ELEVENLABS_PHONE_NUMBER_ID ||
+      process.env.TWILIO_PHONE_NUMBER_ID;
+    const twilioFromNumber = process.env.TWILIO_FROM_NUMBER || process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER || "";
 
     if (!phone) {
       return NextResponse.json({ error: "Phone number is mandatory." }, { status: 400 });
@@ -140,9 +147,12 @@ export async function POST(request) {
       );
     }
 
-    if (!process.env.ELEVENLABS_API_KEY || !process.env.ELEVENLABS_AGENT_ID || !process.env.TWILIO_PHONE_NUMBER_ID) {
+    if (!elevenLabsApiKey || !elevenLabsAgentId || !agentPhoneNumberId) {
       return NextResponse.json(
-        { error: "Outbound call provider is not configured." },
+        {
+          error: "Outbound call provider is not configured.",
+          setup: "Add ELEVENLABS_API_KEY, ELEVENLABS_AGENT_ID, and ELEVENLABS_AGENT_PHONE_NUMBER_ID in Vercel Production env vars."
+        },
         { status: 503 }
       );
     }
@@ -153,17 +163,18 @@ export async function POST(request) {
     const response = await fetch('https://api.elevenlabs.io/v1/convai/twilio/outbound-call', {
       method: 'POST',
       headers: {
-        'xi-api-key': process.env.ELEVENLABS_API_KEY,
+        'xi-api-key': elevenLabsApiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        agent_id: process.env.ELEVENLABS_AGENT_ID,
-        agent_phone_number_id: process.env.TWILIO_PHONE_NUMBER_ID, // Associated registered Twilio ID
+        agent_id: elevenLabsAgentId,
+        agent_phone_number_id: agentPhoneNumberId,
         to_number: normalizedPhone,
         conversation_initiation_client_data: {
           custom_vars: {
             lead_name: name || "Valued Lead",
-            user_timezone: user_timezone || "America/New_York"
+            user_timezone: user_timezone || "America/New_York",
+            twilio_from_number: twilioFromNumber
           }
         }
       })
