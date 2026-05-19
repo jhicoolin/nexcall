@@ -1,0 +1,226 @@
+# Client Operations Setup
+
+This site is now prepared to run as an agency front door and a lightweight multi-client routing layer.
+
+It is not a full SaaS admin dashboard yet. It does not include user login, client billing dashboards, transcript storage, or database-backed real-time editing. What it does include is enough to launch manually with real clients:
+
+- One public sales site
+- Stripe Checkout for plans
+- Lead capture forwarding
+- Calendar booking forwarding
+- Twilio incoming-call forwarding
+- Per-client phone-number routing through the Postgres tenant database
+- Native Twilio Media Stream option through scripts/twilio-media-server.mjs
+- Protected client lookup endpoint for voice-agent platforms or internal automations
+
+## The Basic Launch Architecture
+
+Visitor buys or requests a demo on the website.
+Stripe or the lead form sends you the new client.
+You create that client's voice agent in your voice platform or use the native Hugging Face-backed engine.
+You assign the client an AI receptionist number from your managed Twilio number pool, or you help them forward/port their existing business number.
+You add that client in the admin dashboard.
+Incoming calls route to the correct voice agent, lead webhook, calendar workflow, and CRM workflow.
+
+## The Client Directory
+
+Add clients in the admin dashboard or directly through Prisma/Postgres.
+
+Example:
+
+```json
+[
+  {
+    "id": "bright-smiles-dental",
+    "businessName": "Bright Smiles Dental",
+    "twilioPhoneNumber": "+15551234567",
+    "phoneNumbers": ["+15551234567"],
+    "systemPrompt": "You are the front desk receptionist for Bright Smiles Dental. Hours are Monday through Friday 8 AM to 5 PM. Help callers book cleanings, emergency tooth pain visits, and new patient consultations. Ask one question at a time, verify name and phone, and escalate urgent or clinical questions to a human.",
+    "calendarWebhookUrl": "https://hook.us1.make.com/calendar-booking-workflow",
+    "huggingFaceModelId": "hexgrad/Kokoro-82M",
+    "speechToTextModelId": "openai/whisper-large-v3-turbo",
+    "llmModelId": "mistralai/Mistral-7B-Instruct-v0.3",
+    "websiteUrl": "https://brightsmiles.example.com",
+    "timezone": "America/New_York",
+    "greeting": "Thanks for calling Bright Smiles Dental. I can help book appointments, answer simple questions, and connect you with the team.",
+    "voiceAgentWebhookUrl": "https://your-voice-platform.example.com/twilio/bright-smiles",
+    "leadWebhookUrl": "https://hooks.zapier.com/hooks/catch/lead-workflow",
+    "escalationPhone": "+15557654321",
+    "crmProvider": "HubSpot",
+    "calendarProvider": "Google Calendar"
+  }
+]
+```
+
+Rules:
+
+- `id` should be lowercase words separated by dashes.
+- `twilioPhoneNumber` must match the number Twilio sends as `To`.
+- `phoneNumbers` must be E.164 format, like `+15551234567`.
+- `systemPrompt` is the client's receptionist brain: rules, hours, FAQs, escalation rules, and booking rules.
+- `calendarWebhookUrl` is the client's Make/Zapier/n8n booking endpoint.
+- `huggingFaceModelId` is the client's TTS voice model for the native engine.
+- Webhook URLs must be HTTPS in production.
+- Every client can have its own voice agent webhook, lead webhook, calendar webhook, CRM provider, and escalation phone.
+
+## Phone Routing
+
+Twilio should point every assigned AI receptionist number to:
+
+```text
+https://your-domain.com/api/twilio/voice
+```
+
+Use HTTP POST.
+
+When a call comes in, Twilio sends the called number as `To`. The site checks the tenant database and finds the matching client.
+
+If TWILIO_MEDIA_STREAM_URL is configured, the route starts a bidirectional Twilio Media Stream.
+
+If no media stream is configured, it redirects to the client's `voiceAgentWebhookUrl`.
+
+If no client matches, the caller hears a safe fallback message.
+
+## Voice Agent Build Process
+
+Use a voice-agent platform such as Vapi, Retell, Synthflow, Bland, or another Twilio-compatible voice agent builder.
+
+Or use the native backend engine documented in BACKEND_MULTI_TENANT_ENGINE.txt.
+
+For every client:
+
+1. Create a new assistant/agent.
+2. Add the client's website, FAQs, hours, service area, pricing rules, booking rules, cancellation policy, and escalation rules.
+3. Use a warm, natural voice. Use uploaded demo MP3s on the public site; use the voice platform's production voices for real phone calls.
+4. Add required actions:
+   - Book appointment
+   - Reschedule appointment
+   - Cancel appointment
+   - Create lead
+   - Send SMS confirmation
+   - Transfer to human
+5. Point the voice agent's lead action to:
+
+```text
+https://your-domain.com/api/leads
+```
+
+6. Point the voice agent's booking action to:
+
+```text
+https://your-domain.com/api/calendar-booking
+```
+
+7. Include at least one of these fields in action payloads:
+   - `clientId`
+   - `businessPhone`
+   - `to`
+
+That lets the backend route the lead or booking to the correct client workflow.
+
+## Native Hugging Face Voice Engine Setup
+
+Use this when you want to run your own backend engine instead of forwarding calls to a third-party voice-agent platform.
+
+1. Deploy this Next.js app to Vercel.
+2. Deploy `scripts/twilio-media-server.mjs` to a WebSocket-capable Node host.
+3. Set `TWILIO_MEDIA_STREAM_URL` in Vercel to the media server WSS URL.
+4. Set `AI_TURN_ENDPOINT` on the media server host to `https://your-domain.com/api/ai/respond`.
+5. Set the same `AI_TURN_API_TOKEN` in Vercel and on the media server host.
+6. Add each client's `systemPrompt`, `calendarWebhookUrl`, and `huggingFaceModelId` in the admin dashboard.
+7. Test with short calls first. The media server buffers a few seconds of caller speech, sends it to `/api/ai/respond`, and streams the AI audio back to Twilio.
+
+Important:
+
+Vercel API routes should not be treated as the long-lived WebSocket server. Keep Vercel for HTTP API routes and run the media bridge on a WebSocket-capable runtime.
+
+## Google Calendar Automation
+
+Fastest launch version:
+
+- Use Make, Zapier, n8n, or Pipedream as the `calendarWebhookUrl`.
+- That workflow receives booking data from `/api/calendar-booking`.
+- The workflow creates the event in Google Calendar.
+- The workflow sends SMS/email confirmation.
+
+Production custom-code version:
+
+- Build a Google OAuth flow for each client.
+- Store refresh tokens in a database.
+- Use Google Calendar `events.insert()` to create appointments.
+- Store appointment IDs so the AI can reschedule or cancel later.
+
+The custom-code version needs authentication, encrypted token storage, retry logic, and audit logging. That is the next backend phase, not something to fake inside a landing page.
+
+## Real-Time Client Website Updates
+
+Current version:
+
+- Client routing is controlled by Postgres tenant records.
+- Updating a tenant in the admin dashboard updates routing without code changes.
+- This is the production path for paying clients.
+
+Next backend phase:
+
+- Add a database such as Supabase or Neon/Postgres.
+- Add an admin login.
+- Add a client table for phone numbers, voice-agent webhooks, lead webhooks, calendar webhooks, and CRM settings.
+- Add an audit log for every change.
+- Add a client portal where businesses can update FAQs, hours, staff routing, and emergency rules.
+
+## Protected Client Lookup Endpoint
+
+Route:
+
+```text
+POST https://your-domain.com/api/clients/lookup
+```
+
+Header:
+
+```text
+x-client-directory-token: your CLIENT_DIRECTORY_READ_TOKEN value
+```
+
+Body:
+
+```json
+{
+  "clientId": "bright-smiles-dental"
+}
+```
+
+or:
+
+```json
+{
+  "phoneNumber": "+15551234567"
+}
+```
+
+This returns safe client routing metadata without exposing webhook URLs.
+
+## What You Still Need To Buy Or Create
+
+- Domain name
+- Vercel account for hosting
+- Stripe account and product prices
+- Twilio account and phone numbers
+- Voice-agent platform account
+- Google Calendar or Cal.com account per client
+- Zapier, Make, n8n, or Pipedream account for the first automation workflows
+- Business email address
+- Privacy policy and terms pages before paid traffic
+
+## Client Onboarding Checklist
+
+1. Client signs up or books a setup call.
+2. Collect business name, website, services, hours, service area, booking rules, FAQs, escalation phone, and calendar access.
+3. Assign the client an AI receptionist number from your Twilio account, or help them forward/port their existing number.
+4. Build the client voice agent.
+5. Create lead webhook and calendar webhook workflows.
+6. Add the client in the admin dashboard.
+7. Redeploy Vercel.
+8. Call the Twilio number.
+9. Test booking, reschedule, cancellation, FAQ, lead capture, SMS follow-up, and human transfer.
+10. Send the client the live number and weekly reporting plan.

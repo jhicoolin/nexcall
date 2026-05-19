@@ -1,0 +1,69 @@
+AI RECEPTIONIST - MARCOPOLO PORTABLE WORKSPACE COPY
+Last updated: May 13, 2026
+
+Target MarcoPolo workspace folder:
+
+/workspace/workflows/ai receptionist
+
+Prepared local source bundle:
+
+C:\Users\pixel\Documents\Codex\Projects\ai receptionist\ai-receptionist-source.zip
+
+Latest export includes:
+
+- Scenario-only Hugging Face TTS guardrails
+- Approved server-side scenario scripts
+- Text-only Hugging Face QA live chat
+- Human follow-up chat handoff
+
+What is inside:
+
+- app/
+- lib/
+- public/
+- README.md
+- LAUNCH_SETUP.txt
+- UX_RESEARCH_NOTES.txt
+- VOICE_LAB_RESEARCH.txt
+- PROJECT_FILE_GUIDE.txt
+- package.json
+- package-lock.json
+- Tailwind / Next / TypeScript config
+- .env.example
+
+What is intentionally not inside:
+
+- node_modules/
+- .next/
+
+Reason:
+Those are generated folders. Recreate them anywhere with:
+
+npm.cmd install
+npm.cmd run build
+
+MarcoPolo connector note:
+The connector was requested, but the MCP server returned:
+
+Unknown tool: execute_command
+
+Because of that server-side tool error, the remote upload could not be completed from Codex in this session. The zip is ready for upload as soon as MarcoPolo file upload or the MCP command tool is available.
+
+Browser fallback note:
+Opening https://mcp.marcopolo.dev/app/workspace/workflows showed the MarcoPolo sign-in screen, so Codex could not upload through the web UI without your login.
+
+After uploading the zip to MarcoPolo:
+
+1. Unzip it into:
+   /workspace/workflows/ai receptionist
+
+2. In that folder, run:
+   npm install
+   npm run build
+
+3. Read:
+   README.md
+   LAUNCH_SETUP.txt
+   VOICE_LAB_RESEARCH.txt
+
+4. Do not paste real Stripe, Twilio, Hugging Face, or webhook secrets into public docs. Put secrets into environment variables only.

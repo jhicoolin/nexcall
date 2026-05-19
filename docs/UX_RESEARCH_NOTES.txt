@@ -1,0 +1,192 @@
+REVENUE GUARD AI - UX RESEARCH NOTES
+Last updated: May 13, 2026
+
+Goal:
+Make the page easier to understand, easier to trust, and easier to act on without using manipulative dark patterns.
+
+Design differentiation note:
+The current homepage intentionally avoids the default AI SaaS pattern of "centered hero, logo strip, feature grid, pricing." The first visual now behaves like a front-office command room: live calls, diverse operators/customers, call path, and operational handoff. The next section continues the same idea as a signal map instead of another generic feature block.
+
+============================================================
+1. FINAL SECTION ORDER
+============================================================
+
+1. Hero
+   Purpose: immediate value proposition, primary phone CTA, and demo CTA.
+   UX reason: users need to know what the product is, who it is for, and what action to take within seconds.
+
+2. Trust signal bar
+   Purpose: answer the first credibility questions quickly: calendar, fallback, phone routing, checkout, current review.
+   UX reason: Stanford Web Credibility research says credibility improves when information is verifiable, contact/action paths are clear, and the site feels useful and professional.
+
+3. Use-case strip
+   Purpose: help different buyer types recognize themselves.
+   UX reason: information scent improves when navigation labels match the visitor's task vocabulary.
+
+4. Problem snapshot
+   Purpose: name the buyer's pain before explaining features.
+   UX reason: problem recognition raises motivation, but the copy stays specific and honest.
+
+5. Front-office signal map
+   Purpose: show the workflow as a live operational handoff.
+   UX reason: concrete process visuals reduce ambiguity and help buyers picture the product in their own business.
+
+6. Voice demos
+   Purpose: prove the product concept early with realistic scenarios.
+   UX reason: demos reduce uncertainty and mental effort. Users do not need to imagine what "AI receptionist" means.
+
+7. Jobs done
+   Purpose: explain the product in plain outcomes: answer, book, follow up.
+   UX reason: lower cognitive load by grouping features into three memorable jobs.
+
+8. How it works
+   Purpose: show a simple implementation path.
+   UX reason: the Fogg Behavior Model says action requires motivation, ability, and prompt. This section increases ability by making setup feel manageable.
+
+9. Human proof
+   Purpose: add warmth and social proof after the user understands the offer.
+   UX reason: trust and belonging matter, but proof works better after the visitor understands the product.
+
+10. Industry playbooks
+   Purpose: show the system adapts beyond one niche.
+   UX reason: visitors look for category fit before buying.
+
+11. Integrations
+    Purpose: answer "will this work with my tools?"
+    UX reason: strong information scent and concrete system names reduce uncertainty.
+
+12. What actually works
+    Purpose: handle major buyer objections: calendar logic, human fallback, accents, predictable pricing.
+    UX reason: objection handling before pricing reduces anxiety.
+
+13. Pricing
+    Purpose: show three options with one recommended middle plan.
+    UX reason: choice overload research supports limited choices. Three tiers are enough to compare without overwhelming.
+
+14. FAQ
+    Purpose: answer final objections before the form.
+    UX reason: keeps checkout/demo intent from leaking into uncertainty.
+
+15. Lead capture
+    Purpose: collect only the minimum needed to send a useful demo.
+    UX reason: shorter forms and visible progress reduce friction.
+
+============================================================
+2. RESEARCH USED
+============================================================
+
+Stanford Web Credibility Guidelines
+https://credibility.stanford.edu/guidelines/index.html
+
+Key application:
+- Make contact and next steps easy.
+- Show real organization signals.
+- Keep copy clear and sincere.
+- Avoid unsupported claims.
+- Avoid small errors and broken links.
+
+Fogg Behavior Model - Stanford Behavior Design Lab
+https://behaviordesign.stanford.edu/resources/fogg-behavior-model
+
+Key application:
+- Increase motivation with concrete pain and outcome.
+- Increase ability with a simple four-step rollout.
+- Add prompts after high-confidence sections: hero, demo, how-it-works, pricing, final form.
+
+Choice Overload - Iyengar and Lepper
+https://business.columbia.edu/faculty/research/when-choice-demotivating-can-one-desire-too-much-good-thing
+
+Key application:
+- Keep pricing to three plans.
+- Make the middle plan the recommended starting point.
+- Avoid overwhelming the visitor with every possible feature before the main decision.
+
+Primacy and Recency Effects on Clicking Behavior
+https://academic.oup.com/jcmc/article/11/2/522/4617731
+
+Key application:
+- Put high-intent navigation items early and late.
+- Header now prioritizes Demos first and keeps the direct CTA visually separate.
+
+Information Scent / Information Foraging
+https://www.researchgate.net/publication/221517585_Using_Information_Scent_to_Model_User_Information_Needs_and_Actions_on_the_Web
+
+Key application:
+- Use specific labels such as Demos, How It Works, Stories, Pricing, FAQ.
+- Use buyer vocabulary: booking, SMS, calendar, CRM, human fallback, call summary.
+
+MIT Sloan trust in e-business study
+https://ideas.repec.org/p/mit/sloanp/1826.html
+
+Key application:
+- Trust cues need to appear before payment or contact forms.
+- Avoid exaggerated security/compliance claims unless the business has them.
+
+Cognitive load and human-centered design
+https://research.monash.edu/en/publications/human-centered-design-meets-cognitive-load-theory-designing-inter
+
+Key application:
+- Break complex setup into small sections.
+- Use repeated card patterns and short labels.
+- Keep paragraphs scannable and avoid feature dumps.
+
+Baymard checkout usability research
+https://wislibrary.org/library/baymard-institute-e-commerce-checkout-usability/
+
+Key application:
+- Keep checkout hosted by Stripe.
+- Make checkout button labels explicit.
+- Do not force account creation before payment.
+- Make errors visible when checkout is not configured.
+
+============================================================
+3. ETHICAL PERSUASION RULES
+============================================================
+
+Use:
+- Clarity
+- Social proof
+- Specific outcomes
+- Fewer choices
+- Honest risk reduction
+- Clear next steps
+
+Avoid:
+- Fake urgency
+- Fake scarcity
+- Fake testimonials
+- Unsupported compliance claims
+- "No hallucinations" guarantees
+- Sponsored logos without permission
+
+============================================================
+4. FUTURE A/B TEST IDEAS
+============================================================
+
+1. Hero CTA order:
+   A: Call the Live Demo first
+   B: Hear Scenario Demos first
+
+2. Pricing anchor:
+   A: Starter first
+   B: Appointment recommended first
+
+3. Lead form headline:
+   A: See how your phones could feel next week
+   B: Get a 60-second AI lead audit
+
+4. Demo order:
+   A: Appointment scheduling first
+   B: Lead qualification first
+
+5. Social proof placement:
+   A: After how-it-works
+   B: Directly after voice demo
+
+Measure:
+- CTA clicks
+- Pricing button clicks
+- Lead form starts
+- Lead form completions
+- Scroll depth to pricing
+- Demo play clicks by scenario

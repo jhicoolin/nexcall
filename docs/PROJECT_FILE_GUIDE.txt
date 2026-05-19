@@ -1,0 +1,240 @@
+AI RECEPTIONIST - PROJECT FILE GUIDE
+Last updated: May 13, 2026
+
+This guide explains what each project file is for. Most operational notes now live in `docs/` so the project root stays clean.
+
+Important:
+Some files must keep their current names because Next.js uses file names for routing.
+For example, app/page.tsx controls the homepage route and app/api/*/route.ts controls API routes.
+Renaming those files would break the app.
+
+============================================================
+ROOT FILES
+============================================================
+
+README.md
+Main project overview, run commands, and the shortest starting point.
+
+docs/LAUNCH_SETUP.txt
+Full launch checklist: accounts to buy, Stripe setup, Twilio setup, calendar setup, voice demos, deployment, and testing.
+
+docs/UX_RESEARCH_NOTES.txt
+Explains the buyer psychology, section order, UX research, and ethical conversion decisions behind the website.
+
+docs/VOICE_LAB_RESEARCH.txt
+Explains the Hugging Face voice shortlist, optional TTS generation, and public-launch voice quality checklist.
+
+docs/LIVE_CHAT_SETUP.txt
+Explains the collapsed live chat tab, tenant-aware quick-answer route, safety shutoff, and human handoff flow.
+
+docs/SECURITY_NOTES.txt
+Explains current hardening, secret handling, validation, headers, and remaining security work before public launch.
+
+docs/CLIENT_OPERATIONS_SETUP.txt
+Explains how to add each client, route Twilio numbers, connect client-specific voice agents, forward leads, and automate Google Calendar bookings.
+
+docs/BACKEND_MULTI_TENANT_ENGINE.txt
+Backend-only architecture guide covering the strict tenant schema, Twilio switchboard, WebSocket media bridge, Hugging Face STT/LLM/TTS pipeline, booking extractor, and Vercel DNS checklist.
+
+docs/MARCOPOLO_UPLOAD_INSTRUCTIONS.txt
+Explains how to place the portable source bundle into MarcoPolo's /workspace/workflows/ai receptionist folder.
+
+docs/PROJECT_FILE_GUIDE.txt
+This file. Use it when you want to know what each file does.
+
+archives/
+Generated portable source bundles. These are useful for handoff/upload, but they are ignored by git.
+
+logs/
+Local server logs. These are generated during testing and ignored by git.
+
+.env.example
+Template for environment variables. Copy this into .env.local and fill in your real Stripe, Twilio, webhook, and demo-audio values.
+
+.eslintrc.json
+Next.js lint rules. Keeps code quality checks consistent.
+
+package.json
+Project name, scripts, and dependency list.
+
+package-lock.json
+Exact installed dependency versions. Keep this committed/deployed with package.json.
+
+next.config.mjs
+Next.js configuration, including allowed remote image hosts.
+
+tailwind.config.ts
+Tailwind CSS design configuration, including font stacks, theme colors, and content paths.
+
+postcss.config.mjs
+PostCSS/Tailwind build pipeline config.
+
+tsconfig.json
+TypeScript configuration for the app.
+
+next-env.d.ts
+Auto-generated Next.js TypeScript definitions. Do not edit manually.
+
+============================================================
+APP FILES
+============================================================
+
+app/layout.tsx
+Global page shell and SEO metadata.
+
+app/globals.css
+Global styles, typography, font smoothing, background color, selection color, and animation utility classes.
+
+app/page.tsx
+Main homepage. Includes hero, command-room visual, demos, pricing, FAQs, lead form, and all major sales sections.
+
+app/about/page.tsx
+About / mission page for the company.
+
+app/legal/page.tsx
+Legal and transparency center that links all public policy pages.
+
+app/privacy/page.tsx
+Privacy policy covering website forms, chat, call data, tenant data, provider handling, retention, and sensitive-data limits.
+
+app/terms/page.tsx
+Terms of service covering acceptable use, AI limitations, client responsibilities, billing, and liability limits.
+
+app/refund-policy/page.tsx
+Refund and cancellation policy for subscriptions, setup work, provider costs, and written guarantees.
+
+app/ai-disclosure/page.tsx
+AI transparency disclosure explaining AI use, caller disclosure, human escalation, limitations, and safety shutoff.
+
+app/compliance/page.tsx
+Compliance notice that avoids false claims and explains regulated-use review requirements.
+
+app/cookie-notice/page.tsx
+Cookie notice for essential cookies, provider cookies, analytics, and future consent controls.
+
+app/accessibility/page.tsx
+Accessibility statement and feedback path.
+
+app/checkout/success/page.tsx
+Stripe Checkout success page shown after payment.
+
+app/checkout/cancel/page.tsx
+Stripe Checkout cancel page shown when checkout is paused or abandoned.
+
+============================================================
+API ROUTES
+============================================================
+
+app/api/checkout/route.ts
+Creates Stripe Checkout Sessions using your Stripe price IDs.
+
+app/api/ai/respond/route.ts
+Tenant-aware AI turn processor called by the Twilio Media Stream server. It loads the client prompt, runs Hugging Face STT/LLM/TTS, detects booking intent, and returns Twilio-ready audio.
+
+app/api/stripe/webhook/route.ts
+Receives Stripe checkout.session.completed events and optionally forwards them to an onboarding webhook.
+
+app/api/leads/route.ts
+Receives the website lead form and forwards it to LEAD_WEBHOOK_URL when configured.
+
+app/api/chat/huggingface/route.ts
+Answers visitor chat questions with the tenant-aware front-desk chat engine. The route name is kept for backwards compatibility.
+
+app/api/calendar-booking/route.ts
+Receives booking data from the voice agent and forwards it to the matching client's calendar webhook or CALENDAR_WEBHOOK_URL.
+
+app/api/twilio/voice/route.ts
+Returns TwiML for incoming Twilio calls and forwards calls to the matching client's voice-agent webhook or VOICE_AGENT_WEBHOOK_URL.
+
+app/api/clients/lookup/route.ts
+Protected lookup route for voice-agent platforms or internal tools. Finds a client by clientId or phone number without exposing webhook URLs.
+
+app/api/tts/huggingface/route.ts
+Optional server-side Hugging Face TTS route. It keeps the Hugging Face token on the server and returns audio for approved demo scenarios only when enabled. It rejects custom visitor text.
+
+============================================================
+LIBRARY FILES
+============================================================
+
+lib/checkout-plans.ts
+Maps pricing plan IDs to Stripe price ID environment variables.
+
+lib/client-directory.ts
+Compatibility export layer that points older imports to the database-first tenant repository.
+
+lib/tenant-repository.ts
+Loads tenants from Postgres through Prisma, decrypts tenant webhooks, and maps phone numbers to voice, lead, calendar, and CRM settings.
+
+lib/twilio-signature.ts
+Validates Twilio webhook signatures when TWILIO_AUTH_TOKEN is configured.
+
+lib/twilio-twiml.ts
+Builds Twilio XML responses for fallback messages, redirects, and bidirectional Media Streams.
+
+lib/audio-codecs.ts
+Converts Twilio mu-law audio to WAV for speech recognition and converts Hugging Face WAV back to Twilio mu-law base64.
+
+lib/booking-intent.ts
+Extracts booking intent from caller/assistant text and fires the matching client's calendar webhook.
+
+lib/huggingface-receptionist-pipeline.ts
+Runs the tenant-specific speech-to-text, master prompt injection, LLM response, safety shutoff, TTS, booking detection, and Twilio audio conversion pipeline.
+
+lib/live-chat-knowledge.ts
+Approved site context and fallback answers for the collapsed live chat.
+
+============================================================
+SERVICES
+============================================================
+
+services/receptionist/master-system-prompt.ts
+Builds the master AI receptionist prompt with tenant rules, Service Profit Chain customer-service standards, no-hallucination rules, and dynamic business knowledge injection.
+
+services/receptionist/company-knowledge.ts
+Generalized industry knowledge layer for many company types. It selects vocabulary, intake fields, allowed actions, and escalation rules for cleaning, home services, legal, healthcare, restaurant, auto, retail, real estate, finance, and general business use cases.
+
+services/receptionist/safety-policy.ts
+Central safety kill-switch used by web chat and voice turns. If abusive or inappropriate language is detected, the assistant gives a polite sign-off and marks the conversation terminated.
+
+services/receptionist/web-chat-engine.ts
+Humanized website chat engine with 1M+ approved response combinations, 2-3 keyword routing, industry-specific answers, business-lens fallback logic, randomized phrasing, and safety termination.
+
+lib/security.ts
+Shared request validation, sanitization, URL safety, and API error helpers.
+
+lib/huggingface-voice-lab.ts
+Hugging Face voice model shortlist, scenario-to-model mapping, approved scenario scripts, and small helpers used by the site and TTS route.
+
+============================================================
+PUBLIC ASSETS
+============================================================
+
+public/audio/README.txt
+Explains where to place premium MP3 demo clips and which environment variables point to them.
+
+scripts/twilio-media-server.mjs
+Standalone Node WebSocket bridge for Twilio Media Streams. Run this on a WebSocket-capable host and point TWILIO_MEDIA_STREAM_URL to it.
+
+config/clients.example.json
+Legacy example multi-tenant client configuration. The production app now uses Prisma/Postgres instead of CLIENTS_JSON.
+
+============================================================
+GENERATED / INSTALLED FOLDERS
+============================================================
+
+node_modules/
+Installed dependencies. Do not edit by hand.
+
+.next/
+Generated Next.js build output. Do not edit by hand. It is safe to delete and regenerate with npm.cmd run build.
+
+ai-receptionist-source.zip
+Portable source bundle for MarcoPolo or backup use. It intentionally excludes node_modules/ and .next/.
+
+============================================================
+FINAL ORGANIZATION PATH
+============================================================
+
+The project is intended to live at:
+
+C:\Users\pixel\Documents\Codex\Projects\ai receptionist

@@ -1,0 +1,104 @@
+AI RECEPTIONIST - LIVE CHAT SETUP
+Last updated: May 13, 2026
+
+What is included:
+
+- A collapsed live chat tab on the website.
+- The tab is quiet by default and does not open like an ad.
+- Visitors can choose:
+  1. Quick answer
+  2. Human follow-up
+
+============================================================
+QUICK ANSWER TAB
+============================================================
+
+Route:
+
+app/api/chat/huggingface/route.ts
+
+Important:
+The route name is kept for backwards compatibility, but the chat now uses a tenant-aware front-desk engine instead of live Hugging Face question-answering.
+
+Main files:
+
+lib/live-chat-knowledge.ts
+services/receptionist/web-chat-engine.ts
+services/receptionist/company-knowledge.ts
+services/receptionist/safety-policy.ts
+
+How it works:
+
+The server cleans the visitor question, runs the safety policy, scores it against 2-3 keyword groups, and returns a pre-approved front-desk style answer.
+
+The chat engine currently supports 1M+ possible answer combinations by combining:
+
+- Topic-specific approved answers
+- Warm human openers
+- Empathy lines
+- Business-context bridges
+- Operating guidance
+- Next-step guidance
+- Conversation polish lines
+- Practical closing lines
+- 2-3 keywords per topic
+- Industry-specific business knowledge capsules
+
+This keeps the chat warm without letting it invent policies, pricing, compliance claims, or setup promises.
+
+Every-company support:
+
+The chat does not hardcode a million scripts. It detects the likely business type and uses a business knowledge capsule for that industry. Examples include cleaning, home services, legal intake, healthcare, restaurants, auto repair, retail/ecommerce, real estate, finance/insurance, and general professional services.
+
+Safety shutoff:
+
+If the visitor uses threats, slurs, abusive profanity, sexual content, or unsafe requests, the chat responds politely and marks the conversation as terminated. The frontend then disables the quick-answer input. The human follow-up tab remains available for legitimate business inquiries.
+
+Twilio wording:
+
+The chat should not tell buyers to create Twilio themselves. The buyer-facing offer is done-for-you:
+
+- Revenue Guard manages the Twilio number pool.
+- Each client is assigned an AI receptionist number.
+- Existing business numbers can forward missed, overflow, after-hours, or all calls into the AI number.
+- A client only needs their own Twilio account if they want to own the carrier account directly.
+
+============================================================
+HUMAN FOLLOW-UP TAB
+============================================================
+
+The human tab posts into:
+
+app/api/leads/route.ts
+
+Source:
+
+ai-receptionist-live-chat-human-handoff
+
+Required fields:
+
+- Email
+- Phone
+- Message
+
+Optional fields:
+
+- Name
+- Business type
+
+Connect the tenant lead workflow or global LEAD_WEBHOOK_URL so human follow-up messages reach the team.
+
+============================================================
+PUBLIC LAUNCH CHECKLIST
+============================================================
+
+1. Ask the live chat:
+   - Who manages the AI phone number?
+   - Can I keep my existing business number?
+   - What does this cost?
+   - Can it book appointments?
+   - What happens if someone needs a human?
+   - Does this work for salons or clinics?
+2. Confirm the chat stays collapsed on page load.
+3. Confirm it does not cover pricing or checkout on mobile.
+4. Confirm human follow-up reaches the lead workflow.

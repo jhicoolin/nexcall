@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f6f2ea;
+  color: #172033;
+  font-family: var(--font-body) !important;
+  font-feature-settings: "kern", "liga", "calt";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display) !important;
+  letter-spacing: 0;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+.legal-copy h2 {
+  margin-top: 2rem;
+  font-size: 1.35rem;
+  font-weight: 760;
+  color: #172033;
+}
+
+.legal-copy h2:first-child {
+  margin-top: 0;
+}
+
+.legal-copy p {
+  margin-top: 0.85rem;
+  line-height: 1.8;
+  color: #57534e;
+}
+
+.legal-copy ul {
+  margin-top: 0.85rem;
+  padding-left: 1.25rem;
+  color: #57534e;
+}
+
+.legal-copy li {
+  margin-top: 0.55rem;
+  line-height: 1.75;
+}
+
+.font-black {
+  font-weight: 740;
+}
+
+h1.font-black,
+h2.font-black {
+  font-weight: 760;
+}
+
+h3.font-black {
+  font-weight: 720;
+}
+
+::selection {
+  background: #bfd7ff;
+  color: #172033;
+}
+
+.lead-reel {
+  animation: lead-reel-pop 0.45s ease-out both;
+}
+
+.lead-ticker {
+  animation: lead-ticker 18s linear infinite;
+}
+
+@keyframes lead-reel-pop {
+  0% {
+    transform: translateY(12px) scale(0.97);
+    filter: blur(2px);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes lead-ticker {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

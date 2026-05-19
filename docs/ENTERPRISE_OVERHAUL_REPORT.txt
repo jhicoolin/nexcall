@@ -1,0 +1,121 @@
+ENTERPRISE OVERHAUL REPORT - PHASES 1-4
+Last updated: May 13, 2026
+
+Important:
+No software can honestly be called 100% vulnerability-free forever. What this overhaul does is remove known npm audit vulnerabilities, eliminate CLIENTS_JSON from active tenant routing, add rate limits, add encrypted secret storage, add durable retry jobs, and add a protected admin dashboard.
+
+============================================================
+PHASE 1 - IRONCLAD FOUNDATION
+============================================================
+
+Implemented:
+
+- Upgraded Next.js from 14.2.35 to 15.5.18.
+- npm audit now reports 0 known vulnerabilities.
+- Added Prisma/Postgres schema in prisma/schema.prisma.
+- Added Tenant, ApiKey, CallLog, BillingRecord, WebhookDelivery, and AdminAuditLog tables.
+- Added encrypted webhook storage using AES-256-GCM in lib/secret-vault.ts.
+- Replaced CLIENTS_JSON active routing with database-first tenant repository in lib/tenant-repository.ts.
+- Added Upstash Redis rate limiting middleware for all /api routes in middleware.ts.
+- Added strict CSP/HSTS/security headers in next.config.mjs.
+
+Production requirements:
+
+- Set DATABASE_URL and DIRECT_URL from Supabase or another Postgres provider.
+- Set SECRET_ENCRYPTION_KEY before adding client webhooks.
+- Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN before public traffic.
+- Run:
+
+npm run db:generate
+npm run db:push
+
+============================================================
+PHASE 2 - VOICE PIPELINE UPGRADE
+============================================================
+
+Implemented:
+
+- Added Vapi-first provisioning service in lib/voice-provider.ts.
+- Added admin route to provision Vapi assistants:
+  /api/admin/tenants/[tenantId]/provision-vapi
+- Tenant schema now stores voiceProvider, vapiAssistantId, livekitAgentName, externalVoiceWebhookUrl.
+- Twilio route now uses CUSTOM_STREAM only for tenants explicitly configured for custom streaming.
+- Vapi webhook receiver added:
+  /api/voice/vapi/webhook
+
+Recommended production path:
+
+- Use Vapi or LiveKit Agents for low-latency real calls.
+- Keep custom Twilio/Hugging Face streaming as a fallback/lab path, not the first paid production path.
+- Vapi/LiveKit handle interruption, turn-taking, and latency much better than hand-rolled Twilio media loops.
+
+============================================================
+PHASE 3 - BACKGROUND JOBS & WEBHOOKS
+============================================================
+
+Implemented:
+
+- Added Inngest client and functions.
+- Added route:
+  /api/inngest
+- Calendar booking requests now enqueue booking/calendar.requested.
+- Post-call summaries now enqueue call/summary.requested.
+- SMS follow-ups now enqueue sms/followup.requested.
+- Inngest functions retry 5 times.
+- Webhook delivery and call logs are persisted when DATABASE_URL is configured.
+
+Production requirements:
+
+- Create Inngest account.
+- Set INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY.
+- Add /api/inngest as the Inngest endpoint.
+
+============================================================
+PHASE 4 - ADMIN DASHBOARD
+============================================================
+
+Implemented:
+
+- Protected admin login:
+  /admin/login
+- Protected dashboard:
+  /admin
+- Tenant roster using TanStack Table.
+- Tenant editor for business name, Twilio number, voice provider, prompt, and calendar webhook.
+- Analytics cards for calls handled, booked appointments, revenue, and profit.
+- Admin APIs:
+  /api/admin/session
+  /api/admin/analytics
+  /api/admin/tenants
+  /api/admin/tenants/[tenantId]
+  /api/admin/tenants/[tenantId]/provision-vapi
+
+Production requirements:
+
+- Set ADMIN_DASHBOARD_TOKEN.
+- Set ADMIN_SESSION_SECRET.
+- Use HTTPS only.
+- Do not share the admin token.
+
+============================================================
+SHARK TANK READINESS STATUS
+============================================================
+
+Now improved enough for an investor-grade technical demo:
+
+- Zero known npm audit vulnerabilities.
+- Database schema exists.
+- Tenant routing is database-first.
+- Rate limiting exists.
+- Admin dashboard exists.
+- Background retry layer exists.
+- Voice provider migration path exists.
+
+Still not "fully proven" until:
+
+- A real Supabase database is connected.
+- Real Upstash and Inngest credentials are connected.
+- At least one real Vapi/LiveKit production voice agent is provisioned.
+- You run noisy phone-call tests with accents, interruption, rescheduling, and failed webhook scenarios.
+- You collect pilot metrics from real businesses.
+

@@ -1,0 +1,106 @@
+AI RECEPTIONIST - HUGGING FACE VOICE LAB
+Last updated: May 13, 2026
+
+Goal:
+Replace robotic browser TTS with warmer, more human demo audio while keeping the website safe to launch.
+
+============================================================
+HOW THE SITE USES THIS
+============================================================
+
+The website now has three voice layers:
+
+1. Uploaded MP3 demo clips
+   Best for launch. Put finished clips in public/audio and set the NEXT_PUBLIC_DEMO_AUDIO_* variables.
+
+2. Optional Hugging Face generation route
+   Route: app/api/tts/huggingface/route.ts
+   Enable it only after adding HUGGINGFACE_API_TOKEN and setting:
+
+   NEXT_PUBLIC_ENABLE_HF_TTS_DEMOS="true"
+
+   The browser calls /api/tts/huggingface with a scenario ID only. The server chooses the approved script from lib/huggingface-voice-lab.ts and talks to Hugging Face so your token is not exposed.
+   Custom visitor text is rejected. Humanized TTS is only for the six scenario demos.
+
+Important:
+The live chat does not use TTS. It uses text question-answering plus a human follow-up tab.
+
+3. Browser speech fallback
+   Good for testing only. Browser voices are inconsistent and can sound robotic on customer machines.
+
+============================================================
+MODEL SHORTLIST
+============================================================
+
+Kokoro
+Model: hexgrad/Kokoro-82M
+Use for: fast, low-cost open-weight voice demo clips.
+Why it fits: the model card describes it as an 82M parameter TTS model and notes Apache licensing.
+Source: https://huggingface.co/hexgrad/Kokoro-82M
+
+Chatterbox
+Model: ResembleAI/chatterbox
+Use for: expressive voice-agent scenarios, multilingual call demos, and warmer receptionist voices.
+Why it fits: the model card positions it for voice agents and supports voice prompts and emotion control.
+Source: https://huggingface.co/ResembleAI/chatterbox
+
+Qwen3-TTS CustomVoice
+Model: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+Use for: custom voice design and more controlled delivery.
+Why it fits: useful when the brand needs a private-owned-company voice instead of a generic assistant sound.
+Source: https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+
+VibeVoice Realtime
+Model: microsoft/VibeVoice-Realtime-0.5B
+Use for: low-latency streaming experiments and live-call timing tests.
+Why it fits: the model card describes realtime streaming text input with low initial speech latency depending on hardware.
+Source: https://huggingface.co/microsoft/VibeVoice-Realtime-0.5B
+
+============================================================
+RECOMMENDED VOICE PAIRING
+============================================================
+
+Appointment Scheduling:
+Warm female voice. Calm, front-desk friendly. Prefer Chatterbox or a polished uploaded MP3.
+
+Lead Qualification:
+Confident male voice. Consultative, clear, not pushy. Prefer Kokoro or a custom generated clip.
+
+Restaurant Concierge:
+Bright female voice. Polished hospitality tone. Prefer Chatterbox.
+
+Customer Support:
+Calm male voice. Patient, steady, good for order/support flow. Test VibeVoice Realtime and compare latency.
+
+AI IVR:
+Steady male voice. Precise, trustworthy, routing-oriented. Prefer Kokoro for clean short prompts.
+
+Legal Intake:
+Empathetic female voice. Slower and reassuring. Prefer Chatterbox or a carefully approved custom clip.
+
+============================================================
+LAUNCH CHECKLIST FOR VOICES
+============================================================
+
+1. Generate one final MP3 per demo scenario.
+2. Listen on laptop speakers, phone speaker, AirPods, and a real phone call if possible.
+3. Test accents, interruptions, background noise, and caller corrections.
+4. Avoid voices that sound flirty, overexcited, synthetic, or too young for sensitive industries.
+5. Put approved clips in public/audio.
+6. Set NEXT_PUBLIC_DEMO_AUDIO_* variables in .env.local and Vercel.
+7. Keep Hugging Face live generation disabled for paid traffic unless latency and reliability are tested.
+
+============================================================
+SOURCE NOTES
+============================================================
+
+Hugging Face TTS task page:
+https://huggingface.co/tasks/text-to-speech
+
+Hugging Face Spaces voice search:
+https://huggingface.co/spaces?q=voice
+
+Hugging Face Spaces TTS search:
+https://huggingface.co/spaces?q=tts
+
+Do not copy another company's voice samples or website copy. Use model cards and demos as technical inspiration, then generate original scripts and audio for this brand.

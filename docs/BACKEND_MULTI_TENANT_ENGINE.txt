@@ -1,0 +1,343 @@
+BACKEND MULTI-TENANT AI RECEPTIONIST ENGINE
+Last updated: May 13, 2026
+
+This document is backend-only. The frontend is not part of this checklist.
+
+============================================================
+1. WHAT WAS ADDED
+============================================================
+
+Backend files:
+
+- lib/tenant-repository.ts
+- lib/twilio-signature.ts
+- lib/twilio-twiml.ts
+- lib/audio-codecs.ts
+- lib/booking-intent.ts
+- lib/huggingface-receptionist-pipeline.ts
+- app/api/twilio/voice/route.ts
+- app/api/ai/respond/route.ts
+- scripts/twilio-media-server.mjs
+- config/clients.example.json
+
+Core data flow:
+
+1. Caller dials a client Twilio number.
+2. Twilio POSTs to /api/twilio/voice.
+3. /api/twilio/voice extracts the To number.
+4. The To number is matched against the Postgres tenant database.
+5. If TWILIO_MEDIA_STREAM_URL exists, Twilio receives TwiML that opens a bidirectional Media Stream.
+6. The media server receives base64 mu-law audio chunks from Twilio.
+7. The media server calls /api/ai/respond.
+8. /api/ai/respond loads the correct tenant prompt, calls Hugging Face STT/LLM/TTS, detects booking intent, and fires the client's calendarWebhookUrl when appropriate.
+9. The media server streams base64 mu-law audio back to Twilio.
+
+============================================================
+2. MULTI-TENANT CLIENT SCHEMA
+============================================================
+
+Each client requires:
+
+- id
+- businessName
+- twilioPhoneNumber
+- systemPrompt
+- calendarWebhookUrl
+- huggingFaceModelId
+
+Recommended full schema:
+
+```json
+{
+  "id": "client-slug",
+  "businessName": "Client Business Name",
+  "twilioPhoneNumber": "+15551234567",
+  "phoneNumbers": ["+15551234567"],
+  "systemPrompt": "Business-specific receptionist rules, hours, FAQs, escalation rules, and booking rules.",
+  "calendarWebhookUrl": "https://hook.us1.make.com/client-calendar-workflow",
+  "huggingFaceModelId": "hexgrad/Kokoro-82M",
+  "speechToTextModelId": "openai/whisper-large-v3-turbo",
+  "llmModelId": "mistralai/Mistral-7B-Instruct-v0.3",
+  "timezone": "America/New_York",
+  "greeting": "Thanks for calling. I can help with scheduling and questions.",
+  "leadWebhookUrl": "https://hooks.zapier.com/hooks/catch/client-leads",
+  "voiceAgentWebhookUrl": "https://external-voice-provider.example.com/twilio/client",
+  "escalationPhone": "+15557654321",
+  "crmProvider": "HubSpot",
+  "calendarProvider": "Google Calendar"
+}
+```
+
+Create and manage clients through the admin dashboard or Prisma/Postgres. CLIENTS_JSON is no longer the production routing source.
+
+For a starter example, read:
+
+config/clients.example.json
+
+============================================================
+3. TWILIO SWITCHBOARD ROUTE
+============================================================
+
+Route:
+
+POST https://your-domain.com/api/twilio/voice
+
+Twilio dashboard:
+
+- Phone Numbers
+- Select the number
+- Voice Configuration
+- A call comes in: Webhook
+- Method: POST
+- URL: https://your-domain.com/api/twilio/voice
+
+Required production variable:
+
+TWILIO_AUTH_TOKEN="your_twilio_auth_token"
+
+The route validates X-Twilio-Signature when TWILIO_AUTH_TOKEN is present.
+
+============================================================
+4. REAL-TIME AUDIO MEDIA SERVER
+============================================================
+
+Twilio Media Streams need a WebSocket endpoint.
+
+Vercel API routes are good for short HTTP work. Use the included media server on a WebSocket-capable host such as Render, Railway, Fly.io, a VPS, or another always-on Node host.
+
+Run locally:
+
+```bash
+npm run media-server
+```
+
+Default local URL:
+
+```text
+ws://localhost:8080/twilio-media
+```
+
+Production must be secure:
+
+```text
+wss://your-media-server.example.com/twilio-media
+```
+
+Set this in Vercel:
+
+```text
+TWILIO_MEDIA_STREAM_URL="wss://your-media-server.example.com/twilio-media"
+```
+
+Set this on the media server host:
+
+```text
+AI_TURN_ENDPOINT="https://your-domain.com/api/ai/respond"
+AI_TURN_API_TOKEN="same-long-random-token-as-vercel"
+MEDIA_SERVER_PORT="8080"
+MEDIA_SERVER_PATH="/twilio-media"
+MEDIA_CHUNKS_PER_TURN="120"
+```
+
+Notes:
+
+- 120 chunks is roughly 2.4 seconds of Twilio 20ms audio frames.
+- Lower this number for faster but more interrupt-prone replies.
+- Higher this number for more complete caller sentences.
+
+============================================================
+5. AI TURN ENDPOINT
+============================================================
+
+Route:
+
+POST https://your-domain.com/api/ai/respond
+
+Header:
+
+```text
+x-ai-turn-token: your AI_TURN_API_TOKEN
+```
+
+Payload:
+
+```json
+{
+  "clientId": "demo-dental",
+  "callerPhone": "+15550001111",
+  "callSid": "CAxxxxxxxx",
+  "audioMulawBase64": "base64_twilio_audio"
+}
+```
+
+or:
+
+```json
+{
+  "clientId": "demo-dental",
+  "callerPhone": "+15550001111",
+  "callSid": "CAxxxxxxxx",
+  "transcript": "I want to book Tuesday at 2 PM"
+}
+```
+
+Response:
+
+```json
+{
+  "ok": true,
+  "clientId": "demo-dental",
+  "transcript": "I want to book Tuesday at 2 PM",
+  "text": "I can help with that. What name should I put on the appointment?",
+  "audioMulawBase64": "base64_twilio_ready_audio",
+  "booking": {
+    "detected": true,
+    "requestedTime": "Tuesday at 2 PM",
+    "webhookFired": true
+  }
+}
+```
+
+============================================================
+6. HUGGING FACE PIPELINE
+============================================================
+
+Required:
+
+```text
+HUGGINGFACE_API_TOKEN="your_hf_token"
+HUGGINGFACE_STT_MODEL="openai/whisper-large-v3-turbo"
+HUGGINGFACE_LLM_MODEL="mistralai/Mistral-7B-Instruct-v0.3"
+```
+
+Per client:
+
+```text
+huggingFaceModelId="hexgrad/Kokoro-82M"
+```
+
+Pipeline:
+
+1. Convert Twilio base64 mu-law to WAV.
+2. Send WAV to Hugging Face STT model.
+3. Inject client's systemPrompt into LLM prompt.
+4. Generate short phone-friendly text.
+5. Send text to client's huggingFaceModelId TTS model.
+6. Convert returned WAV to 8 kHz mu-law base64.
+7. Stream audio back to Twilio.
+
+Important:
+
+The current converter expects the TTS model to return PCM WAV audio. If a model returns MP3, OGG, or a provider-specific JSON format, use uploaded MP3s for website demos or add a transcoder service before live phone launch.
+
+============================================================
+7. BOOKING ACTION EXTRACTOR
+============================================================
+
+File:
+
+lib/booking-intent.ts
+
+The middleware checks the caller text and AI response for booking language and time-like phrases.
+
+If detected, it POSTs to the tenant's calendarWebhookUrl:
+
+```json
+{
+  "clientId": "demo-dental",
+  "clientBusinessName": "Demo Dental Office",
+  "businessPhone": "+15551234567",
+  "calendarProvider": "Google Calendar",
+  "callSid": "CAxxxxxxxx",
+  "phone": "+15550001111",
+  "service": "General appointment",
+  "start": "Tuesday at 2 PM",
+  "notes": "Caller and assistant text",
+  "source": "ai-receptionist-live-call",
+  "createdAt": "2026-05-13T..."
+}
+```
+
+Your Make/Zapier workflow should:
+
+1. Parse the request.
+2. Look up availability or use a booking calendar.
+3. Create the Google Calendar event.
+4. Send SMS confirmation.
+5. Alert the business.
+
+============================================================
+8. CUSTOM DOMAIN DNS FOR VERCEL
+============================================================
+
+In Vercel:
+
+1. Open the project.
+2. Go to Settings.
+3. Go to Domains.
+4. Add your root domain, for example:
+
+```text
+yourdomain.com
+```
+
+5. Add the www domain:
+
+```text
+www.yourdomain.com
+```
+
+For Namecheap or another DNS provider:
+
+Root/apex domain:
+
+```text
+Type: A
+Host: @
+Value: 76.76.21.21
+TTL: Automatic or 30 min
+```
+
+WWW subdomain:
+
+```text
+Type: CNAME
+Host: www
+Value: cname.vercel-dns.com
+TTL: Automatic or 30 min
+```
+
+If you use Cloudflare:
+
+- Set DNS records to DNS Only during first verification.
+- After Vercel verifies the domain, proxy can be tested carefully.
+
+After DNS changes:
+
+1. Wait for propagation.
+2. Confirm Vercel shows Valid Configuration.
+3. Set:
+
+```text
+NEXT_PUBLIC_SITE_URL="https://yourdomain.com"
+AI_TURN_ENDPOINT="https://yourdomain.com/api/ai/respond"
+```
+
+4. Redeploy.
+
+============================================================
+9. PRODUCTION HARDENING BEFORE PAID TRAFFIC
+============================================================
+
+Do these before marketing:
+
+- Set TWILIO_AUTH_TOKEN.
+- Set AI_TURN_API_TOKEN.
+- Set CLIENT_DIRECTORY_READ_TOKEN.
+- Use HTTPS/WSS only.
+- Test every client number.
+- Test booking webhook failures.
+- Add rate limiting at the edge or through a WAF.
+- Add database persistence for transcripts and client edits.
+- Add admin auth before exposing client management to non-technical users.
+- Do not claim HIPAA/SOC2/compliance until it is actually implemented and documented.

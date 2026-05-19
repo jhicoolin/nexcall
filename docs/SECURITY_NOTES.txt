@@ -1,0 +1,73 @@
+AI RECEPTIONIST - SECURITY NOTES
+Last updated: May 13, 2026
+
+Plain-English note:
+No public website can honestly be promised as impossible to exploit. The right goal is layered hardening, least privilege, input validation, secret isolation, and regular updates.
+
+What is currently hardened:
+
+1. Secrets stay server-side
+   Stripe, Hugging Face, Twilio forwarding URLs, and webhook URLs belong in .env.local or Vercel environment variables.
+   Do not paste real secrets into client code, README files, screenshots, or public repos.
+
+2. Legal and transparency pages are present
+   Privacy, Terms, Refund Policy, AI Disclosure, Compliance Notice, Cookie Notice, and Accessibility pages are included.
+   They intentionally avoid claiming HIPAA, SOC 2, PCI, GDPR, CCPA, or other regulated compliance by default.
+   Have qualified counsel review them before public paid launch.
+
+3. API input validation
+   Shared helpers in lib/security.ts validate JSON content type, limit request body size, remove control characters and angle brackets, validate email and phone formats, and reject oversized payloads.
+
+4. Scenario-only TTS
+   app/api/tts/huggingface/route.ts rejects custom visitor text.
+   Humanized TTS models can only generate approved scenario demo scripts from lib/huggingface-voice-lab.ts.
+
+5. Text-only chat
+   app/api/chat/huggingface/route.ts answers from approved site context and falls back to local approved answers.
+   It does not call the TTS route.
+
+6. Webhook URL safety
+   Server-side webhook destinations must be HTTPS in production.
+   Localhost is allowed only outside production for testing.
+
+7. Stripe webhook verification
+   app/api/stripe/webhook/route.ts verifies the Stripe signature and timestamp tolerance before trusting checkout events.
+
+8. Browser security headers
+   next.config.mjs adds:
+   - X-Frame-Options: DENY
+   - X-Content-Type-Options: nosniff
+   - Referrer-Policy: strict-origin-when-cross-origin
+   - Permissions-Policy restrictions
+   - Cross-Origin-Opener-Policy: same-origin
+
+What still needs to happen before public launch:
+
+1. Keep dependencies current.
+   Run npm audit and review upgrades carefully. Do not blindly run npm audit fix --force on launch day.
+
+2. Have the legal pages reviewed by counsel.
+   The site now includes Terms, Privacy Policy, Refund Policy, Cookie Notice, AI Disclosure, Compliance Notice, and Accessibility pages.
+   The final published version should be reviewed for your exact company, jurisdiction, call recording practices, and customer contracts.
+
+3. Use HTTPS only in production.
+   Deploy through Vercel or another HTTPS host.
+
+4. Add rate limiting.
+   Add Vercel WAF, Cloudflare, Upstash rate limiting, or equivalent protection for:
+   - /api/leads
+   - /api/chat/huggingface
+   - /api/tts/huggingface
+   - /api/checkout
+
+5. Validate Twilio signatures.
+   Twilio recommends validating webhook signatures before trusting production traffic.
+
+6. Restrict webhooks.
+   Use Zapier/Make/n8n webhook URLs with private paths and rotate them if they leak.
+
+7. Monitor logs.
+   Watch failed checkout attempts, repeated chat requests, repeated lead submissions, and webhook errors.
+
+8. Use platform security controls.
+   Turn on Stripe fraud checks, Vercel protection/WAF where available, and 2FA on all vendor accounts.

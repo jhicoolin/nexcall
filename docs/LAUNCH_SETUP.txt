@@ -1,0 +1,722 @@
+REVENUE GUARD AI - FULL LAUNCH SETUP
+Last updated: May 13, 2026
+
+This project is built so the website can go public after you buy/configure the outside services below. The code already includes the landing page, Stripe Checkout, lead capture, Twilio voice forwarding, calendar booking forwarding, demo pages, and setup docs.
+
+For client phone routing, voice-agent setup, and operations, read:
+
+CLIENT_OPERATIONS_SETUP.txt
+
+For the pure backend multi-tenant Twilio/Hugging Face engine, read:
+
+BACKEND_MULTI_TENANT_ENGINE.txt
+
+For the UX and conversion research behind the page order, read:
+
+UX_RESEARCH_NOTES.txt
+
+For the current security hardening and remaining public-launch safeguards, read:
+
+SECURITY_NOTES.txt
+
+============================================================
+1. WHAT YOU NEED TO BUY / CREATE
+============================================================
+
+Required:
+
+1. Domain name
+   Examples: Namecheap, GoDaddy, Cloudflare Registrar, Squarespace Domains.
+
+2. Hosting
+   Recommended: Vercel.
+   Reason: this is a Next.js app and Vercel is the easiest deployment path.
+
+3. Stripe account
+   Needed for: Checkout, subscriptions, invoices, customer billing.
+
+4. Twilio account and phone number
+   Needed for: demo phone number, incoming calls, SMS.
+
+5. Voice agent platform
+   Recommended options to evaluate:
+   - Retell AI
+   - Vapi
+   - Synthflow
+   - Bland AI
+
+6. Calendar system
+   Recommended:
+   - Google Calendar
+   - Cal.com
+   - Calendly
+
+7. Automation layer
+   Recommended:
+   - Zapier
+   - Make
+   - n8n
+
+8. Lead storage
+   Start simple:
+   - Google Sheets
+   - Airtable
+   Later:
+   - HubSpot
+   - GoHighLevel
+   - Salesforce
+   - ServiceTitan / Jobber / Dentrix / Housecall Pro depending on niche
+
+Optional but useful:
+
+1. Professional email
+   Example: sales@yourdomain.com through Google Workspace or Microsoft 365.
+
+2. Legal and transparency pages
+   Privacy Policy, Terms, Refund Policy, AI Disclosure, Compliance Notice, Cookie Notice, and Accessibility pages are included.
+   Have them reviewed and customized by qualified counsel before paid traffic.
+
+3. Business entity and bank account
+   Needed before serious Stripe payment volume.
+
+4. Live human fallback provider
+   Optional, but the strongest AI receptionist companies emphasize human fallback for complex calls.
+
+============================================================
+2. LOCAL COMMANDS
+============================================================
+
+From the project folder:
+
+cd "C:\Users\pixel\Documents\Codex\Projects\ai receptionist"
+npm.cmd install
+npm.cmd run dev
+
+Open:
+
+http://localhost:3000
+
+If PowerShell blocks npm, use npm.cmd instead of npm.
+
+Before deployment, run:
+
+npm.cmd run lint
+npm.cmd run build
+
+Important:
+Stop the local dev server before running npm.cmd run build. Running next dev and next build at the same time can cause local .next artifacts to mix during testing.
+
+Do not run npm audit fix --force unless you understand the dependency changes it will make. It can upgrade major versions and break a working app.
+
+============================================================
+3. ENVIRONMENT VARIABLES
+============================================================
+
+Create a file named:
+
+.env.local
+
+Use .env.example as the template.
+
+Required values:
+
+NEXT_PUBLIC_SITE_URL="https://your-domain.com"
+NEXT_PUBLIC_DEMO_PHONE_NUMBER="+1YOURTWILIONUMBER"
+
+STRIPE_SECRET_KEY="sk_live_or_test_replace_me"
+STRIPE_WEBHOOK_SECRET="whsec_replace_me"
+
+STRIPE_STARTER_MONTHLY_PRICE_ID="price_replace_me"
+STRIPE_STARTER_YEARLY_PRICE_ID="price_replace_me"
+STRIPE_APPOINTMENT_MONTHLY_PRICE_ID="price_replace_me"
+STRIPE_APPOINTMENT_YEARLY_PRICE_ID="price_replace_me"
+STRIPE_GROWTH_MONTHLY_PRICE_ID="price_replace_me"
+STRIPE_GROWTH_YEARLY_PRICE_ID="price_replace_me"
+
+Optional:
+
+NEXT_PUBLIC_DEMO_AUDIO_APPOINTMENT_URL=""
+NEXT_PUBLIC_DEMO_AUDIO_LEAD_URL=""
+NEXT_PUBLIC_DEMO_AUDIO_RESTAURANT_URL=""
+NEXT_PUBLIC_DEMO_AUDIO_SUPPORT_URL=""
+NEXT_PUBLIC_DEMO_AUDIO_IVR_URL=""
+NEXT_PUBLIC_DEMO_AUDIO_LEGAL_URL=""
+
+NEXT_PUBLIC_ENABLE_HF_TTS_DEMOS="false"
+HUGGINGFACE_API_TOKEN=""
+HUGGINGFACE_QA_MODEL="deepset/roberta-base-squad2"
+HUGGINGFACE_TTS_MODEL="ResembleAI/chatterbox"
+HUGGINGFACE_TTS_MODEL_APPOINTMENT="ResembleAI/chatterbox"
+HUGGINGFACE_TTS_MODEL_LEAD="hexgrad/Kokoro-82M"
+HUGGINGFACE_TTS_MODEL_RESTAURANT="ResembleAI/chatterbox"
+HUGGINGFACE_TTS_MODEL_SUPPORT="microsoft/VibeVoice-Realtime-0.5B"
+HUGGINGFACE_TTS_MODEL_IVR="hexgrad/Kokoro-82M"
+HUGGINGFACE_TTS_MODEL_LEGAL="ResembleAI/chatterbox"
+
+STRIPE_SETUP_FEE_PRICE_ID=""
+STRIPE_AUTOMATIC_TAX_ENABLED="false"
+CHECKOUT_SUCCESS_WEBHOOK_URL=""
+
+LEAD_WEBHOOK_URL="https://hooks.zapier.com/hooks/catch/your-lead-hook"
+CALENDAR_WEBHOOK_URL="https://hook.us1.make.com/your-calendar-hook"
+VOICE_AGENT_WEBHOOK_URL="https://your-voice-agent-platform.example.com/twilio/voice"
+TWILIO_AUTH_TOKEN=""
+TWILIO_MEDIA_STREAM_URL="wss://your-media-server.example.com/twilio-media"
+AI_TURN_ENDPOINT="https://your-domain.com/api/ai/respond"
+AI_TURN_API_TOKEN="make-a-long-random-token"
+CLIENT_DIRECTORY_READ_TOKEN="make-a-long-random-token"
+DATABASE_URL="postgresql://postgres:password@db.your-project.supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres:password@db.your-project.supabase.co:5432/postgres"
+SECRET_ENCRYPTION_KEY="generate-32-random-bytes-as-base64-or-64-hex-chars"
+UPSTASH_REDIS_REST_URL="https://your-upstash-instance.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-upstash-token"
+ADMIN_DASHBOARD_TOKEN="make-a-long-random-admin-token"
+ADMIN_SESSION_SECRET="make-a-different-long-random-session-secret"
+INNGEST_EVENT_KEY=""
+INNGEST_SIGNING_KEY=""
+
+============================================================
+4. STRIPE CHECKOUT SETUP
+============================================================
+
+Stripe is already wired in code.
+
+Files:
+
+app/api/checkout/route.ts
+app/api/stripe/webhook/route.ts
+app/checkout/success/page.tsx
+app/checkout/cancel/page.tsx
+
+What to do in Stripe:
+
+1. Create three products:
+   - Revenue Guard Starter
+   - Revenue Guard Appointment
+   - Revenue Guard Growth
+
+2. For each product, create two recurring prices:
+   - Monthly
+   - Yearly
+
+Recommended live prices currently shown on the site:
+
+Starter:
+Monthly: $149/mo
+Yearly: create yearly equivalent or discounted yearly price
+
+Appointment:
+Monthly: $199/mo
+Yearly: create yearly equivalent or discounted yearly price
+
+Growth:
+Monthly: $349/mo
+Yearly: create yearly equivalent or discounted yearly price
+
+3. Copy each Stripe price ID into .env.local:
+
+STRIPE_STARTER_MONTHLY_PRICE_ID
+STRIPE_STARTER_YEARLY_PRICE_ID
+STRIPE_APPOINTMENT_MONTHLY_PRICE_ID
+STRIPE_APPOINTMENT_YEARLY_PRICE_ID
+STRIPE_GROWTH_MONTHLY_PRICE_ID
+STRIPE_GROWTH_YEARLY_PRICE_ID
+
+4. Optional setup fee:
+   Create a one-time Stripe Price and paste it into:
+
+STRIPE_SETUP_FEE_PRICE_ID
+
+5. Stripe webhook:
+   In Stripe Dashboard, create a webhook endpoint:
+
+https://your-domain.com/api/stripe/webhook
+
+Listen for:
+
+checkout.session.completed
+
+Copy the webhook signing secret into:
+
+STRIPE_WEBHOOK_SECRET
+
+6. Optional post-checkout automation:
+   Create a Zapier/Make webhook that sends you a notification, creates a CRM record, or starts onboarding.
+   Paste it into:
+
+CHECKOUT_SUCCESS_WEBHOOK_URL
+
+============================================================
+5. TWILIO SETUP
+============================================================
+
+Twilio is used for the public phone number.
+
+What to buy:
+
+1. Buy and manage AI receptionist numbers in your agency Twilio account.
+2. Put the public demo number in:
+
+NEXT_PUBLIC_DEMO_PHONE_NUMBER="+1YOURTWILIONUMBER"
+
+3. In Twilio, configure incoming calls:
+
+A call comes in:
+Webhook
+POST
+https://your-domain.com/api/twilio/voice
+
+4. In this app, /api/twilio/voice checks the Postgres tenant database and routes calls according to that tenant's voice provider.
+
+If no matching client is found, it forwards calls to:
+
+VOICE_AGENT_WEBHOOK_URL
+
+That URL comes from your voice agent platform.
+
+For client launches, assign the client an AI receptionist number from your Twilio pool. If they already have a business number, they can forward missed, overflow, after-hours, or all calls into the assigned AI number. They only need their own Twilio account if they want to own the carrier account directly.
+
+If you use the native live-call engine instead of an external voice-agent provider:
+
+1. Deploy scripts/twilio-media-server.mjs to a WebSocket-capable host.
+2. Set TWILIO_MEDIA_STREAM_URL to its secure WSS URL.
+3. Set AI_TURN_ENDPOINT to your Vercel /api/ai/respond route.
+4. Set matching AI_TURN_API_TOKEN values in Vercel and the media server host.
+5. Add each client's systemPrompt and huggingFaceModelId in the admin dashboard.
+
+5. Configure incoming SMS:
+
+A message comes in:
+Webhook
+POST
+Your Zapier/Make/Twilio Studio SMS workflow URL
+
+Recommended SMS workflows:
+
+Customer confirmation:
+"You're booked for {time}. Reply here if anything changes."
+
+Team alert:
+"New call: {name}, {phone}, {need}, {appointment_time}, {summary}."
+
+Important:
+Use HTTPS in production.
+Twilio recommends validating webhook signatures before trusting production traffic.
+
+============================================================
+6. VOICE AGENT SETUP
+============================================================
+
+Recommended voice agent providers:
+
+Retell AI:
+Good for pay-as-you-go testing and templates.
+
+Vapi:
+Good for developer-friendly bring-your-own-provider workflows.
+
+Synthflow:
+Good for no-code/enterprise-style workflows and integrations.
+
+Bland AI:
+Good for pathway-style call flows and bundled voice infrastructure.
+
+Website demo voice setup:
+
+The site now supports three voice layers:
+
+1. Uploaded audio clips
+   Best for public launch. Generate or record one polished MP3 per scenario, put files in public/audio, and set the NEXT_PUBLIC_DEMO_AUDIO_* values.
+
+2. Optional Hugging Face TTS generation
+   Route: app/api/tts/huggingface/route.ts
+   Add HUGGINGFACE_API_TOKEN and set NEXT_PUBLIC_ENABLE_HF_TTS_DEMOS="true" to let the demo create scenario audio server-side.
+   The route accepts scenario IDs only and uses approved server-side scenario scripts. It rejects custom text so these humanized voice models are not used for the live chat or arbitrary visitor prompts.
+   Keep this disabled for paid traffic until latency, reliability, and model output quality are tested.
+
+3. Browser fallback voices
+   The demo automatically picks the most natural installed browser voice it can find for each scenario. It uses different male/female voice profiles depending on the call type.
+
+Recommended public-site voice profiles:
+
+- Appointment Scheduling: warm female voice, calm healthcare tone.
+- Lead Qualification: confident male voice, consultative but not pushy.
+- Restaurant Concierge: bright female voice, polished hospitality tone.
+- Customer Support: calm male voice, patient support tone.
+- AI IVR / Financial Routing: steady male voice, precise and trustworthy.
+- Legal Intake: empathetic female voice, slower and reassuring.
+
+Recommended Hugging Face voice shortlist:
+
+1. Kokoro: hexgrad/Kokoro-82M
+   Best for fast, low-cost open-weight demo clips.
+
+2. Chatterbox: ResembleAI/chatterbox
+   Best for warmer expressive call demos, multilingual experiments, and voice-agent style clips.
+
+3. Qwen3-TTS CustomVoice: Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+   Best for custom voice design and more controlled brand style.
+
+4. VibeVoice Realtime: microsoft/VibeVoice-Realtime-0.5B
+   Best for low-latency streaming experiments.
+
+Read VOICE_LAB_RESEARCH.txt for source links and model notes.
+
+Recommended voice quality path:
+
+1. Test the Hugging Face shortlist and your voice-agent provider voices.
+2. Pick one male and one female voice style that sound calm on a phone speaker.
+3. Generate one MP3 per scenario.
+4. Put the MP3 files in:
+
+public/audio
+
+Recommended filenames:
+
+appointment-scheduling.mp3
+lead-qualification.mp3
+restaurant-concierge.mp3
+customer-support.mp3
+ai-ivr.mp3
+legal-intake.mp3
+
+5. Add these values to .env.local:
+
+NEXT_PUBLIC_DEMO_AUDIO_APPOINTMENT_URL="/audio/appointment-scheduling.mp3"
+NEXT_PUBLIC_DEMO_AUDIO_LEAD_URL="/audio/lead-qualification.mp3"
+NEXT_PUBLIC_DEMO_AUDIO_RESTAURANT_URL="/audio/restaurant-concierge.mp3"
+NEXT_PUBLIC_DEMO_AUDIO_SUPPORT_URL="/audio/customer-support.mp3"
+NEXT_PUBLIC_DEMO_AUDIO_IVR_URL="/audio/ai-ivr.mp3"
+NEXT_PUBLIC_DEMO_AUDIO_LEGAL_URL="/audio/legal-intake.mp3"
+
+6. For the real phone agent, use the same voice personality inside your voice-agent platform.
+
+Current research note:
+Hugging Face currently has active voice/TTS Spaces and model cards worth testing for this product. Kokoro is small and permissively licensed, Chatterbox is designed for expressive voice-agent style speech, Qwen3-TTS is worth testing for custom voice design, and VibeVoice Realtime is worth testing for streaming response timing. ElevenLabs and Vapi remain strong paid voice-agent options. Test voices by phone, not only through laptop speakers.
+
+Minimum agent capabilities to configure:
+
+1. Greeting
+2. Caller intent capture
+3. Contact verification
+4. Appointment booking
+5. Reschedule / cancellation handling
+6. SMS confirmation
+7. CRM or sheet logging
+8. Human fallback
+9. Call summary
+10. Transcript / recording access
+
+Recommended first prompt:
+
+You are Revenue Guard, a warm professional receptionist for an appointment-based business. Answer quickly, ask one question at a time, verify contact details, book or reschedule only from real calendar availability, and summarize the call for the team. Do not invent pricing, credentials, availability, staff names, or policies. If the caller is upset, high-value, complex, asks for a human, or the answer is not in the approved knowledge base, transfer or escalate.
+
+============================================================
+7. LIVE CHAT SETUP
+============================================================
+
+The site includes a collapsed front-desk chat tab. It stays down by default so it does not feel like an ad.
+
+Files:
+
+app/api/chat/huggingface/route.ts
+lib/live-chat-knowledge.ts
+LIVE_CHAT_SETUP.txt
+
+The chat has two tabs:
+
+1. AI answer
+   Uses Hugging Face question-answering over approved Revenue Guard site context.
+   Default model:
+   deepset/roberta-base-squad2
+   This is text-only. It does not call the humanized TTS route.
+
+2. Human follow-up
+   Posts a human handoff into /api/leads with source:
+   ai-receptionist-live-chat-human-handoff
+
+To enable Hugging Face QA:
+
+HUGGINGFACE_API_TOKEN="your_hf_token"
+HUGGINGFACE_QA_MODEL="deepset/roberta-base-squad2"
+
+If Hugging Face is not configured, the route returns safe local fallback answers so the UI does not break.
+
+Read:
+
+LIVE_CHAT_SETUP.txt
+
+============================================================
+8. CALENDAR AUTOMATION
+============================================================
+
+The site includes:
+
+app/api/calendar-booking/route.ts
+
+Your voice agent can call:
+
+https://your-domain.com/api/calendar-booking
+
+That route checks the tenant database and queues the booking through Inngest for the matching client's calendar webhook.
+
+If no matching client is found, it forwards the booking to:
+
+CALENDAR_WEBHOOK_URL
+
+Recommended Zapier/Make flow:
+
+Trigger:
+Webhook received
+
+Actions:
+1. Create Google Calendar event
+2. Send SMS confirmation through Twilio
+3. Add row in Google Sheets or Airtable
+4. Send internal team alert
+
+Booking payload expected:
+
+{
+  "name": "Caller name",
+  "phone": "Caller phone",
+  "address": "Optional address",
+  "service": "Reason for appointment",
+  "urgency": "Normal / urgent / after-hours",
+  "start": "2026-05-13T15:00:00-04:00",
+  "notes": "Short call summary"
+}
+
+Calendar rules to configure:
+
+1. Business hours
+2. Appointment durations
+3. Buffers between appointments
+4. No-show reminder timing
+5. Cancellation window
+6. Human fallback for exceptions
+
+============================================================
+9. LEAD CAPTURE SETUP
+============================================================
+
+The website form posts to:
+
+/api/leads
+
+That route checks the tenant database and forwards client-specific leads to the matching client's lead webhook.
+
+If no matching client is found, it forwards to:
+
+LEAD_WEBHOOK_URL
+
+Recommended Zapier/Make flow:
+
+Trigger:
+Webhook received
+
+Actions:
+1. Add lead to Google Sheets or Airtable
+2. Send email to your inbox
+3. Send SMS to your phone
+4. Create CRM contact
+
+Lead fields:
+
+- Team size
+- Business type
+- Work email
+- Phone number
+- Source
+- Timestamp
+
+============================================================
+10. DEPLOYMENT
+============================================================
+
+Recommended: Vercel
+
+Steps:
+
+1. Push the project to GitHub.
+2. Create a Vercel account.
+3. Import the GitHub repo.
+4. Add all .env.local values into Vercel Environment Variables.
+5. Deploy.
+6. Connect your domain.
+7. Set DNS records as Vercel instructs.
+8. Confirm:
+   - Homepage loads
+   - /about loads
+   - /checkout/success loads
+   - /checkout/cancel loads
+   - Pricing buttons open Stripe Checkout
+   - Twilio calls hit /api/twilio/voice
+   - Lead form reaches your webhook
+   - Calendar booking reaches your webhook
+
+============================================================
+11. MARKET RESEARCH NOTES
+============================================================
+
+Research sources checked:
+
+- Stripe Checkout Sessions API:
+  https://docs.stripe.com/api/checkout/sessions
+- Stripe Create Checkout Session:
+  https://docs.stripe.com/api/checkout/sessions/create
+- Stripe webhook signature verification:
+  https://docs.stripe.com/webhooks/signatures
+- Twilio Voice webhooks:
+  https://www.twilio.com/docs/usage/webhooks/voice-webhooks
+- Twilio incoming calls with Node:
+  https://www.twilio.com/docs/voice/tutorials/how-to-respond-to-incoming-phone-calls/node
+- Twilio incoming SMS with Node:
+  https://www.twilio.com/docs/messaging/tutorials/how-to-receive-and-reply/node-js
+- Synthflow AI Receptionist:
+  https://synthflow.ai/ai-receptionist
+- Nextiva AI Receptionist:
+  https://www.nextiva.com/products/ai-receptionist
+- Smith.ai AI Receptionist pricing:
+  https://smith.ai/pricing/ai-receptionist
+- My AI Front Desk:
+  https://www.myaifrontdesk.com/
+- ElevenLabs Text to Speech and model docs:
+  https://elevenlabs.io/docs/capabilities/text-to-speech
+  https://elevenlabs.io/docs/models/
+- ElevenLabs voice library docs:
+  https://elevenlabs.io/docs/capabilities/voices
+- Vapi curated voices:
+  https://docs.vapi.ai/providers/voice/vapi-voices
+- Vapi ElevenLabs voice integration:
+  https://docs.vapi.ai/customization/custom-voices/elevenlabs
+- Hugging Face Spaces voice search:
+  https://huggingface.co/spaces?q=voice
+- Hugging Face Text-to-Speech task:
+  https://huggingface.co/tasks/text-to-speech
+- Kokoro TTS model:
+  https://huggingface.co/hexgrad/Kokoro-82M
+- Chatterbox TTS model:
+  https://huggingface.co/ResembleAI/chatterbox
+- Qwen3-TTS CustomVoice model:
+  https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+- VibeVoice Realtime model:
+  https://huggingface.co/microsoft/VibeVoice-Realtime-0.5B
+- Hugging Face question-answering Spaces category:
+  https://huggingface.co/spaces?category=question-answering
+- Hugging Face Inference Providers question-answering docs:
+  https://huggingface.co/docs/inference-providers/tasks/question-answering
+- deepset roberta-base-squad2 model:
+  https://huggingface.co/deepset/roberta-base-squad2
+
+Patterns from successful AI receptionist companies:
+
+1. Do not sell "AI" alone.
+   Sell the outcome: answered calls, booked appointments, routed inquiries, follow-up, summaries.
+
+2. Demos matter.
+   Successful sites show scenario-based demos by industry: restaurant, healthcare, legal, support, real estate, appointment booking.
+
+3. Flat pricing feels safer.
+   Small businesses dislike unpredictable per-minute billing. The current site uses flat monthly plans and call limits.
+
+4. Human fallback matters.
+   The strongest offers include escalation for complex or sensitive situations.
+
+5. Calendar integration is non-negotiable.
+   Booking, rescheduling, cancellation, buffers, and appointment types must work before pitching the product as real.
+
+6. Integrations sell confidence.
+   Buyers want to see calendars, CRMs, phone systems, SMS, and workflow tools.
+
+7. Business-type specificity matters.
+   The site now includes industry cards and scenario demos instead of generic AI language.
+
+8. Trust language must be careful.
+   Do not claim SOC 2, HIPAA, GDPR, uptime guarantees, or sponsor logos unless you actually have them.
+
+9. Voice quality and accent handling are major concerns.
+   Test with noisy calls, accents, interruptions, phone-quality audio, and caller corrections.
+
+10. Hybrid is the safest launch path.
+   Start with AI for repeatable calls and route complex calls to a person.
+
+============================================================
+12. PRE-LAUNCH CHECKLIST
+============================================================
+
+Website:
+
+[ ] Replace NEXT_PUBLIC_SITE_URL with live domain.
+[ ] Replace NEXT_PUBLIC_DEMO_PHONE_NUMBER with Twilio number.
+[ ] Confirm all pricing buttons open Stripe Checkout.
+[ ] Confirm success and cancel pages load.
+[ ] Confirm all images load.
+[ ] Confirm demo buttons play the correct scenario.
+[ ] Review Privacy, Terms, Refund, AI Disclosure, Compliance, Cookie, and Accessibility pages before paid traffic.
+
+Stripe:
+
+[ ] Create products and prices.
+[ ] Add price IDs to environment variables.
+[ ] Add webhook endpoint.
+[ ] Test with Stripe test card.
+[ ] Switch to live keys only when ready.
+
+Twilio:
+
+[ ] Buy number.
+[ ] Configure Voice webhook.
+[ ] Configure SMS webhook.
+[ ] Make a real test call.
+[ ] Send a real test SMS.
+
+Voice agent:
+
+[ ] Build greeting.
+[ ] Add knowledge base.
+[ ] Add appointment booking action.
+[ ] Add SMS follow-up action.
+[ ] Add human fallback transfer.
+[ ] Test at least 20 calls before launch.
+
+Calendar:
+
+[ ] Create calendar.
+[ ] Configure business hours.
+[ ] Configure appointment types.
+[ ] Configure buffers.
+[ ] Test booking, reschedule, and cancellation.
+
+Automation:
+
+[ ] Lead webhook logs form submissions.
+[ ] Calendar webhook creates event.
+[ ] Customer SMS sends confirmation.
+[ ] Team SMS sends summary.
+[ ] CRM/sheet stores lead.
+
+============================================================
+13. LAUNCH RECOMMENDATION
+============================================================
+
+Do not launch as "AI receptionist for everyone" in your first ads.
+
+Launch with one clear offer:
+
+"AI receptionist for appointment-based businesses that answers calls, books appointments, and texts your team the summary."
+
+Best first verticals:
+
+1. Dental / medical clinics
+2. Salons / med spas
+3. Auto repair
+4. Law firms and professional services
+5. Home services
+
+Best first package:
+
+Appointment plan at $199/mo.
+
+Reason:
+It matches the market's preference for predictable pricing while keeping the offer affordable enough for small businesses to test.

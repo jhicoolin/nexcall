@@ -1,0 +1,98 @@
+NEXCALL PRODUCTION PUSH INSTRUCTIONS
+Last updated: May 18, 2026
+
+Repository:
+https://github.com/jhicoolin/nexcall
+
+Production domain:
+https://nexcall.one
+
+What was prepared locally:
+
+- app/api/calendar/route.js
+  Cal.com API v2 booking endpoint with cal-api-version: 2024-08-13.
+
+- app/api/outbound-call/route.js
+  ElevenLabs outbound conversational AI proxy endpoint.
+
+- app/page.tsx
+  Call Demo buttons now open an accessible outbound-call modal.
+  The Step 3 lead form now sends the user's phone number to /api/outbound-call and shows Calling Now.
+
+- .env.example
+  Added required Cal.com and ElevenLabs environment variable names.
+
+Required Vercel production environment variables:
+
+CAL_API_KEY
+CAL_EVENT_DEMO_ID
+ELEVENLABS_API_KEY
+ELEVENLABS_AGENT_ID
+TWILIO_PHONE_NUMBER_ID
+
+Recommended existing production variables:
+
+NEXT_PUBLIC_SITE_URL=https://nexcall.one
+UPSTASH_REDIS_REST_URL
+UPSTASH_REDIS_REST_TOKEN
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+STRIPE_*_PRICE_ID values
+DATABASE_URL
+SECRET_ENCRYPTION_KEY
+
+Manual push commands from an external Command Prompt or PowerShell with Git installed:
+
+1. Open the project:
+
+cd "C:\Users\pixel\Documents\Codex\Projects\ai receptionist"
+
+2. Initialize Git only if .git does not already exist:
+
+git init
+
+3. Connect the production repository:
+
+git remote add origin https://github.com/jhicoolin/nexcall.git
+
+If origin already exists, update it:
+
+git remote set-url origin https://github.com/jhicoolin/nexcall.git
+
+4. Confirm the branch:
+
+git branch -M main
+
+5. Stage everything needed for launch:
+
+git add .
+
+6. Commit:
+
+git commit -m "feat: launch landing page with production cal v2 route and outbound call modal"
+
+7. Push to the Vercel-linked main branch:
+
+git push -u origin main
+
+8. In Vercel:
+
+- Open the nexcall project.
+- Confirm the GitHub repo is jhicoolin/nexcall.
+- Confirm the production branch is main.
+- Add the required environment variables above.
+- Redeploy the latest main branch commit if it does not deploy automatically.
+
+Post-deploy smoke checks:
+
+1. Open https://nexcall.one
+2. Click Call Demo.
+3. Enter a real phone number in +1 format.
+4. Confirm the modal shows Calling Now.
+5. Confirm the ElevenLabs conversation starts from Ms. Lisa.
+6. Trigger a test booking phrase in the call.
+7. Confirm Cal.com receives a booking payload through /api/calendar.
+
+Important:
+
+Do not commit .env.local or real API keys. Store secrets only in Vercel Environment Variables.

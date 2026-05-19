@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  ACTIVE
+  PAUSED
+  ONBOARDING
+  CANCELLED
+}
+
+enum VoiceProvider {
+  VAPI
+  LIVEKIT
+  CUSTOM_STREAM
+  EXTERNAL_WEBHOOK
+}
+
+enum SecretProvider {
+  TWILIO
+  HUGGINGFACE
+  STRIPE
+  VAPI
+  LIVEKIT
+  CALENDAR_WEBHOOK
+  LEAD_WEBHOOK
+  SMS_WEBHOOK
+  OTHER
+}
+
+enum CallStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  TRANSFERRED
+}
+
+enum BillingStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  PAUSED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  DEAD_LETTERED
+}
+
+model Tenant {
+  id                           String             @id @default(cuid())
+  slug                         String             @unique
+  businessName                 String
+  assignedTwilioNumber         String             @unique
+  status                       TenantStatus       @default(ONBOARDING)
+  industry                     String?
+  timezone                     String             @default("America/New_York")
+  systemPrompt                 String             @db.Text
+  greeting                     String?
+  escalationPhone              String?
+  calendarProvider             String?
+  crmProvider                  String?
+  voiceProvider                VoiceProvider      @default(VAPI)
+  vapiAssistantId              String?
+  livekitAgentName             String?
+  externalVoiceWebhookUrl      String?
+  calendarWebhookCiphertext    String?
+  calendarWebhookIv            String?
+  calendarWebhookAuthTag       String?
+  leadWebhookCiphertext        String?
+  leadWebhookIv                String?
+  leadWebhookAuthTag           String?
+  smsWebhookCiphertext         String?
+  smsWebhookIv                 String?
+  smsWebhookAuthTag            String?
+  huggingFaceModelId           String             @default("hexgrad/Kokoro-82M")
+  speechToTextModelId          String             @default("openai/whisper-large-v3-turbo")
+  llmModelId                   String             @default("mistralai/Mistral-7B-Instruct-v0.3")
+  maxMonthlyMinutes            Int                @default(500)
+  maxMonthlySpendCents         Int                @default(20000)
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime           @updatedAt
+  apiKeys                      ApiKey[]
+  callLogs                     CallLog[]
+  billingRecords               BillingRecord[]
+  webhookDeliveries            WebhookDelivery[]
+  auditLogs                    AdminAuditLog[]
+
+  @@index([status])
+  @@index([assignedTwilioNumber])
+}
+
+model ApiKey {
+  id          String         @id @default(cuid())
+  tenantId    String
+  provider    SecretProvider
+  label       String
+  ciphertext  String
+  iv          String
+  authTag     String
+  keyHash     String
+  createdAt   DateTime       @default(now())
+  rotatedAt   DateTime?
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, provider])
+  @@index([keyHash])
+}
+
+model CallLog {
+  id              String      @id @default(cuid())
+  tenantId        String
+  callSid         String      @unique
+  fromNumber      String?
+  toNumber        String?
+  provider        VoiceProvider
+  status          CallStatus  @default(IN_PROGRESS)
+  durationSeconds Int         @default(0)
+  transcript      String?     @db.Text
+  summary         String?     @db.Text
+  bookingSuccess  Boolean     @default(false)
+  bookingPayload  Json?
+  costCents       Int         @default(0)
+  startedAt       DateTime    @default(now())
+  endedAt         DateTime?
+  createdAt       DateTime    @default(now())
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([status])
+}
+
+model BillingRecord {
+  id                   String        @id @default(cuid())
+  tenantId             String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  plan                 String        @default("starter")
+  status               BillingStatus @default(TRIALING)
+  monthlyPriceCents    Int           @default(0)
+  includedMinutes      Int           @default(0)
+  usageMinutes         Int           @default(0)
+  usageCostCents       Int           @default(0)
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  tenant               Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@index([stripeCustomerId])
+}
+
+model WebhookDelivery {
+  id             String                @id @default(cuid())
+  tenantId       String
+  type           String
+  status         WebhookDeliveryStatus @default(PENDING)
+  destinationUrl String?
+  payload        Json
+  attempts       Int                   @default(0)
+  lastError      String?
+  deliveredAt    DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, type, status])
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  actor     String
+  action    String
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([action])
+}
