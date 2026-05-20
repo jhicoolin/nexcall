@@ -8,21 +8,21 @@ The service works for many business types including dental offices, medical clin
 
 The safest setup is hybrid. AI handles repeatable calls and a human receives complex, sensitive, emotional, urgent, high-value, or policy-sensitive calls.
 
-NexCall uses Twilio behind the scenes for phone numbers and call routing. The agency can assign each client an AI receptionist number from its managed number pool. A client can keep their existing business number by forwarding missed, after-hours, overflow, or all calls into the assigned AI number. A client only needs their own Twilio account if they specifically want to own and manage the carrier account directly.
+NexCall can help set up the phone path for each business. A client can keep an existing business number and forward missed, after-hours, overflow, or all calls into the receptionist, or start with a dedicated NexCall number for launch.
 
-NexCall is designed to connect with Google Calendar, Microsoft Calendar, Cal.com, Calendly, Stripe, Zapier, Make, n8n, Airtable, Google Sheets, HubSpot, Salesforce, Zoho, Pipedrive, GoHighLevel, Zendesk, Freshdesk, Housecall Pro, Jobber, ServiceTitan, Dentrix, Follow Up Boss, SMS, WhatsApp workflows, email follow-up, and team alerts.
+NexCall is designed to support appointment tools, customer records, team notifications, follow-up messages, and practical handoff workflows once the business rules are defined.
 
 The public website has scenario demos for appointment scheduling, lead qualification, restaurant concierge calls, customer support, AI IVR routing, and legal intake.
 
-The current plans are Starter at 149 dollars per month for up to 120 calls per month, Appointment at 199 dollars per month for up to 250 calls per month, and Growth at 349 dollars per month for higher call volume. Yearly billing saves about 15 percent. Checkout opens in Stripe after real Stripe price IDs are configured.
+The current plans are Starter at 149 dollars per month for up to 120 calls per month, Appointment at 199 dollars per month for up to 250 calls per month, and Growth at 349 dollars per month for higher call volume. Yearly billing saves about 15 percent. Checkout opens securely when the selected plan is active.
 
 Starter includes 24/7 answering, lead qualification, SMS summaries, basic FAQs, and simple call routing.
 Appointment includes everything in Starter plus calendar booking, reschedules, cancellations, 2-way text follow-up, and human fallback rules.
 Growth includes everything in Appointment plus CRM or sheet integration, multiple appointment types, custom voice scripting, and monthly performance review.
 
-The launch setup requires a domain, hosting such as Vercel, Stripe, Twilio, a voice agent platform, a calendar system, an automation layer, lead storage, and optionally professional email, privacy policy, terms, business entity, bank account, and live human fallback provider.
+The launch setup requires the website, payment account, receptionist phone setup, appointment workflow, lead capture, email notifications, privacy and terms pages, and a human follow-up path for sensitive or high-value requests.
 
-The website supports uploaded MP3 demo clips, optional ElevenLabs TTS generation for approved scenario demos only, and browser speech fallback. The live chat is text-only and does not generate spoken audio.
+The website supports polished scenario demos and a real call demo path. The live chat is text-only and routes serious setup questions toward human follow-up.
 
 The live chat on the website is intentionally collapsed by default so it feels like a quiet front-desk tab instead of an advertisement. Visitors can ask the AI a question or request human follow-up.
 `;
@@ -39,7 +39,7 @@ export function fallbackChatAnswer(question: string) {
   }
 
   if (normalized.includes("twilio") || normalized.includes("phone") || normalized.includes("number")) {
-    return "NexCall can manage Twilio for you. We assign the business an AI receptionist number, connect it to that client's voice agent, and optionally forward or port the client's existing number later.";
+    return "NexCall can help set up the phone path for you. Most businesses can keep their existing number and forward missed, after-hours, or overflow calls into the receptionist.";
   }
 
   if (normalized.includes("calendar") || normalized.includes("book") || normalized.includes("reschedule")) {

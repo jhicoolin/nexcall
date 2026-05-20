@@ -62,9 +62,9 @@ const closers = [
 const topics: ChatTopic[] = [
   {
     keywords: ["twilio", "number", "phone"],
-    title: "Assigned AI number",
+    title: "Phone setup",
     answer:
-      "NexCall can manage the Twilio setup from our side. We assign your business an AI receptionist number, connect it to your tenant profile, and route calls to your voice agent. If you already have a business number, you can forward calls to the AI number or port that number later. You do not need to open your own Twilio account unless you specifically want to own the carrier account directly."
+      "NexCall can help set up the phone path for your business. You can keep your current number and forward missed, after-hours, or overflow calls into the receptionist, or use a dedicated NexCall number for the first launch."
   },
   {
     keywords: ["existing", "number", "forward"],
@@ -112,19 +112,19 @@ const topics: ChatTopic[] = [
     keywords: ["security", "safe", "data"],
     title: "Security",
     answer:
-      "The production architecture uses server-side secrets, rate limiting, signed provider webhooks, database-backed tenant records, and encrypted webhook storage. For regulated industries, compliance claims need a separate legal and infrastructure review before marketing."
+      "NexCall is designed to keep sensitive setup details server-side, reduce abuse, and limit unnecessary access. For regulated industries, compliance claims need a separate legal and operational review before marketing."
   },
   {
     keywords: ["voice", "sound", "robot"],
     title: "Voice quality",
     answer:
-      "The goal is a calm, natural phone voice, not a robotic menu. For live calls, the production path uses a dedicated voice provider such as Vapi or LiveKit-style infrastructure. Website demos can use polished audio clips, but phone quality is always tested on real calls."
+      "The goal is a calm, natural phone voice, not a robotic menu. Phone quality should always be tested on real calls so the receptionist feels clear, warm, and easy to understand."
   },
   {
     keywords: ["setup", "onboarding", "launch"],
     title: "Setup",
     answer:
-      "Onboarding means collecting the business hours, services, FAQs, call rules, calendar rules, escalation phone, and preferred follow-up workflow. Then we assign the AI number, connect the voice agent, test calls, and tune the script before sending traffic."
+      "Onboarding means collecting business hours, services, FAQs, call rules, appointment preferences, escalation contacts, and preferred follow-up workflow. Then we test real calls and tune the receptionist before sending traffic."
   },
   {
     keywords: ["after", "hours", "weekend"],
@@ -146,21 +146,21 @@ const topics: ChatTopic[] = [
   },
   {
     keywords: ["dashboard", "admin", "manage"],
-    title: "Admin dashboard",
+    title: "Account controls",
     answer:
-      "There is now an admin dashboard for managing tenants, phone numbers, prompts, voice provider settings, and basic analytics. That means you can update a client without editing code."
+      "NexCall can be configured around each business, including call handling rules, contact details, handoff preferences, and basic performance visibility."
   },
   {
     keywords: ["stripe", "checkout", "payment"],
     title: "Checkout",
     answer:
-      "Stripe Checkout is wired for subscriptions. Once real Stripe price IDs are added, pricing buttons can open a secure checkout flow and trigger onboarding after payment."
+      "The pricing buttons open secure checkout when the selected plan is active. If a plan needs a custom setup, the team can capture the request and help activate it directly."
   },
   {
     keywords: ["demo", "try", "call"],
     title: "Live demo",
     answer:
-      "The live demo should use a dedicated AI number. Visitors can call it, hear the receptionist, and see how the system captures details. For a client launch, we assign that client their own AI number and rules."
+      "The live demo lets visitors hear the receptionist experience on a real phone call and see how NexCall captures details for a clear follow-up."
   },
   {
     keywords: ["legal", "medical", "hipaa"],

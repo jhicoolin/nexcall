@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
-const title = "NexCall - AI Receptionist That Answers, Captures, and Follows Through";
+const title = "NexCall - Never Miss Your Next Call";
 const description =
-  "NexCall helps businesses answer calls, capture leads, support appointment requests, and deliver a polished customer experience 24/7.";
+  "NexCall helps businesses answer calls, capture lead details, support appointment requests, and send clean next steps to the team 24/7.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

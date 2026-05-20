@@ -36,8 +36,14 @@ export function PublicPageShell({
       <header className="relative z-10 border-b border-white/10 bg-[#05070d]/80 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3 text-sm font-black tracking-[0.18em] text-white">
-            <span className="relative h-11 w-11 drop-shadow-[0_0_18px_rgba(141,189,255,0.28)]">
-              <Image src="/brand/nexcall-mark-transparent.png" alt="" fill sizes="44px" className="object-contain" />
+            <span className="brand-mark-shell relative h-11 w-11">
+              <Image
+                src="/brand/nexcall-mark-transparent.png"
+                alt=""
+                fill
+                sizes="44px"
+                className="brand-mark-img object-contain"
+              />
             </span>
             NEXCALL
           </Link>
@@ -74,8 +80,14 @@ export function PublicPageShell({
       <footer className="relative z-10 border-t border-white/10 bg-black/20 px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <span className="relative h-9 w-9 drop-shadow-[0_0_14px_rgba(141,189,255,0.24)]">
-              <Image src="/brand/nexcall-mark-transparent.png" alt="" fill sizes="36px" className="object-contain" />
+            <span className="brand-mark-shell relative h-9 w-9">
+              <Image
+                src="/brand/nexcall-mark-transparent.png"
+                alt=""
+                fill
+                sizes="36px"
+                className="brand-mark-img object-contain"
+              />
             </span>
             <p className="max-w-xl">
               NexCall gives businesses AI receptionist coverage with clean handoffs to real people when needed.

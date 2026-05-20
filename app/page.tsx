@@ -487,13 +487,13 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#05070d]/82 backdrop-blur-2xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <a href="#top" className="flex items-center gap-3" aria-label="NexCall home">
-          <span className="relative h-12 w-12 drop-shadow-[0_0_18px_rgba(141,189,255,0.22)]">
+          <span className="brand-mark-shell relative h-12 w-12">
             <Image
               src={brandAssets.mark}
               alt=""
               fill
               sizes="48px"
-              className="object-contain"
+              className="brand-mark-img object-contain"
               priority
             />
           </span>
@@ -565,24 +565,23 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_12%,rgba(141,189,255,0.2),transparent_34rem),radial-gradient(circle_at_86%_20%,rgba(217,164,47,0.12),transparent_26rem)]" />
       <div className="metal-grid absolute inset-0 opacity-45" />
       <div className="absolute inset-x-0 bottom-0 h-px glass-line" />
-      <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-10 overflow-hidden px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:px-8 lg:pb-24">
+      <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-10 overflow-hidden px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:items-center lg:px-8 lg:pb-24 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
         <motion.div
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="flex w-full min-w-0 max-w-[22.25rem] flex-col justify-center overflow-hidden sm:max-w-none"
+          className="flex w-full min-w-0 max-w-[34rem] flex-col justify-center overflow-hidden sm:max-w-[42rem] lg:max-w-[40rem]"
         >
           <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-sm font-bold text-slate-200 shadow-2xl shadow-black/20 backdrop-blur">
             <Sparkles size={16} aria-hidden="true" />
-            AI receptionist coverage for real calls
+            Make your next call a NexCall
           </div>
-          <h1 className="max-w-full break-words text-4xl font-black leading-[1.03] text-white sm:max-w-4xl sm:text-6xl lg:text-7xl">
-            Never miss the call that could become your next customer.
+          <h1 className="max-w-full break-words text-5xl font-black leading-[0.98] text-white sm:max-w-4xl sm:text-6xl lg:text-6xl xl:text-7xl">
+            Never miss your next call.
           </h1>
-          <p className="mt-6 max-w-full text-lg leading-8 text-slate-300 sm:max-w-2xl sm:text-xl">
-            NexCall answers calls, captures lead details, helps with appointment
-            requests, and sends your team clean notes. Customers get a fast response.
-            Your team gets the next step.
+          <p className="mt-6 max-w-full text-lg leading-8 text-slate-300 sm:max-w-xl sm:text-xl">
+            NexCall answers when your team cannot, captures the details, helps
+            with appointment requests, and sends your team a clean next step.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
@@ -602,7 +601,7 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             </a>
           </div>
           <p className="mt-4 text-sm font-bold text-slate-400">
-            No card required for demo requests. Human fallback available when needed.
+            No card required. Try the receptionist on your own phone.
           </p>
         </motion.div>
         <HeroCallJourney />
@@ -640,7 +639,7 @@ function HeroCallJourney() {
       initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative mx-auto w-full min-w-0 max-w-[23.5rem] overflow-hidden rounded-[1.75rem] sm:max-w-[39rem] lg:max-w-full"
+      className="relative mx-auto w-full min-w-0 max-w-[23rem] overflow-hidden rounded-[1.75rem] sm:max-w-[36rem] lg:max-w-[34rem] xl:max-w-[36rem]"
     >
       <div className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(circle_at_50%_10%,rgba(141,189,255,0.22),transparent_34rem)] blur-2xl" />
       <div className="absolute inset-0 rotate-[-1.2deg] rounded-[1.75rem] border border-white/10 bg-white/5 shadow-2xl shadow-black/40" />
@@ -650,14 +649,14 @@ function HeroCallJourney() {
         <div className="metal-panel overflow-hidden rounded-[1.25rem] p-3 sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-              <span className="relative h-10 w-10 shrink-0 drop-shadow-[0_0_18px_rgba(141,189,255,0.24)] sm:h-11 sm:w-11">
-                <Image src={brandAssets.mark} alt="" fill sizes="44px" className="object-contain" />
+              <span className="brand-mark-shell relative h-10 w-10 shrink-0 sm:h-11 sm:w-11">
+                <Image src={brandAssets.mark} alt="" fill sizes="44px" className="brand-mark-img object-contain" />
               </span>
               <div className="min-w-0">
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#8dbdff]">
                   Live call journey
                 </p>
-                <p className="mt-1 text-lg font-black leading-tight text-white sm:text-xl">One caller. One clear next step.</p>
+                <p className="mt-1 text-lg font-black leading-tight text-white sm:text-xl">Next call, handled by NexCall.</p>
               </div>
             </div>
             <div className="hidden shrink-0 gap-1.5 sm:flex" aria-hidden="true">
@@ -668,7 +667,7 @@ function HeroCallJourney() {
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
           <div className="flex min-w-0 flex-col rounded-[1.25rem] border border-white/10 bg-white/7 p-3 shadow-2xl shadow-black/25 sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-emerald-300">
@@ -685,7 +684,7 @@ function HeroCallJourney() {
               <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#8dbdff]">
                 Outcome
               </p>
-              <p className="mt-1 text-sm font-black text-white">Appointment request captured. Team brief ready.</p>
+              <p className="mt-1 text-sm font-black text-white">Next step captured. Team brief ready.</p>
             </div>
           </div>
 
@@ -718,14 +717,14 @@ function HeroCallJourney() {
           </div>
         </div>
 
-        <div className="rounded-[1.25rem] border border-white/10 bg-white p-3 text-[#172033] shadow-2xl shadow-black/35 sm:p-4">
+        <div className="rounded-[1.25rem] border border-white/10 bg-white/8 p-3 text-white shadow-2xl shadow-black/35 sm:p-4">
           <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ecfdf5] text-[#0f766e]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-300/10 text-emerald-200">
               <MessageSquareText size={19} aria-hidden="true" />
             </span>
             <div>
               <p className="text-sm font-black">Team summary sent</p>
-              <p className="mt-1 text-xs leading-5 text-stone-500">
+              <p className="mt-1 text-xs leading-5 text-slate-300">
                 Caller need, phone, preferred time, urgency, and handoff note in one place.
               </p>
             </div>
@@ -2260,13 +2259,13 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 text-sm text-slate-400 md:grid-cols-[1.4fr_0.8fr_0.9fr_1fr]">
         <div>
           <div className="flex items-center gap-4">
-            <span className="relative h-12 w-12 drop-shadow-[0_0_18px_rgba(141,189,255,0.18)]">
+            <span className="brand-mark-shell relative h-12 w-12">
               <Image
                 src={brandAssets.mark}
                 alt=""
                 fill
                 sizes="48px"
-                className="object-contain"
+                className="brand-mark-img object-contain"
               />
             </span>
             <div>
