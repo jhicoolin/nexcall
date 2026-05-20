@@ -43,10 +43,33 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Private keys must only exist in Vercel environment variables.
 - Do not expose private provider names, IDs, API routes, or fallback chains in public copy.
 - Keep Upstash/Vercel KV configured so public API rate limiting is active.
-- If Upstash/Vercel KV is not configured, public APIs continue with route-level validation instead of breaking launch traffic.
+- If Upstash/Vercel KV is not configured, middleware uses a best-effort in-memory limiter and public APIs continue with route-level validation instead of breaking launch traffic.
 - Set `REQUIRE_UPSTASH_RATE_LIMIT=true` only if you intentionally want APIs to fail closed without KV.
 - Keep `NEXT_PUBLIC_SITE_URL=https://nexcall.one` in Production.
 - Verify `STRIPE_WEBHOOK_SECRET`, phone demo provider IDs, calendar keys, and email delivery settings in Production and Preview separately.
+- Verify response bodies do not expose provider rejection payloads, stack traces, or secret environment names to public users.
+- Verify security headers are present in production: CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`.
+
+## API Abuse / Rate-Limit Checks
+
+- Middleware rate-limits all `/api/*` routes when Upstash/Vercel KV is configured.
+- Stricter high-cost buckets include `/api/outbound-call`, `/api/leads`, `/api/checkout`, `/api/chat/nexcall`, `/api/voice/schedule`, TTS, calendar, and voice routes.
+- `/api/outbound-call` also enforces a tighter per-IP call-demo cooldown before touching the phone provider.
+- Keep request payload size limits in place through `readJsonObject`.
+- Keep honeypot fields such as `companyWebsiteConfirm`, `websiteConfirm`, and `website` available for public forms.
+- Rate-limited responses should use: "Too many attempts. Please wait a moment and try again."
+- If `X-RateLimit-Mode=memory-fallback` appears in production responses, configure Upstash/Vercel KV before scaling traffic.
+
+## Platform Security / DDoS / Bot Protection
+
+- Enable Vercel Firewall/WAF/Bot protection if available on the account plan.
+- Configure platform-level rules for `/api/outbound-call`, `/api/leads`, `/api/chat/nexcall`, `/api/voice/schedule`, and `/api/checkout`.
+- Monitor Vercel Functions error rate, latency, and request spikes during launch.
+- Keep Upstash/Vercel KV configured for durable shared rate limiting.
+- Consider Cloudflare or equivalent DNS/WAF/DDoS protection if traffic or attack risk increases.
+- Turn on provider alerts for Stripe, the call-demo provider, email delivery provider, and Vercel.
+- Rotate any exposed keys immediately and keep provider keys scoped/restricted where possible.
+- Review Vercel audit logs and team access before live client acquisition.
 
 ## Lead Delivery Checks
 
@@ -68,6 +91,8 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Invalid numbers return a clean 400.
 - Missing or rejected provider config returns the public failure message and captures a lead.
 - Success may only display after the provider accepts the outbound call request.
+- Server logs should include safe diagnostics only: `[NEXCALL_CALL_DEMO_REQUEST]`, `[NEXCALL_CALL_DEMO_INVALID_PHONE]`, `[NEXCALL_CALL_DEMO_CONFIG_MISSING]`, `[NEXCALL_CALL_DEMO_PROVIDER_ATTEMPT]`, `[NEXCALL_CALL_DEMO_PROVIDER_SUCCESS]`, `[NEXCALL_CALL_DEMO_PROVIDER_ERROR]`.
+- If production returns a clean failure, inspect Vercel runtime logs for provider status and then verify the agent ID, phone number ID, outbound calling permissions, and phone-provider connection in the provider dashboard.
 
 ## Public Page And Icon Checks
 

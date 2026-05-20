@@ -29,9 +29,6 @@ export async function POST(request: Request) {
     mode: "tenant-aware-nexcall-chat",
     answer: result.answer,
     topic: result.topic,
-    keywords: result.keywords,
-    responseVariants: result.variants,
-    responseId: result.responseId,
     needsHuman: result.needsHuman,
     terminated: result.terminated,
     safetyReason: result.safetyReason

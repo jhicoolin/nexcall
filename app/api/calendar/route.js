@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createIcsEvent } from '@/lib/ics';
 import { notifyNexCallLead } from '@/lib/lead-notifications';
+import { cleanText, readJsonObject } from '@/lib/security';
 
 const CAL_REQUEST_TIMEOUT_MS = 8000;
 const EVENT_TYPE_MAP = {
@@ -28,17 +29,29 @@ function maskEmail(value) {
   return `${name.slice(0, 2)}***@${domain}`;
 }
 
+function cleanBookingText(value, maxLength = 160) {
+  return cleanText(value, maxLength);
+}
+
 export async function POST(request) {
   try {
     let payload;
 
     try {
-      payload = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+      payload = await readJsonObject(request, 8000);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Invalid JSON body." },
+        { status: error?.status || 400 }
+      );
     }
 
-    const { caller_name, caller_email, appointment_date, appointment_time, meeting_type, user_timezone } = payload;
+    const caller_name = cleanBookingText(payload.caller_name, 120);
+    const caller_email = cleanBookingText(payload.caller_email, 254);
+    const appointment_date = cleanBookingText(payload.appointment_date, 20);
+    const appointment_time = cleanBookingText(payload.appointment_time, 20);
+    const meeting_type = cleanBookingText(payload.meeting_type, 80);
+    const user_timezone = cleanBookingText(payload.user_timezone, 80);
     console.log("Incoming calendar booking request", {
       meeting_type,
       appointment_date,
@@ -76,7 +89,7 @@ export async function POST(request) {
     }
 
     if (!process.env.CAL_API_KEY) {
-      console.warn("Cal.com API key is missing");
+      console.warn("Calendar booking provider is not configured");
       await notifyNexCallLead({
         subject: "New NexCall Voice Scheduling Lead",
         source: "calendar-route-cal-missing",
@@ -85,7 +98,7 @@ export async function POST(request) {
         inquiryType: "calendar booking fallback",
         appointmentType: meeting_type || "demo",
         requestedTime: `${appointment_date} ${appointment_time}`,
-        message: "Cal.com is not configured. NexCall should follow up manually."
+        message: "Calendar booking is not configured. NexCall should follow up manually."
       });
 
       return NextResponse.json(
@@ -135,7 +148,7 @@ export async function POST(request) {
       }
     };
 
-    console.log("Sending booking request to Cal.com v2", {
+    console.log("Sending booking request to configured calendar provider", {
       eventTypeId,
       start: startTimeIso,
       attendeeTimeZone,
@@ -179,12 +192,12 @@ export async function POST(request) {
             description: `Name: ${caller_name || "Valued Lead"}\nEmail: ${caller_email}\nRequested start: ${startTimeIso}`,
             uidPrefix: "nexcall-calendar-timeout"
           }),
-          message: "Cal.com timed out after 8 seconds. NexCall should confirm manually."
+          message: "Calendar booking timed out after 8 seconds. NexCall should confirm manually."
         });
 
         return NextResponse.json({
           status: "timeout_fallback",
-          message: "Cal.com did not confirm within 8 seconds. The booking request should be treated as pending confirmation.",
+          message: "Appointment request captured. The NexCall team will confirm the best time shortly.",
           fallback: {
             bookingStatus: "pending_confirmation",
             callerEmail: caller_email,
@@ -204,7 +217,11 @@ export async function POST(request) {
     const responseData = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      console.error("Cal.com API Error Response:", responseData);
+      console.error("Calendar booking provider rejected the request", {
+        status: response.status,
+        eventTypeId,
+        start: startTimeIso
+      });
       await notifyNexCallLead({
         subject: "New NexCall Voice Scheduling Lead",
         source: "calendar-route-cal-rejected",
@@ -219,7 +236,7 @@ export async function POST(request) {
           description: `Name: ${caller_name || "Valued Lead"}\nEmail: ${caller_email}\nRequested start: ${startTimeIso}`,
           uidPrefix: "nexcall-calendar-rejected"
         }),
-        message: "Cal.com rejected the booking. NexCall should confirm manually.",
+        message: "Calendar booking provider rejected the request. NexCall should confirm manually.",
         metadata: { calStatus: response.status }
       });
 
@@ -240,21 +257,23 @@ export async function POST(request) {
       inquiryType: "calendar booking confirmed",
       appointmentType: meeting_type || "demo",
       requestedTime: startTimeIso,
-      message: "Cal.com confirmed a NexCall booking.",
+      message: "Calendar booking provider confirmed a NexCall booking.",
       metadata: { booking: responseData }
     });
 
     return NextResponse.json({
       status: "success",
-      message: "Appointment successfully secured on Cal.com dashboard.",
-      booking: responseData
+      message: "Appointment request confirmed.",
+      bookingConfirmed: true
     }, { status: 201 });
 
   } catch (error) {
-    console.error("Fatal internal server error in calendar route:", error);
+    console.error("Calendar route failed", {
+      message: error instanceof Error ? error.message : "Unknown calendar route error"
+    });
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
+      { error: "Appointment request could not be processed right now." },
+      { status: 502 }
     );
   }
 }

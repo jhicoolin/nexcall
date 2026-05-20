@@ -35,8 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "NexCall AI voice demos are not configured yet. Add ELEVENLABS_API_KEY and ELEVENLABS_DEMO_VOICE_ID, or upload MP3 demo clips."
+        error: "Voice preview is not available right now. Please try the real demo call instead."
       },
       { status: 503 }
     );
@@ -63,12 +62,15 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const details = (await response.json().catch(() => null)) as { detail?: { message?: string } } | null;
+      console.error("Voice preview generation failed", {
+        status: response.status,
+        scenarioId
+      });
 
       return NextResponse.json(
         {
           ok: false,
-          error: details?.detail?.message || "ElevenLabs voice demo generation failed."
+          error: "Voice preview is not available right now. Please try the real demo call instead."
         },
         { status: response.status }
       );
@@ -85,7 +87,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Could not reach ElevenLabs voice demos. Use uploaded MP3 clips as the launch fallback." },
+      { ok: false, error: "Voice preview is not available right now. Please try the real demo call instead." },
       { status: 502 }
     );
   }

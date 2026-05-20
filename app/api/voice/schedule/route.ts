@@ -214,7 +214,7 @@ export async function POST(request: Request) {
 
   if (calResult.ok) {
     return voiceSuccess(true, false, "You're scheduled. The NexCall team will send confirmation details shortly.", {
-      booking: calResult.data
+      bookingConfirmed: true
     });
   }
 

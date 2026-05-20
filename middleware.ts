@@ -6,6 +6,8 @@ const highCostRoutes = [
   "/api/tts/huggingface",
   "/api/chat/nexcall",
   "/api/chat/huggingface",
+  "/api/leads",
+  "/api/checkout",
   "/api/twilio/voice",
   "/api/calendar-booking",
   "/api/calendar",
@@ -20,6 +22,19 @@ type LimitConfig = {
   windowSeconds: number;
   prefix: string;
 };
+
+type MemoryLimitEntry = {
+  count: number;
+  reset: number;
+};
+
+const middlewareState = globalThis as typeof globalThis & {
+  __nexcallMiddlewareRateLimitStore?: Map<string, MemoryLimitEntry>;
+};
+const memoryRateLimitStore =
+  middlewareState.__nexcallMiddlewareRateLimitStore || new Map<string, MemoryLimitEntry>();
+
+middlewareState.__nexcallMiddlewareRateLimitStore = memoryRateLimitStore;
 
 const standardLimit: LimitConfig = {
   limit: 120,
@@ -74,13 +89,7 @@ async function limitRequest(identity: string, config: LimitConfig) {
   const upstash = getUpstashConfig();
 
   if (!upstash) {
-    return {
-      configured: false,
-      success: true,
-      limit: config.limit,
-      remaining: config.limit,
-      reset: Date.now() + config.windowSeconds * 1000
-    };
+    return limitRequestInMemory(identity, config);
   }
 
   const reset = (minuteBucket(config.windowSeconds) + 1) * config.windowSeconds * 1000;
@@ -120,6 +129,42 @@ async function limitRequest(identity: string, config: LimitConfig) {
   };
 }
 
+function limitRequestInMemory(identity: string, config: LimitConfig) {
+  const now = Date.now();
+  const reset = now + config.windowSeconds * 1000;
+  const key = `${config.prefix}:${minuteBucket(config.windowSeconds)}:${identity}`;
+
+  for (const [storedKey, entry] of memoryRateLimitStore.entries()) {
+    if (entry.reset <= now) {
+      memoryRateLimitStore.delete(storedKey);
+    }
+  }
+
+  const existing = memoryRateLimitStore.get(key);
+
+  if (!existing || existing.reset <= now) {
+    memoryRateLimitStore.set(key, { count: 1, reset });
+    return {
+      configured: false,
+      success: true,
+      limit: config.limit,
+      remaining: config.limit - 1,
+      reset
+    };
+  }
+
+  existing.count += 1;
+  memoryRateLimitStore.set(key, existing);
+
+  return {
+    configured: false,
+    success: existing.count <= config.limit,
+    limit: config.limit,
+    remaining: Math.max(0, config.limit - existing.count),
+    reset: existing.reset
+  };
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const upstash = getUpstashConfig();
@@ -135,10 +180,6 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  if (!upstash) {
-    return NextResponse.next();
-  }
-
   const limiter = isWebhook(pathname) ? webhookLimit : isHighCost(pathname) ? highCostLimit : standardLimit;
   const ip = getIp(request);
   const identity = `${ip}:${pathname}`;
@@ -148,7 +189,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Too many requests. Please slow down."
+        error: "Too many attempts. Please wait a moment and try again."
       },
       {
         status: 429,
@@ -166,6 +207,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set("X-RateLimit-Limit", result.limit.toString());
   response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
   response.headers.set("X-RateLimit-Reset", result.reset.toString());
+  response.headers.set("X-RateLimit-Mode", result.configured ? "upstash" : "memory-fallback");
 
   return response;
 }

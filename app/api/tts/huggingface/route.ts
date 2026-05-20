@@ -57,8 +57,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error:
-          "Hugging Face TTS is not configured yet. Add HUGGINGFACE_API_TOKEN or upload MP3 clips in public/audio."
+        error: "Voice preview is not available right now. Please try the real demo call instead."
       },
       { status: 503 }
     );
@@ -88,11 +87,15 @@ export async function POST(request: Request) {
     }
 
     if (!response.ok) {
-      const message = await response.text();
+      console.error("Voice preview generation failed", {
+        status: response.status,
+        scenarioId
+      });
+
       return NextResponse.json(
         {
           ok: false,
-          error: message || `Hugging Face TTS request failed for ${model}.`
+          error: "Voice preview is not available right now. Please try the real demo call instead."
         },
         { status: 502 }
       );
@@ -104,13 +107,12 @@ export async function POST(request: Request) {
     return new NextResponse(audio, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "no-store",
-        "X-HuggingFace-Model": model
+        "Cache-Control": "no-store"
       }
     });
   } catch {
     return NextResponse.json(
-      { ok: false, error: "Could not reach Hugging Face TTS. Use uploaded MP3 clips as the launch fallback." },
+      { ok: false, error: "Voice preview is not available right now. Please try the real demo call instead." },
       { status: 502 }
     );
   }

@@ -4,6 +4,7 @@ import { notifyNexCallLead } from "@/lib/lead-notifications";
 import {
   cleanIdentifier,
   cleanText,
+  isHoneypotTriggered,
   isAllowedServerUrl,
   isValidEmail,
   isValidPhone,
@@ -21,6 +22,10 @@ type LeadPayload = {
   phone?: string;
   message?: string;
   source?: string;
+  businessName?: string;
+  businessType?: string;
+  selectedPlan?: string;
+  requestedTime?: string;
 };
 
 export async function POST(request: Request) {
@@ -32,6 +37,13 @@ export async function POST(request: Request) {
     return validationResponse(error);
   }
 
+  if (isHoneypotTriggered(rawPayload)) {
+    return NextResponse.json({
+      ok: true,
+      notification: { ok: true, delivered: false, captured: false, provider: "bot-filter" }
+    });
+  }
+
   const payload: LeadPayload = {
     clientId: cleanIdentifier(rawPayload.clientId, 80),
     businessPhone: cleanText(rawPayload.businessPhone, 40),
@@ -40,7 +52,11 @@ export async function POST(request: Request) {
     email: cleanText(rawPayload.email, 254),
     phone: cleanText(rawPayload.phone, 40),
     message: cleanText(rawPayload.message, 1000),
-    source: cleanIdentifier(rawPayload.source || "ai-receptionist-site", 100)
+    source: cleanIdentifier(rawPayload.source || "ai-receptionist-site", 100),
+    businessName: cleanText(rawPayload.businessName, 160),
+    businessType: cleanText(rawPayload.businessType, 120),
+    selectedPlan: cleanIdentifier(rawPayload.selectedPlan, 80),
+    requestedTime: cleanText(rawPayload.requestedTime, 160)
   };
 
   const missing = ["trucks", "service", "email", "phone"].filter(
@@ -103,12 +119,17 @@ export async function POST(request: Request) {
     name: cleanText(rawPayload.name, 120) || lead.trucks,
     email: lead.email,
     phone: lead.phone,
-    businessName: lead.service,
+    businessName: payload.businessName || lead.service,
     inquiryType: lead.source?.includes("chat") ? "human follow-up" : "demo request",
-    message: lead.message || `Team size: ${lead.trucks}. Business type: ${lead.service}.`,
+    appointmentType: payload.selectedPlan,
+    requestedTime: payload.requestedTime,
+    message: lead.message || `Team size: ${lead.trucks}. Business type: ${payload.businessType || lead.service}.`,
     metadata: {
       clientId: lead.clientId,
-      clientBusinessName: lead.clientBusinessName
+      clientBusinessName: lead.clientBusinessName,
+      businessType: payload.businessType,
+      selectedPlan: payload.selectedPlan,
+      requestedTime: payload.requestedTime
     }
   });
 

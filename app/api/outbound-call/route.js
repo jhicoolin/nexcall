@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { notifyNexCallLead } from '@/lib/lead-notifications';
+import { cleanText, isHoneypotTriggered, readJsonObject } from '@/lib/security';
 
 const E164_PHONE_PATTERN = /^\+[1-9]\d{1,14}$/;
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
@@ -43,11 +44,7 @@ function maskPhone(value) {
 }
 
 function cleanLeadName(value) {
-  return String(value || '')
-    .replace(/[<>{}[\]\\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 80) || 'Valued Lead';
+  return cleanText(value, 80) || 'Valued Lead';
 }
 
 function cleanTimeZone(value) {
@@ -96,8 +93,13 @@ function providerAcceptedCall(responseData) {
       responseData?.conversation_id ||
       responseData?.conversationId ||
       responseData?.callSid ||
-      responseData?.call_sid
+      responseData?.call_sid ||
+      responseData?.sip_call_id
   );
+}
+
+function buildRequestId() {
+  return globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function getUpstashConfig() {
@@ -187,17 +189,32 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const requestId = buildRequestId();
+
   try {
     let body;
 
     try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ success: false, message: "Invalid JSON body." }, { status: 400 });
+      body = await readJsonObject(request, 4000);
+    } catch (error) {
+      console.warn("[NEXCALL_CALL_DEMO_REQUEST]", {
+        requestId,
+        status: error?.status || 400,
+        message: error instanceof Error ? error.message : "Invalid request"
+      });
+      return NextResponse.json(
+        { success: false, message: error instanceof Error ? error.message : "Invalid JSON body." },
+        { status: error?.status || 400 }
+      );
     }
 
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ success: false, message: "Invalid request body." }, { status: 400 });
+    }
+
+    if (isHoneypotTriggered(body)) {
+      console.warn("[NEXCALL_CALL_DEMO_REQUEST]", { requestId, botLike: true });
+      return NextResponse.json({ success: true, message: CALL_SUCCESS_MESSAGE });
     }
 
     const { name, phone, user_timezone } = body || {};
@@ -211,6 +228,14 @@ export async function POST(request) {
       process.env.TWILIO_PHONE_NUMBER_ID;
     const userTimeZone = cleanTimeZone(user_timezone);
 
+    console.info("[NEXCALL_CALL_DEMO_REQUEST]", {
+      requestId,
+      source,
+      page,
+      hasName: Boolean(cleanText(name, 80)),
+      hasPhone: Boolean(phone)
+    });
+
     if (!phone) {
       return NextResponse.json({ success: false, message: "Phone number is mandatory." }, { status: 400 });
     }
@@ -218,6 +243,12 @@ export async function POST(request) {
     const normalizedPhone = normalizePhoneNumber(phone);
 
     if (!E164_PHONE_PATTERN.test(normalizedPhone)) {
+      console.warn("[NEXCALL_CALL_DEMO_INVALID_PHONE]", {
+        requestId,
+        phone: maskPhone(phone),
+        source,
+        page
+      });
       return NextResponse.json(
         { success: false, message: "Invalid phone number format. Please include your country code (e.g., +1)." },
         { status: 400 }
@@ -243,6 +274,12 @@ export async function POST(request) {
     }
 
     if (!elevenLabsApiKey || !elevenLabsAgentId || !agentPhoneNumberId) {
+      console.error("[NEXCALL_CALL_DEMO_CONFIG_MISSING]", {
+        requestId,
+        hasApiKey: Boolean(elevenLabsApiKey),
+        hasAgentId: Boolean(elevenLabsAgentId),
+        hasAgentPhoneNumberId: Boolean(agentPhoneNumberId)
+      });
       await notifyNexCallLead({
         subject: "New NexCall Call Demo Lead",
         source: "outbound-call-provider-missing",
@@ -270,10 +307,13 @@ export async function POST(request) {
       metadata: { userTimezone: userTimeZone, source, page }
     });
 
-    console.log("Initiating automated demo pipeline", {
+    console.info("[NEXCALL_CALL_DEMO_PROVIDER_ATTEMPT]", {
+      requestId,
       leadNameProvided: leadName !== "Valued Lead",
       phone: maskPhone(normalizedPhone),
-      user_timezone: userTimeZone
+      user_timezone: userTimeZone,
+      hasAgentId: Boolean(elevenLabsAgentId),
+      hasAgentPhoneNumberId: Boolean(agentPhoneNumberId)
     });
 
     // Build the native ElevenLabs Twilio outbound request. Runtime values must be
@@ -304,21 +344,31 @@ export async function POST(request) {
     const responseData = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      console.error("ElevenLabs Outbound Engine Rejection", {
+      console.error("[NEXCALL_CALL_DEMO_PROVIDER_ERROR]", {
+        requestId,
         status: response.status,
         phone: maskPhone(normalizedPhone),
         message: responseData?.message || summarizeProviderDetail(responseData?.detail)
       });
-      return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: response.status });
+      return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
     }
 
     if (!providerAcceptedCall(responseData)) {
-      console.error("ElevenLabs Outbound Engine returned unsuccessful payload", {
+      console.error("[NEXCALL_CALL_DEMO_PROVIDER_ERROR]", {
+        requestId,
+        status: response.status,
         phone: maskPhone(normalizedPhone),
         providerMessage: responseData?.message || "Missing provider success flag"
       });
       return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
     }
+
+    console.info("[NEXCALL_CALL_DEMO_PROVIDER_SUCCESS]", {
+      requestId,
+      phone: maskPhone(normalizedPhone),
+      hasConversationId: Boolean(responseData?.conversation_id || responseData?.conversationId),
+      hasCallSid: Boolean(responseData?.callSid || responseData?.call_sid || responseData?.sip_call_id)
+    });
 
     return NextResponse.json(
       { success: true, message: CALL_SUCCESS_MESSAGE },
@@ -332,7 +382,8 @@ export async function POST(request) {
       }
     );
   } catch (error) {
-    console.error("Outbound API server error", {
+    console.error("[NEXCALL_CALL_DEMO_PROVIDER_ERROR]", {
+      requestId,
       message: error instanceof Error ? error.message : "Unknown outbound call error"
     });
     return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });

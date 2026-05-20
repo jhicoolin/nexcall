@@ -7,7 +7,7 @@ import {
   type CheckoutBilling
 } from "@/lib/checkout-plans";
 import { notifyNexCallLead } from "@/lib/lead-notifications";
-import { cleanIdentifier, cleanText, getSafeSiteOrigin, isValidEmail, readJsonObject, validationResponse } from "@/lib/security";
+import { cleanIdentifier, cleanText, getSafeSiteOrigin, isHoneypotTriggered, isValidEmail, readJsonObject, validationResponse } from "@/lib/security";
 
 type CheckoutRequest = {
   planId?: string;
@@ -22,6 +22,10 @@ export async function POST(request: Request) {
     rawBody = await readJsonObject(request, 4000);
   } catch (error) {
     return validationResponse(error);
+  }
+
+  if (isHoneypotTriggered(rawBody)) {
+    return NextResponse.json({ ok: true, leadCaptured: true });
   }
 
   const planId = cleanIdentifier(rawBody.planId, 40);

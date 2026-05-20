@@ -60,6 +60,13 @@ export function cleanIdentifier(value: unknown, maxLength = 80) {
   return cleanText(value, maxLength).replace(/[^a-zA-Z0-9_.:-]/g, "-");
 }
 
+export function isHoneypotTriggered(
+  payload: Record<string, unknown>,
+  fields = ["companyWebsiteConfirm", "websiteConfirm", "website"]
+) {
+  return fields.some((field) => cleanText(payload[field], 120).length > 0);
+}
+
 export function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
 }
