@@ -16,7 +16,7 @@ export default function LegalCenterPage() {
     >
       <div className="grid gap-3 sm:grid-cols-2">
         {legalLinks.map((item) => (
-          <Link key={item.href} href={item.href} className="rounded-xl border border-white/10 bg-white/7 p-4 font-black text-[#8dbdff] transition hover:border-[#8dbdff]/40 hover:bg-white/10 hover:text-white">
+          <Link key={item.href} href={item.href} className="system-card rounded-xl p-4 font-black text-[#baff39] transition hover:border-[#baff39]/40 hover:bg-[#baff39]/10 hover:text-[#eaffb8]">
             {item.label}
           </Link>
         ))}

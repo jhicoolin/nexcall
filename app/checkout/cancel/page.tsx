@@ -11,8 +11,8 @@ export default function CheckoutCancelPage() {
       maxWidthClassName="max-w-3xl"
       contentClassName="mt-8"
     >
-      <section className="rounded-[1.35rem] border border-white/10 bg-white/7 p-6 text-center shadow-2xl shadow-black/25 backdrop-blur sm:p-8">
-        <MessageSquareText className="mx-auto text-[#8dbdff]" size={54} aria-hidden="true" />
+      <section className="system-card rounded-[1.35rem] p-6 text-center sm:p-8">
+        <MessageSquareText className="mx-auto text-[#baff39]" size={54} aria-hidden="true" />
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-300">
           Your card was not charged. Pick up where you left off whenever you are ready,
           or use the demo request flow if you want help choosing a plan.
@@ -20,14 +20,14 @@ export default function CheckoutCancelPage() {
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/#pricing"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/6 px-6 py-3 font-black text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
+            className="system-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 font-black transition hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/15"
           >
             <ArrowLeft size={18} aria-hidden="true" />
             Back to Plans
           </Link>
           <Link
             href="/#lead"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30"
+            className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
           >
             <Phone size={18} aria-hidden="true" />
             Try Demo Call

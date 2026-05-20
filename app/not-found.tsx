@@ -13,13 +13,13 @@ export default function NotFoundPage() {
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href="/"
-          className="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 py-3 font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30"
+          className="system-button-primary inline-flex min-h-12 items-center justify-center rounded-xl px-6 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
         >
           Back to Website
         </Link>
         <Link
           href="/#pricing"
-          className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/15 bg-white/6 px-6 py-3 font-black text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
+          className="system-button-secondary inline-flex min-h-12 items-center justify-center rounded-xl px-6 py-3 font-black transition hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/15"
         >
           View Plans
         </Link>
@@ -27,4 +27,3 @@ export default function NotFoundPage() {
     </PublicPageShell>
   );
 }
-

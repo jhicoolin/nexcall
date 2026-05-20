@@ -32,19 +32,19 @@ export function LegalPage({ eyebrow, title, summary, children }: LegalPageProps)
     <PublicPageShell eyebrow={eyebrow} title={title} summary={summary} contentClassName="mt-8">
       <p className="text-sm font-bold text-slate-400">Last updated: {legalLastUpdated}</p>
 
-      <div className="mt-8 rounded-2xl border border-[#d9a42f]/35 bg-[#d9a42f]/10 p-4 text-sm font-bold leading-6 text-amber-100">
+      <div className="mt-8 rounded-2xl border border-[#baff39]/20 bg-[#baff39]/10 p-4 text-sm font-bold leading-6 text-[#eaffb8]">
           These pages are transparency notices for NexCall. They are not legal advice and should be reviewed
           by qualified counsel before processing regulated data or launching in a jurisdiction with specific notice
           requirements.
       </div>
 
-      <article className="legal-copy mt-8 rounded-2xl border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/20 backdrop-blur sm:p-8">
+      <article className="legal-copy system-card mt-8 rounded-2xl p-6 sm:p-8">
         {children}
       </article>
 
-      <nav className="mt-8 grid gap-2 rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur sm:grid-cols-2">
+      <nav className="system-card mt-8 grid gap-2 rounded-2xl p-4 sm:grid-cols-2">
         {legalLinks.map((item) => (
-          <Link key={item.href} href={item.href} className="rounded-xl px-3 py-2 text-sm font-black text-[#8dbdff] transition hover:bg-white/8 hover:text-white">
+          <Link key={item.href} href={item.href} className="rounded-xl px-3 py-2 text-sm font-black text-[#baff39] transition hover:bg-[#baff39]/10 hover:text-[#eaffb8]">
             {item.label}
           </Link>
         ))}
