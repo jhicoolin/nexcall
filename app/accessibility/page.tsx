@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { nexcallPublicContact } from "@/components/PublicPageShell";
 
 export const metadata: Metadata = {
   title: "Accessibility Statement | NexCall",
@@ -26,7 +27,7 @@ export default function AccessibilityPage() {
       </ul>
 
       <h2>Feedback</h2>
-      <p>If you have trouble using any part of the website, please contact us through the website form with the page, device, browser, and issue. We will use that feedback to improve the experience.</p>
+      <p>If you have trouble using any part of the website, please contact us at {nexcallPublicContact.email} with the page, device, browser, and issue. We will use that feedback to improve the experience.</p>
 
       <h2>No Absolute Claim</h2>
       <p>This statement is an accessibility commitment, not a claim that every page or outside service is perfectly conformant in every setting.</p>

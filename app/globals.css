@@ -55,7 +55,7 @@ li {
   margin-top: 2rem;
   font-size: 1.35rem;
   font-weight: 760;
-  color: #172033;
+  color: #f8fbff;
 }
 
 .legal-copy h2:first-child {
@@ -65,13 +65,13 @@ li {
 .legal-copy p {
   margin-top: 0.85rem;
   line-height: 1.8;
-  color: #57534e;
+  color: #cbd5e1;
 }
 
 .legal-copy ul {
   margin-top: 0.85rem;
   padding-left: 1.25rem;
-  color: #57534e;
+  color: #cbd5e1;
 }
 
 .legal-copy li {

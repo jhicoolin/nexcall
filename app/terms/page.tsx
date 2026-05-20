@@ -37,7 +37,7 @@ export default function TermsPage() {
       <p>AI systems can misunderstand callers, make transcription mistakes, fail to recognize context, or require human review. The system is designed to use approved business rules and escalate uncertain issues, but it should be tested and monitored.</p>
 
       <h2>Billing</h2>
-      <p>Paid plans, billing cycles, included usage, setup fees, overages, cancellation, and refund terms are shown at checkout, in the signed order form, or in the Refund Policy. Usage-based or partner costs may apply when disclosed.</p>
+      <p>Paid plans, billing cycles, included usage, setup fees, overages, cancellation, and refund terms are shown at checkout, in the signed order form, or in the Refund Policy. Usage-based costs may apply when disclosed.</p>
 
       <h2>Availability</h2>
       <p>We aim to provide reliable service but do not guarantee uninterrupted access. Internet, communication, payment, hosting, and network services can experience downtime or degraded service.</p>

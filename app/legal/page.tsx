@@ -16,7 +16,7 @@ export default function LegalCenterPage() {
     >
       <div className="grid gap-3 sm:grid-cols-2">
         {legalLinks.map((item) => (
-          <Link key={item.href} href={item.href} className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-4 font-black text-[#244f8f] transition hover:bg-[#e8f0fc]">
+          <Link key={item.href} href={item.href} className="rounded-xl border border-white/10 bg-white/7 p-4 font-black text-[#8dbdff] transition hover:border-[#8dbdff]/40 hover:bg-white/10 hover:text-white">
             {item.label}
           </Link>
         ))}
@@ -24,4 +24,3 @@ export default function LegalCenterPage() {
     </LegalPage>
   );
 }
-

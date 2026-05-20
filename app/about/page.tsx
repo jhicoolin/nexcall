@@ -1,15 +1,15 @@
 import {
-  ArrowLeft,
   CalendarCheck,
+  CheckCircle2,
   Headphones,
   MessageSquareText,
-  ShieldCheck,
   Sparkles,
-  Users
+  Users,
+  type LucideIcon
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { PublicPageShell } from "@/components/PublicPageShell";
 
 export const metadata: Metadata = {
   title: "About NexCall | AI Receptionist Built for Real Businesses",
@@ -29,7 +29,7 @@ const values = [
     copy: "The best receptionist flow ends with a usable outcome: an appointment request, a routed call, or a documented follow-up."
   },
   {
-    icon: ShieldCheck,
+    icon: CheckCircle2,
     title: "Stay inside approved answers",
     copy: "Your receptionist should use approved business information instead of inventing pricing, availability, or promises."
   }
@@ -45,144 +45,116 @@ const steps = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#f6f2ea] text-[#1d2733]">
-      <header className="border-b border-stone-200 bg-white/80 backdrop-blur-xl">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3 text-sm font-black text-[#172033]">
-            <span className="relative h-11 w-11 drop-shadow-[0_0_14px_rgba(36,79,143,0.24)]">
-              <Image
-                src="/brand/nexcall-mark-transparent.png"
-                alt=""
-                fill
-                sizes="44px"
-                className="object-contain"
-              />
-            </span>
-            NEXCALL
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-black text-[#172033] shadow-sm transition hover:bg-stone-50"
-          >
-            <ArrowLeft size={17} aria-hidden="true" />
-            <span className="hidden sm:inline">Back Home</span>
-            <span className="sm:hidden">Home</span>
-          </Link>
-        </nav>
-      </header>
-
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-24">
+    <PublicPageShell
+      eyebrow="About NexCall"
+      title="Make every good customer conversation reachable."
+      summary="NexCall exists for the businesses that are busy enough to miss calls but personal enough to care how every caller is treated."
+      maxWidthClassName="max-w-7xl"
+      contentClassName="mt-12"
+    >
+      <section className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div>
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-[#c8d7ef] bg-white px-4 py-2 text-sm font-bold text-[#244f8f] shadow-sm">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/7 px-4 py-2 text-sm font-bold text-[#8dbdff]">
             <Sparkles size={16} aria-hidden="true" />
-            Privately owned implementation studio
+            Premium AI receptionist implementation
           </div>
-          <h1 className="text-5xl font-black leading-[1.02] text-[#172033] sm:text-6xl">
-            Our mission is to make every good customer conversation reachable.
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-stone-600">
-            NexCall exists for the businesses that are busy enough to miss calls
-            but personal enough to care how every caller is treated. We build AI
-            reception around useful service, not spectacle: answer, understand, route,
-            capture, summarize, and improve.
+          <p className="mt-6 text-lg leading-8 text-slate-300">
+            We build AI reception around useful service, not spectacle: answer,
+            understand, route, capture, summarize, and improve. The goal is a
+            front desk experience that callers can trust and teams can act on.
           </p>
         </div>
 
         <AboutCommandCenter />
       </section>
 
-      <section className="border-y border-stone-200 bg-white py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0f766e]">
-            What We Believe
-          </p>
-          <h2 className="mt-3 max-w-3xl text-4xl font-black text-[#172033] sm:text-5xl">
-            AI reception works when the experience is narrow, tested, and honest.
-          </h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {values.map((value) => (
-              <article key={value.title} className="rounded-lg border border-stone-200 bg-[#f6f2ea] p-6">
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-[#e8f0fc] text-[#244f8f]">
-                  <value.icon size={24} aria-hidden="true" />
-                </div>
-                <h3 className="text-2xl font-black text-[#172033]">{value.title}</h3>
-                <p className="mt-3 leading-7 text-stone-600">{value.copy}</p>
-              </article>
-            ))}
-          </div>
+      <section className="mt-14 rounded-[1.5rem] border border-white/10 bg-white/6 p-6 shadow-2xl shadow-black/20 backdrop-blur sm:p-8">
+        <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
+          What We Believe
+        </p>
+        <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-5xl">
+          AI reception works when the experience is narrow, tested, and honest.
+        </h2>
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {values.map((value) => (
+            <article key={value.title} className="rounded-2xl border border-white/10 bg-white/7 p-6">
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#05070d]">
+                <value.icon size={24} aria-hidden="true" />
+              </div>
+              <h3 className="text-2xl font-black text-white">{value.title}</h3>
+              <p className="mt-3 leading-7 text-slate-300">{value.copy}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+      <section className="mt-14 grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#244f8f]">
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
             Our Build Philosophy
           </p>
-          <h2 className="mt-3 text-4xl font-black text-[#172033] sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
             Start with the calls that matter most.
           </h2>
-          <p className="mt-5 text-lg leading-8 text-stone-600">
-            A strong rollout does not begin with every possible feature. It begins with
-            the repeatable call types that create revenue or relieve staff: appointment
-            requests, rescheduling, lead intake, FAQs, routing, and after-hours coverage.
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            A strong rollout begins with repeatable call types that create revenue
+            or relieve staff: appointment requests, rescheduling, lead intake,
+            FAQs, routing, and after-hours coverage.
           </p>
         </div>
         <ol className="grid gap-3">
           {steps.map((step, index) => (
-            <li key={step} className="flex gap-4 rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#244f8f] font-black text-white">
+            <li key={step} className="flex gap-4 rounded-2xl border border-white/10 bg-white/7 p-5 shadow-xl shadow-black/15">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white font-black text-[#05070d]">
                 {index + 1}
               </span>
-              <p className="pt-2 font-bold leading-7 text-[#172033]">{step}</p>
+              <p className="pt-2 font-bold leading-7 text-slate-100">{step}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="border-t border-stone-200 bg-white px-4 py-16 text-center sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <MessageSquareText className="mx-auto text-[#244f8f]" size={42} aria-hidden="true" />
-          <h2 className="mt-5 text-4xl font-black text-[#172033]">
-            Build a front desk that callers can actually trust.
-          </h2>
-          <p className="mt-4 text-lg leading-8 text-stone-600">
-            Start with a practical call audit, then launch the smallest receptionist
-            flow that can prove value.
-          </p>
-          <Link
-            href="/#lead"
-            className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg bg-[#244f8f] px-6 py-3 font-black text-white shadow-lg shadow-blue-900/10 transition hover:bg-[#1c3f73]"
-          >
-            Get a Free AI Audit
-          </Link>
-        </div>
+      <section className="mt-14 rounded-[1.5rem] border border-[#8dbdff]/30 bg-[#8dbdff]/10 px-5 py-12 text-center shadow-2xl shadow-black/20 sm:px-8">
+        <MessageSquareText className="mx-auto text-[#8dbdff]" size={42} aria-hidden="true" />
+        <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-black text-white">
+          Build a front desk that callers can actually trust.
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-300">
+          Start with a practical call audit, then launch the smallest receptionist
+          flow that can prove value.
+        </p>
+        <Link
+          href="/#lead"
+          className="mt-8 inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-6 py-3 font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30"
+        >
+          Get a Free AI Audit
+        </Link>
       </section>
-    </main>
+    </PublicPageShell>
   );
 }
-
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-lg bg-[#f6f2ea] p-4 text-center">
-      <p className="text-2xl font-black text-[#172033]">{value}</p>
-      <p className="mt-1 text-sm font-bold text-stone-500">{label}</p>
+    <div className="rounded-2xl border border-white/10 bg-white/7 p-4 text-center">
+      <p className="text-2xl font-black text-white">{value}</p>
+      <p className="mt-1 text-sm font-bold text-slate-400">{label}</p>
     </div>
   );
 }
 
 function AboutCommandCenter() {
-  const rows = [
-    { icon: Headphones, label: "Caller asks for help", value: "Answered instantly" },
+  const rows: Array<{ icon: LucideIcon; label: string; value: string }> = [
+    { icon: Headphones, label: "Caller asks for help", value: "Answered quickly" },
     { icon: CalendarCheck, label: "Appointment request captured", value: "Next step clear" },
     { icon: Users, label: "Judgment call detected", value: "Human fallback ready" }
   ];
 
   return (
-    <div className="rounded-lg border border-stone-200 bg-white p-6 shadow-xl shadow-stone-300/30">
-      <div className="rounded-lg border border-[#d7c08a] bg-[#111827] p-5 text-white">
+    <div className="rounded-[1.35rem] border border-white/10 bg-white/7 p-6 shadow-2xl shadow-black/25 backdrop-blur">
+      <div className="rounded-[1.15rem] border border-white/10 bg-[#0b1220] p-5 text-white">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#d9a536]">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8dbdff]">
               NexCall Command Center
             </p>
             <h2 className="mt-2 text-2xl font-black">Every call gets a clear next step.</h2>
@@ -193,14 +165,14 @@ function AboutCommandCenter() {
         </div>
         <div className="mt-6 grid gap-3">
           {rows.map((row) => (
-            <div key={row.label} className="flex flex-col items-start justify-between gap-3 rounded-lg bg-white/10 p-4 sm:flex-row sm:items-center">
+            <div key={row.label} className="flex flex-col items-start justify-between gap-3 rounded-xl bg-white/8 p-4 sm:flex-row sm:items-center">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#d9a536] text-[#111827]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#05070d]">
                   <row.icon size={19} aria-hidden="true" />
                 </span>
                 <p className="font-bold">{row.label}</p>
               </div>
-              <p className="text-sm font-black text-[#f7d984]">{row.value}</p>
+              <p className="text-sm font-black text-[#8dbdff]">{row.value}</p>
             </div>
           ))}
         </div>

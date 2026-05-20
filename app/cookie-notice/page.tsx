@@ -16,8 +16,8 @@ export default function CookieNoticePage() {
       <h2>Current Use</h2>
       <p>The website may use essential cookies or local browser storage for basic functionality such as checkout routing, security, session handling, and admin access. The app does not need advertising cookies to function.</p>
 
-      <h2>Service Partners</h2>
-      <p>Service partners that help operate payments, analytics, chat, communications, or website infrastructure may set their own cookies or collect technical data when their services are loaded or used. Their policies apply to their systems.</p>
+      <h2>Operations Partners</h2>
+      <p>Business operations partners that help run payments, analytics, chat, communications, or website infrastructure may set their own cookies or collect technical data when their services are loaded or used. Their policies apply to their systems.</p>
 
       <h2>Analytics and Marketing</h2>
       <p>If analytics, retargeting, heatmaps, ad pixels, or marketing cookies are added later, the site should add the appropriate consent banner, preference controls, and jurisdiction-specific disclosures before those tools are activated.</p>

@@ -20,7 +20,7 @@ export default function ComplianceNoticePage() {
       <p>The application uses practical security controls to protect sensitive setup details, validate inputs, reduce abuse, and limit unnecessary access. These controls support safer operations but do not equal third-party security certification.</p>
 
       <h2>Regulated Industries</h2>
-      <p>Healthcare, legal, financial, insurance, debt, education, children’s data, employment, housing, and other regulated use cases may require additional contracts, consent flows, vendor terms, audit trails, retention settings, and professional review before launch.</p>
+      <p>Healthcare, legal, financial, insurance, debt, education, children&apos;s data, employment, housing, and other regulated use cases may require additional contracts, consent flows, vendor terms, audit trails, retention settings, and professional review before launch.</p>
 
       <h2>No Default Certification Claims</h2>
       <p>Unless a signed agreement specifically says otherwise, NexCall does not claim HIPAA compliance, SOC 2 certification, ISO certification, PCI compliance, GDPR compliance, CCPA compliance, legal practice compliance, medical practice compliance, or financial services compliance.</p>

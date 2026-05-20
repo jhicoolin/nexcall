@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/LegalPage";
+import { nexcallPublicContact } from "@/components/PublicPageShell";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | NexCall",
@@ -7,7 +8,11 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
-  const supportContact = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "the contact form on this website";
+  const supportContact = (
+    <a className="font-bold text-[#8dbdff] underline underline-offset-4" href={`mailto:${nexcallPublicContact.email}`}>
+      {nexcallPublicContact.email}
+    </a>
+  );
 
   return (
     <LegalPage
@@ -27,8 +32,8 @@ export default function PrivacyPolicyPage() {
         <li>To improve call handling quality and client-specific receptionist settings.</li>
       </ul>
 
-      <h2>Service Providers</h2>
-      <p>The service may rely on trusted service partners to operate the website, process payments, support communications, provide analytics, and deliver customer support. These partners should be configured with appropriate account settings, access controls, and data-processing terms before production use.</p>
+      <h2>Operations Partners</h2>
+      <p>The service may rely on trusted business operations partners to run the website, process payments, support communications, provide analytics, and deliver customer support. Those relationships should be configured with appropriate account settings, access controls, and data-processing terms before production use.</p>
 
       <h2>Payment Data</h2>
       <p>Payments are handled through a secure payment processor. We do not intentionally store full card numbers in this application.</p>
