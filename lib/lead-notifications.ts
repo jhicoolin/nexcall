@@ -25,7 +25,7 @@ type NotificationResult = {
   ok: true;
   delivered: boolean;
   captured: boolean;
-  provider: "resend" | "sendgrid" | "webhook" | "server-log" | "fallback-log";
+  provider: "resend" | "sendgrid" | "smtp" | "webhook" | "server-log" | "fallback-log";
 };
 
 function safeValue(value: unknown, maxLength = 600) {
@@ -122,6 +122,38 @@ async function sendWithSendgrid(input: LeadNotificationInput, text: string) {
   return { ok: true as const, delivered: true, captured: true, provider: "sendgrid" as const };
 }
 
+async function sendWithSmtp(input: LeadNotificationInput, text: string) {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) return null;
+
+  const port = Number.parseInt(process.env.SMTP_PORT || "", 10);
+  const resolvedPort = Number.isFinite(port) ? port : 587;
+  const secure = process.env.SMTP_SECURE === "true" || resolvedPort === 465;
+  const from = process.env.SMTP_FROM || process.env.EMAIL_FROM || `NexCall <${user}>`;
+  const nodemailer = await import("nodemailer");
+  const transporter = nodemailer.createTransport({
+    host,
+    port: resolvedPort,
+    secure,
+    auth: { user, pass },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 10000
+  });
+
+  await transporter.sendMail({
+    from,
+    to: NEXCALL_LEAD_EMAIL,
+    subject: input.subject,
+    text
+  });
+
+  return { ok: true as const, delivered: true, captured: true, provider: "smtp" as const };
+}
+
 async function sendWithWebhook(input: LeadNotificationInput, text: string) {
   const webhookUrl = process.env.LEAD_WEBHOOK_URL || process.env.CONTACT_WEBHOOK_URL;
 
@@ -169,6 +201,7 @@ export async function notifyNexCallLead(input: LeadNotificationInput): Promise<N
     const delivered =
       (await sendWithResend(cleaned, text)) ||
       (await sendWithSendgrid(cleaned, text)) ||
+      (await sendWithSmtp(cleaned, text)) ||
       (await sendWithWebhook(cleaned, text));
 
     if (delivered) return delivered;

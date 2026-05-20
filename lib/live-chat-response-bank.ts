@@ -111,7 +111,7 @@ const topics: ChatTopic[] = [
   },
   {
     intent: "demo_call",
-    keywords: ["demo", "call me", "try", "test", "hear it", "sample call"],
+    keywords: ["demo", "call demo", "try", "test", "hear it", "sample call"],
     title: "Call Demo",
     answer:
       "The best way to test it is the Call Demo. Enter your number, keep your phone nearby, and NexCall will place a demo call so you can hear the caller experience for yourself. No card is required."
@@ -177,7 +177,7 @@ const topics: ChatTopic[] = [
   },
   {
     intent: "reliability",
-    keywords: ["reliable", "accuracy", "trust", "wrong", "doesn't know", "does not know"],
+    keywords: ["reliable", "accuracy", "trust", "wrong", "unsure", "uncertain", "doesn't know", "does not know"],
     title: "Reliability",
     answer:
       "NexCall is designed to stay helpful without guessing. If a call needs judgment, the workflow can capture the details and route the next step to a person."
@@ -272,7 +272,7 @@ const topics: ChatTopic[] = [
   },
   {
     intent: "lead_capture_prompt",
-    keywords: ["someone call me", "follow up", "reach out", "walk me through"],
+    keywords: ["someone call me", "call me", "follow up", "reach out", "walk me through"],
     title: "Lead Prompt",
     answer:
       "I can get that to the team. What is your name, business name, phone number, email, and what you want NexCall to handle?",

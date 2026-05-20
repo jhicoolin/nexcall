@@ -60,6 +60,17 @@ function cleanTimeZone(value) {
   return /^[A-Za-z_/-]+$/.test(cleaned) ? cleaned : "America/New_York";
 }
 
+function cleanTrackingField(value, fallback) {
+  const cleaned = String(value || "")
+    .replace(/[<>{}[\]\\]/g, "")
+    .replace(/[^a-zA-Z0-9_.:-]/g, "_")
+    .replace(/_+/g, "_")
+    .trim()
+    .slice(0, 80);
+
+  return cleaned || fallback;
+}
+
 function summarizeProviderDetail(value) {
   if (!value) return "Provider rejected request";
 
@@ -190,6 +201,8 @@ export async function POST(request) {
     }
 
     const { name, phone, user_timezone } = body || {};
+    const source = cleanTrackingField(body.source, "call_demo");
+    const page = cleanTrackingField(body.page, "homepage");
     const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
     const elevenLabsAgentId = process.env.ELEVENLABS_AGENT_ID;
     const agentPhoneNumberId =
@@ -237,7 +250,7 @@ export async function POST(request) {
         phone: normalizedPhone,
         inquiryType: "call demo",
         message: "A visitor requested the live phone demo, but the ElevenLabs outbound provider is not configured.",
-        metadata: { userTimezone: userTimeZone }
+        metadata: { userTimezone: userTimeZone, source, page }
       });
 
       return NextResponse.json(
@@ -254,7 +267,7 @@ export async function POST(request) {
       phone: normalizedPhone,
       inquiryType: "call demo",
       message: "A visitor requested the live NexCall phone demo.",
-      metadata: { userTimezone: userTimeZone }
+      metadata: { userTimezone: userTimeZone, source, page }
     });
 
     console.log("Initiating automated demo pipeline", {
@@ -281,7 +294,8 @@ export async function POST(request) {
             customer_name: leadName,
             caller_name: leadName,
             user_timezone: userTimeZone,
-            source: "nexcall_website_demo"
+            source,
+            page
           }
         }
       })

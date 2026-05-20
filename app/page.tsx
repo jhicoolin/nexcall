@@ -643,7 +643,13 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
       const response = await fetch("/api/outbound-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone: normalizedPhone, user_timezone: getBrowserTimeZone() })
+        body: JSON.stringify({
+          name,
+          phone: normalizedPhone,
+          source: "call_demo",
+          page: "homepage",
+          user_timezone: getBrowserTimeZone()
+        })
       });
       const result = (await response.json().catch(() => null)) as OutboundCallResponse | null;
 
@@ -1399,6 +1405,8 @@ function ClosingLeadCapture() {
         body: JSON.stringify({
           name: data.name || data.email.split("@")[0] || "Valued Lead",
           phone: normalizeOutboundPhoneInput(data.phone),
+          source: "call_demo",
+          page: "homepage",
           user_timezone: getBrowserTimeZone()
         })
       });

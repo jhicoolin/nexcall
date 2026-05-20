@@ -46,6 +46,34 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Keep `NEXT_PUBLIC_SITE_URL=https://nexcall.one` in Production.
 - Verify `STRIPE_WEBHOOK_SECRET`, phone demo provider IDs, calendar keys, and email delivery settings in Production and Preview separately.
 
+## Lead Delivery Checks
+
+- All lead paths should notify or safely capture for `nexcall@proton.me`.
+- Configure at least one real delivery path in Vercel Production:
+  - `RESEND_API_KEY` with `EMAIL_FROM`, or
+  - `SENDGRID_API_KEY` with `EMAIL_FROM_ADDRESS`, or
+  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, or
+  - `LEAD_WEBHOOK_URL`.
+- If no provider is configured, leads are captured in server logs and the UI still returns a safe success/fallback message.
+- Test `/api/leads`, checkout fallback, call demo fallback, voice scheduling fallback, and live chat human follow-up after env changes.
+
+## Call Demo Checks
+
+- The public demo modal posts to `/api/outbound-call`.
+- Expected payload includes normalized E.164 `phone`, `source: "call_demo"`, and `page: "homepage"`.
+- Vercel Production must include `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, and `ELEVENLABS_AGENT_PHONE_NUMBER_ID`.
+- Backward-compatible aliases may remain: `ELEVENLABS_PHONE_NUMBER_ID`, `TWILIO_PHONE_NUMBER_ID`.
+- Invalid numbers return a clean 400.
+- Missing or rejected provider config returns the public failure message and captures a lead.
+- Success may only display after the provider accepts the outbound call request.
+
+## Public Page And Icon Checks
+
+- Public legal/info pages must use `components/PublicPageShell.tsx` and match the dark NexCall theme.
+- Checkout success/cancel/cancelled routes must keep their current paths for Stripe redirects.
+- Verify `/favicon.ico`, `/apple-touch-icon.png`, `/icon-192.png`, `/icon-512.png`, `/manifest.webmanifest`, and `/brand/nexcall-og.png` return 200 in production.
+- If a browser still shows a globe, hard refresh or clear favicon cache after confirming the file content changed.
+
 ## Live Chat Checks
 
 - Treat the live chat as public-facing sales/support copy, not internal docs.
@@ -59,6 +87,7 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 ## Final Smoke Tests
 
 - Homepage loads and hero says: "Never miss your next call."
+- Public pages load: `/about`, `/ai-disclosure`, `/refund-policy`, `/privacy`, `/terms`, `/compliance`, `/cookie-notice`, `/accessibility`, `/legal`.
 - Live chat opens, closes, answers buyer questions, refuses stack details, and routes to human follow-up.
 - Experience NexCall uses the compact call-flow preview and pushes visitors to the real Call Demo.
 - Call Demo opens, formats phone numbers, and only shows success after provider acceptance.
@@ -66,4 +95,6 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Checkout success and cancel pages match the dark NexCall theme.
 - `/api/voice/schedule` accepts flexible voice-agent scheduling payloads.
 - Contact/demo/checkout/call-demo leads are captured or notified.
+- No public page or chat response exposes provider names, API routes, prompts, models, env names, or fallback architecture.
+- Mobile checks: 320, 375, 390, 430, tablet, desktop.
 - `npm run lint`, `tsc --noEmit`, and `npm run build` pass.
