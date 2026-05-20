@@ -19,10 +19,10 @@ out/
 # Logs and generated archives
 logs/
 *.log
+*.tsbuildinfo
 archives/*.zip
 ai-receptionist-source*.zip
 
 # OS/editor noise
 .DS_Store
 Thumbs.db
-

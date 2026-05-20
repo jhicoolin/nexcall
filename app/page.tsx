@@ -27,7 +27,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "r
 import { useForm } from "react-hook-form";
 
 const sectionMotion = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 1, y: 0 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, amount: 0.2 },
   transition: { duration: 0.55, ease: "easeOut" }
@@ -129,25 +129,37 @@ function AnimatedCounter({
   const ref = useRef<HTMLSpanElement | null>(null);
   const started = useRef(false);
   const rafRef = useRef<number | null>(null);
-  const [current, setCurrent] = useState(0);
+  const fallbackRef = useRef<number | null>(null);
+  const [current, setCurrent] = useState(value);
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || started.current) return;
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion) {
-      started.current = true;
+    if (started.current) {
       setCurrent(value);
       return;
     }
+
+    const showFinalValue = () => {
+      started.current = true;
+      setCurrent(value);
+    };
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!node || prefersReducedMotion || !("IntersectionObserver" in window)) {
+      showFinalValue();
+      return;
+    }
+
+    fallbackRef.current = window.setTimeout(showFinalValue, durationMs + 600);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting || started.current) return;
         started.current = true;
+        if (fallbackRef.current) window.clearTimeout(fallbackRef.current);
         const start = performance.now();
+        setCurrent(0);
 
         const tick = (time: number) => {
           const progress = Math.min((time - start) / durationMs, 1);
@@ -156,6 +168,8 @@ function AnimatedCounter({
 
           if (progress < 1) {
             rafRef.current = window.requestAnimationFrame(tick);
+          } else {
+            setCurrent(value);
           }
         };
 
@@ -169,6 +183,7 @@ function AnimatedCounter({
 
     return () => {
       observer.disconnect();
+      if (fallbackRef.current) window.clearTimeout(fallbackRef.current);
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
   }, [durationMs, value]);
@@ -306,7 +321,7 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="flex w-full min-w-0 max-w-[34rem] flex-col justify-center overflow-hidden sm:max-w-[42rem] lg:max-w-[40rem]"
+          className="flex w-full min-w-0 max-w-full flex-col justify-center overflow-hidden sm:max-w-[42rem] lg:max-w-[40rem]"
         >
           <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-sm font-bold text-slate-200 shadow-2xl shadow-black/20 backdrop-blur">
             <Sparkles size={16} aria-hidden="true" />
@@ -323,20 +338,20 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             <button
               type="button"
               onClick={onCallDemo}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-black text-[#05070d] shadow-xl shadow-blue-500/10 transition hover:-translate-y-0.5 hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-base font-black text-[#05070d] shadow-xl shadow-blue-500/10 transition hover:-translate-y-0.5 hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/30 sm:w-auto"
             >
               <Phone size={19} aria-hidden="true" />
               Try a Demo Call
             </button>
             <a
               href="#pricing"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/6 px-6 py-3 text-base font-bold text-white shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/6 px-6 py-3 text-base font-bold text-white shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20 sm:w-auto"
             >
               View Plans
               <ArrowRight size={18} aria-hidden="true" />
             </a>
           </div>
-          <p className="mt-4 text-sm font-bold text-slate-400">
+          <p className="mt-4 max-w-full break-words text-sm font-bold text-slate-400">
             No card required. Try the receptionist on your own phone.
           </p>
         </motion.div>
@@ -375,7 +390,7 @@ function HeroCallJourney() {
       initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative mx-auto w-full min-w-0 max-w-[23rem] overflow-hidden rounded-[1.75rem] sm:max-w-[36rem] lg:max-w-[34rem] xl:max-w-[36rem]"
+      className="relative mx-auto w-full min-w-0 max-w-[calc(100vw-2rem)] overflow-hidden rounded-[1.5rem] sm:max-w-[36rem] sm:rounded-[1.75rem] lg:max-w-[34rem] xl:max-w-[36rem]"
     >
       <div className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(circle_at_50%_10%,rgba(141,189,255,0.22),transparent_34rem)] blur-2xl" />
       <div className="absolute inset-0 rotate-[-1.2deg] rounded-[1.75rem] border border-white/10 bg-white/5 shadow-2xl shadow-black/40" />

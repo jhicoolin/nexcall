@@ -18,6 +18,15 @@ Internal operator checklist for the final production switch.
 - Live chat response bank: `lib/live-chat-response-bank.ts`
 - Live chat engine: `services/receptionist/web-chat-engine.ts`
 
+## Homepage Recovery Checks
+
+- If the homepage appears blank after a crash or bad refresh, verify shared section motion is fail-open: content should render visible by default and animation must never be required for sections to appear.
+- Proof stats must server-render their final values: `500+`, `10+`, `50M+`, and `99.9%`.
+- Animated counters are progressive enhancement only. If `IntersectionObserver`, reduced-motion handling, hydration, or browser animation fails, the public page must still show the final stat values.
+- Check the homepage sequence after recovery: hero, proof/stats, how it works, services, demo preview, pricing, FAQ, final CTA, footer, and live chat.
+- Keep recovery screenshots, browser profiles, temporary smoke logs, and patch files out of Git. Use `git status --short --ignored` before committing.
+- Safe recovery commands: `git status --short --branch`, `git log --oneline -12`, `git diff --stat`, `git diff --name-only`, `git ls-files -d`, and `git restore <file>` only after inspecting the diff.
+
 ## Required Live Stripe Checks
 
 Before switching paid traffic to live checkout:
