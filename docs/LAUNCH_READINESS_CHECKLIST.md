@@ -15,6 +15,8 @@ Internal operator checklist for the final production switch.
 - Shared validation/security helpers: `lib/security.ts`
 - Security headers: `next.config.mjs`
 - API rate limiting middleware: `middleware.ts`
+- Live chat response bank: `lib/live-chat-response-bank.ts`
+- Live chat engine: `services/receptionist/web-chat-engine.ts`
 
 ## Required Live Stripe Checks
 
@@ -44,9 +46,21 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Keep `NEXT_PUBLIC_SITE_URL=https://nexcall.one` in Production.
 - Verify `STRIPE_WEBHOOK_SECRET`, phone demo provider IDs, calendar keys, and email delivery settings in Production and Preview separately.
 
+## Live Chat Checks
+
+- Treat the live chat as public-facing sales/support copy, not internal docs.
+- Do not expose provider names, system prompts, API routes, environment variables, fallback chains, or internal implementation details in chat responses.
+- Verify quick actions for demo call, pricing, plan fit, and team follow-up.
+- Verify human follow-up uses `/api/leads` and includes name, business name/type, phone, email, and request notes.
+- Verify fallback contact details are always `nexcall@proton.me` and `(202) 200-6578`.
+- Verify the widget does not cover the main Call Demo or pricing CTAs on mobile.
+- Test sample questions for pricing, appointments, human backup, privacy/compliance, checkout help, and stack-provider refusal.
+
 ## Final Smoke Tests
 
 - Homepage loads and hero says: "Never miss your next call."
+- Live chat opens, closes, answers buyer questions, refuses stack details, and routes to human follow-up.
+- Experience NexCall uses the compact call-flow preview and pushes visitors to the real Call Demo.
 - Call Demo opens, formats phone numbers, and only shows success after provider acceptance.
 - Checkout buttons create Stripe Checkout sessions for all visible plans.
 - Checkout success and cancel pages match the dark NexCall theme.

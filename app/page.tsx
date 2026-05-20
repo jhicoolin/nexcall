@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { type NexCallScenarioId } from "@/lib/nexcall-voice-demos";
 
 const sectionMotion = {
   initial: { opacity: 0, y: 20 },
@@ -49,31 +48,16 @@ type ChatMessage = {
 
 type ChatMode = "ai" | "human";
 
-type VoiceProfileKey = "warmFemale" | "confidentMale" | "brightFemale" | "calmMale" | "steadyMale" | "empatheticFemale";
-
-type VoiceProfile = {
-  label: string;
-  tone: string;
-  rate: number;
-  pitch: number;
-  preferredNames: string[];
-};
-
 type DemoScenario = {
-  id: NexCallScenarioId;
+  id: "appointment" | "lead" | "question";
   title: string;
   category: string;
-  tags: string[];
-  summary: string;
+  businessType: string;
+  callerNeed: string;
+  nexcallAction: string;
+  captures: string[];
+  handoff: string;
   result: string;
-  duration: string;
-  voiceProfile: VoiceProfileKey;
-  audioUrl?: string;
-  lines: Array<{
-    speaker: "Caller" | "Receptionist";
-    text: string;
-    duration: number;
-  }>;
 };
 
 const industries = [
@@ -87,259 +71,41 @@ const industries = [
   "Local shops"
 ];
 
-const voiceProfiles: Record<VoiceProfileKey, VoiceProfile> = {
-  warmFemale: {
-    label: "Warm female",
-    tone: "calm, helpful, front-desk friendly",
-    rate: 0.92,
-    pitch: 1.04,
-    preferredNames: ["Samantha", "Ava", "Victoria", "Tessa", "Karen", "Moira"]
-  },
-  confidentMale: {
-    label: "Confident male",
-    tone: "clear, consultative, never salesy",
-    rate: 0.91,
-    pitch: 0.96,
-    preferredNames: ["Alex", "Daniel", "Mark", "David"]
-  },
-  brightFemale: {
-    label: "Bright female",
-    tone: "welcoming, polished, concierge-style",
-    rate: 0.96,
-    pitch: 1.08,
-    preferredNames: ["Samantha", "Serena", "Ava", "Victoria", "Moira"]
-  },
-  calmMale: {
-    label: "Calm male",
-    tone: "patient, steady, support-focused",
-    rate: 0.9,
-    pitch: 0.94,
-    preferredNames: ["Alex", "Daniel", "Mark", "David"]
-  },
-  steadyMale: {
-    label: "Steady male",
-    tone: "precise, trustworthy, routing-oriented",
-    rate: 0.88,
-    pitch: 0.92,
-    preferredNames: ["Daniel", "Alex", "Mark", "David"]
-  },
-  empatheticFemale: {
-    label: "Empathetic female",
-    tone: "gentle, reassuring, sensitive-intake ready",
-    rate: 0.88,
-    pitch: 1.02,
-    preferredNames: ["Samantha", "Serena", "Ava", "Victoria"]
-  }
-};
-
 const voiceDemos: DemoScenario[] = [
   {
     id: "appointment",
     title: "Appointment Request",
-    category: "Healthcare Receptionist",
-    tags: ["Appointment request", "Reschedule", "Follow-up"],
-    summary:
-      "A patient needs to move an appointment and get confirmation without waiting on hold.",
-    result: "Appointment request captured",
-    duration: "0:46",
-    voiceProfile: "warmFemale",
-    audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_APPOINTMENT_URL || "",
-    lines: [
-      {
-        speaker: "Caller",
-        text: "Hi, I need to move my appointment. I am free Thursday afternoon.",
-        duration: 2100
-      },
-      {
-        speaker: "Receptionist",
-        text: "I can help with that. I see 2:30 PM and 4:15 PM on Thursday. Which works better?",
-        duration: 2900
-      },
-      {
-        speaker: "Caller",
-        text: "4:15 please. Can you text it to me?",
-        duration: 1900
-      },
-      {
-        speaker: "Receptionist",
-        text: "I captured that request and made sure your team has the details.",
-        duration: 3200
-      }
-    ]
+    category: "Scheduling flow",
+    businessType: "Healthcare, salons, dental offices, repair shops",
+    callerNeed: "Move an appointment to Thursday afternoon.",
+    nexcallAction: "Captures preferred time, caller details, reason, and urgency.",
+    captures: ["Name", "Phone", "Preferred time", "Reason", "Urgency"],
+    handoff: "Appointment request captured. Team follow-up ready.",
+    result: "Next step clear"
   },
   {
     id: "lead",
-    title: "Lead Qualification",
-    category: "Real Estate Buyer",
-    tags: ["Lead capture", "Budget", "Warm transfer"],
-    summary:
-      "A buyer calls after seeing an ad. The agent qualifies timing, budget, location, and next step.",
-    result: "Qualified lead routed",
-    duration: "1:03",
-    voiceProfile: "confidentMale",
-    audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_LEAD_URL || "",
-    lines: [
-      {
-        speaker: "Caller",
-        text: "I saw a listing online and wanted to know if someone could show me similar homes.",
-        duration: 2500
-      },
-      {
-        speaker: "Receptionist",
-        text: "Absolutely. What area are you looking in, and are you hoping to move in the next six months?",
-        duration: 3000
-      },
-      {
-        speaker: "Caller",
-        text: "North side, ideally under 450. We want to move this summer.",
-        duration: 2600
-      },
-      {
-        speaker: "Receptionist",
-        text: "Great. I captured that. I can book a buyer consult or transfer you with those details now.",
-        duration: 3300
-      }
-    ]
+    title: "New Lead",
+    category: "Lead intake",
+    businessType: "Contractors, agencies, legal offices, home services",
+    callerNeed: "Caller wants a quote and asks how soon someone can follow up.",
+    nexcallAction: "Captures job type, location, contact details, timing, and urgency.",
+    captures: ["Name", "Phone", "Job type", "Location", "Urgency"],
+    handoff: "Lead summary ready with the right follow-up context.",
+    result: "Lead captured"
   },
   {
-    id: "restaurant",
-    title: "Restaurant Concierge",
-    category: "Reservation Support",
-    tags: ["Receptionist", "FAQ", "Confirmation"],
-    summary:
-      "A guest asks about availability, patio seating, and dietary notes during a busy service rush.",
-    result: "Reservation request captured",
-    duration: "0:53",
-    voiceProfile: "brightFemale",
-    audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_RESTAURANT_URL || "",
-    lines: [
-      {
-        speaker: "Caller",
-        text: "Do you have a table for four tonight, and can you handle gluten-free options?",
-        duration: 2700
-      },
-      {
-        speaker: "Receptionist",
-        text: "Yes. I have a 7:15 PM indoor table or an 8 PM patio table. We can note gluten-free for the kitchen.",
-        duration: 3600
-      },
-      {
-        speaker: "Caller",
-        text: "Let's do the patio at 8.",
-        duration: 1500
-      },
-      {
-        speaker: "Receptionist",
-        text: "I captured the patio request for four at 8 PM and made sure the team has the details.",
-        duration: 2800
-      }
-    ]
-  },
-  {
-    id: "support",
-    title: "Customer Support",
-    category: "E-commerce Order Help",
-    tags: ["Order status", "Ticket creation", "Human fallback"],
-    summary:
-      "A customer wants delivery status. The agent checks the order path and creates a ticket if needed.",
-    result: "Status shared",
-    duration: "1:02",
-    voiceProfile: "calmMale",
-    audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_SUPPORT_URL || "",
-    lines: [
-      {
-        speaker: "Caller",
-        text: "I placed an order last week and never got a tracking update.",
-        duration: 2300
-      },
-      {
-        speaker: "Receptionist",
-        text: "I can look that up. Can you confirm the email or phone number on the order?",
-        duration: 2800
-      },
-      {
-        speaker: "Caller",
-        text: "Sure, it's under my phone number ending in 0187.",
-        duration: 2200
-      },
-      {
-        speaker: "Receptionist",
-        text: "Thanks. I found the order, created a support ticket, and sent the tracking link by text.",
-        duration: 3200
-      }
-    ]
-  },
-  {
-    id: "ivr",
-    title: "AI IVR",
-    category: "Financial Services",
-    tags: ["Verification", "Routing", "Context"],
-    summary:
-      "The caller needs the right department without a maze of keypad menus.",
-    result: "Verified and routed",
-    duration: "0:58",
-    voiceProfile: "steadyMale",
-    audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_IVR_URL || "",
-    lines: [
-      {
-        speaker: "Caller",
-        text: "I need help with a policy question and I am not sure who handles it.",
-        duration: 2400
-      },
-      {
-        speaker: "Receptionist",
-        text: "I can route you. Is this about billing, claims, or changing coverage?",
-        duration: 2800
-      },
-      {
-        speaker: "Caller",
-        text: "Changing coverage, but I also have a billing question.",
-        duration: 2200
-      },
-      {
-        speaker: "Receptionist",
-        text: "I captured both. I'll send you to the coverage team with the billing note attached.",
-        duration: 3100
-      }
-    ]
-  },
-  {
-    id: "legal",
-    title: "Legal Intake",
-    category: "Professional Services",
-    tags: ["Sensitive intake", "Screening", "Human handoff"],
-    summary:
-      "A potential client needs a calm intake process before speaking with the right person.",
-    result: "Consult request captured",
-    duration: "1:08",
-    voiceProfile: "empatheticFemale",
-    audioUrl: process.env.NEXT_PUBLIC_DEMO_AUDIO_LEGAL_URL || "",
-    lines: [
-      {
-        speaker: "Caller",
-        text: "I was in an accident and I need to know if someone can help me.",
-        duration: 2300
-      },
-      {
-        speaker: "Receptionist",
-        text: "I'm sorry that happened. I can gather the basics and make sure the right person follows up.",
-        duration: 3300
-      },
-      {
-        speaker: "Caller",
-        text: "Okay. It happened yesterday, and I have the police report number.",
-        duration: 2600
-      },
-      {
-        speaker: "Receptionist",
-        text: "Thank you. I saved the report note and routed this as a priority consultation request.",
-        duration: 3200
-      }
-    ]
+    id: "question",
+    title: "Customer Question",
+    category: "Front desk support",
+    businessType: "Restaurants, local shops, support-heavy teams",
+    callerNeed: "Caller asks about availability, hours, or service details.",
+    nexcallAction: "Answers approved questions or captures the request for follow-up.",
+    captures: ["Question", "Contact detail", "Preference", "Next step"],
+    handoff: "Customer question handled or routed with context.",
+    result: "Request handled"
   }
 ];
-
-const elevenLabsTtsEnabled = process.env.NEXT_PUBLIC_ENABLE_ELEVENLABS_TTS_DEMOS === "true";
 
 const brandAssets = {
   mark: "/brand/nexcall-mark-transparent.png"
@@ -421,36 +187,6 @@ function AnimatedCounter({
   );
 }
 
-function selectHumanVoice(voices: SpeechSynthesisVoice[], profile: VoiceProfile) {
-  if (!voices.length) return undefined;
-
-  const scored = voices.map((voice) => {
-    const name = voice.name.toLowerCase();
-    const lang = voice.lang.toLowerCase();
-    let score = 0;
-
-    if (lang.startsWith("en")) score += 20;
-    if (lang === "en-us" || lang === "en_us") score += 8;
-    if (voice.localService) score += 4;
-    if (name.includes("natural")) score += 14;
-    if (name.includes("premium")) score += 10;
-    if (name.includes("neural")) score += 10;
-    if (name.includes("desktop")) score -= 12;
-    if (name.includes("robot")) score -= 100;
-
-    profile.preferredNames.forEach((preferredName, index) => {
-      if (name.includes(preferredName.toLowerCase())) {
-        score += 100 - index * 4;
-      }
-    });
-
-    return { voice, score };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
-  return scored[0]?.score > 18 ? scored[0].voice : undefined;
-}
-
 export default function Home() {
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
 
@@ -466,7 +202,7 @@ export default function Home() {
       <FAQSection />
       <ClosingLeadCapture />
       <Footer />
-      <LiveChatDock />
+      <LiveChatDock onCallDemo={() => setIsOutboundModalOpen(true)} />
       <OutboundCallModal open={isOutboundModalOpen} onClose={() => setIsOutboundModalOpen(false)} />
     </main>
   );
@@ -1071,191 +807,45 @@ function TrustSignalBar() {
 
 function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
   const [selected, setSelected] = useState(0);
-  const [activeLine, setActiveLine] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [generatedAudioUrl, setGeneratedAudioUrl] = useState("");
-  const [generatedScenarioId, setGeneratedScenarioId] = useState<NexCallScenarioId | "">("");
-  const [ttsStatus, setTtsStatus] = useState("");
-  const [ttsError, setTtsError] = useState("");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const featuredVoiceDemos = voiceDemos.slice(0, 3);
-  const scenario = featuredVoiceDemos[selected] || featuredVoiceDemos[0];
-  const voiceProfile = voiceProfiles[scenario.voiceProfile];
-  const playbackAudioUrl = scenario.audioUrl || (generatedScenarioId === scenario.id ? generatedAudioUrl : "");
-  const callerPreview = scenario.lines.find((line) => line.speaker === "Caller") || scenario.lines[0];
-  const receptionistPreview =
-    scenario.lines.find((line) => line.speaker === "Receptionist") || scenario.lines[1] || scenario.lines[0];
-
-  useEffect(() => {
-    if (!("speechSynthesis" in window)) return;
-
-    const loadVoices = () => {
-      setAvailableVoices(window.speechSynthesis.getVoices());
-    };
-
-    loadVoices();
-    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
-
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (generatedAudioUrl) {
-        URL.revokeObjectURL(generatedAudioUrl);
-      }
-    };
-  }, [generatedAudioUrl]);
-
-  useEffect(() => {
-    setActiveLine(0);
-    setIsPlaying(false);
-    setTtsError("");
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-  }, [selected]);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    if (playbackAudioUrl && audioRef.current) {
-      audioRef.current.currentTime = 0;
-      void audioRef.current.play().catch(() => {
-        setIsPlaying(false);
-      });
-    }
-
-    const timers: number[] = [];
-    const activeAudio = audioRef.current;
-    let delay = 0;
-
-    scenario.lines.forEach((line, index) => {
-      timers.push(
-        window.setTimeout(() => {
-          setActiveLine(index);
-          if (line.speaker === "Receptionist" && !playbackAudioUrl && "speechSynthesis" in window) {
-            const voice = new SpeechSynthesisUtterance(line.text);
-            const bestVoice = selectHumanVoice(window.speechSynthesis.getVoices(), voiceProfile);
-
-            if (bestVoice) {
-              voice.voice = bestVoice;
-            }
-
-            voice.rate = voiceProfile.rate;
-            voice.pitch = voiceProfile.pitch;
-            voice.volume = 0.95;
-            window.speechSynthesis.speak(voice);
-          }
-        }, delay)
-      );
-      delay += line.duration;
-    });
-
-    timers.push(window.setTimeout(() => setIsPlaying(false), delay + 350));
-
-    return () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-      if (activeAudio) {
-        activeAudio.pause();
-      }
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [isPlaying, scenario, voiceProfile, playbackAudioUrl]);
-
-  async function buildNexCallAudio(target: DemoScenario) {
-    const response = await fetch("/api/tts/elevenlabs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scenarioId: target.id })
-    });
-
-    if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(data?.error || "Audio preview is not available yet.");
-    }
-
-    return URL.createObjectURL(await response.blob());
-  }
-
-  async function playDemo(index = selected) {
-    const target = featuredVoiceDemos[index] || featuredVoiceDemos[0];
-
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-
-    setSelected(index);
-    setActiveLine(0);
-    setIsPlaying(false);
-    setTtsError("");
-
-    if (!target.audioUrl && elevenLabsTtsEnabled && generatedScenarioId !== target.id) {
-      setTtsStatus("Preparing demo preview...");
-      try {
-        const nextAudioUrl = await buildNexCallAudio(target);
-        setGeneratedScenarioId(target.id);
-        setGeneratedAudioUrl((currentAudioUrl) => {
-          if (currentAudioUrl) {
-            URL.revokeObjectURL(currentAudioUrl);
-          }
-          return nextAudioUrl;
-        });
-        setTtsStatus("Demo preview ready");
-      } catch (error) {
-        setTtsStatus("Preview ready");
-        setTtsError(error instanceof Error ? error.message : "Audio preview is not available right now.");
-      }
-    } else if (target.audioUrl) {
-      setTtsStatus("Demo preview ready");
-    } else if (generatedScenarioId === target.id && generatedAudioUrl) {
-      setTtsStatus("Demo preview ready");
-    } else {
-      setTtsStatus("Preview ready");
-    }
-
-    window.setTimeout(() => setIsPlaying(true), 60);
-  }
-
-  const progress = ((activeLine + (isPlaying ? 1 : 0)) / scenario.lines.length) * 100;
+  const scenario = voiceDemos[selected] || voiceDemos[0];
 
   return (
-    <section id="demos" className="border-b border-white/10 bg-[#05070d] py-14">
+    <section id="demos" className="border-b border-white/10 bg-[#05070d] py-12">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr]">
+        <div className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.16em] text-[#8dbdff]">
               Experience NexCall
             </p>
             <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
-              Hear how NexCall handles real call scenarios.
+              See how NexCall moves a caller to the next step.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
-              Choose a scenario and watch how NexCall captures the details, moves the
-              next step forward, and keeps the handoff clear. For the strongest test,
-              use the real phone-call demo.
+              Preview a common call path, then place a real demo call to hear the
+              receptionist experience from the caller side.
             </p>
-            <button
-              type="button"
-              onClick={onCallDemo}
-              className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 py-3 font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
-            >
-              <Phone size={18} aria-hidden="true" />
-              Try a Real Demo Call
-            </button>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={onCallDemo}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-black text-[#05070d] shadow-lg shadow-blue-500/10 transition hover:-translate-y-0.5 hover:bg-slate-200 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
+              >
+                <Phone size={18} aria-hidden="true" />
+                Try a Real Demo Call
+              </button>
+              <a
+                href="#pricing"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/6 px-5 py-3 font-black text-white transition hover:-translate-y-0.5 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-blue-300/20"
+              >
+                View Plans
+                <ArrowRight size={17} aria-hidden="true" />
+              </a>
+            </div>
+            <p className="mt-3 text-sm font-bold text-slate-400">
+              No card required. Keep your phone nearby.
+            </p>
             <div className="mt-7 grid gap-2">
-              {featuredVoiceDemos.map((demo, index) => (
+              {voiceDemos.map((demo, index) => (
                 <button
                   key={demo.title}
                   type="button"
@@ -1263,98 +853,72 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
                   aria-pressed={selected === index}
                   className={`rounded-2xl border p-4 text-left transition ${
                     selected === index
-                      ? "border-[#8dbdff]/60 bg-white/10 shadow-lg shadow-black/25"
+                      ? "border-[#8dbdff]/55 bg-white/10 shadow-lg shadow-black/25"
                       : "border-white/10 bg-white/5 hover:bg-white/8"
                   }`}
                 >
                   <p className="text-sm font-black text-white">{demo.title}</p>
-                  <p className="mt-1 text-xs font-bold text-slate-400">{demo.category}</p>
+                  <p className="mt-1 text-xs font-bold text-slate-400">{demo.businessType}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="rounded-[1.35rem] border border-white/10 bg-white p-5 text-[#172033] shadow-2xl shadow-black/30">
-            <audio
-              ref={audioRef}
-              src={playbackAudioUrl || undefined}
-              preload="auto"
-              onEnded={() => setIsPlaying(false)}
-            />
-            <div className="flex flex-col gap-4 border-b border-stone-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="metal-panel rounded-[1.35rem] p-5 text-white shadow-2xl shadow-black/30">
+            <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm font-black uppercase tracking-[0.16em] text-[#0f766e]">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8dbdff]">
                   {scenario.category}
                 </p>
-                <h3 className="mt-2 text-3xl font-black text-[#172033]">{scenario.title}</h3>
-                <p className="mt-2 max-w-2xl text-stone-600">{scenario.summary}</p>
-                <p className="mt-4 text-sm font-bold text-[#244f8f]">
-                  Tone: natural, calm, front-desk friendly.
-                </p>
-                {ttsStatus ? <p className="mt-2 text-xs font-bold text-stone-500">{ttsStatus}</p> : null}
-                {ttsError ? (
-                  <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold leading-5 text-amber-900">
-                    {ttsError}
-                  </p>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                onClick={() => void playDemo(selected)}
-                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#244f8f] px-5 py-3 font-black text-white shadow-lg shadow-blue-900/10 transition hover:bg-[#1c3f73]"
-              >
-                <Phone size={18} aria-hidden="true" />
-                {isPlaying ? "Playing..." : "Play Scenario"}
-              </button>
-            </div>
-
-            <div className="mt-6 rounded-lg bg-[#172033] p-4 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-100">
-                    Incoming call preview
-                  </p>
-                  <p className="mt-1 text-sm text-white/70">Caller ID verified - just now</p>
-                </div>
-                <p className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-200">
-                  {scenario.result}
+                <h3 className="mt-2 text-3xl font-black text-white">{scenario.title}</h3>
+                <p className="mt-2 max-w-2xl text-sm font-bold leading-6 text-slate-400">
+                  {scenario.businessType}
                 </p>
               </div>
-              <div className="mt-5 flex h-12 items-end gap-1">
-                {Array.from({ length: 18 }).map((_, index) => (
-                  <motion.span
-                    key={index}
-                    animate={{ height: isPlaying ? [12, 36 + ((index * 7) % 18), 14] : 14 + ((index * 9) % 22) }}
-                    transition={{ duration: 0.8, repeat: isPlaying ? Infinity : 0, delay: index * 0.025 }}
-                  className="w-1 flex-1 rounded-full bg-[#9cc5ff]"
-                  />
-                ))}
-              </div>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                  className="h-full rounded-full bg-[#9cc5ff]"
-                  animate={{ width: `${Math.min(100, progress)}%` }}
-                  transition={{ duration: 0.3 }}
-                />
-              </div>
-              <div className="mt-5 grid gap-3">
-                <div className="rounded-xl bg-white/10 p-4">
-                  <p className="text-xs font-black uppercase text-white/60">Caller</p>
-                  <p className="mt-1 text-sm font-semibold leading-6">{callerPreview.text}</p>
-                </div>
-                <div className="rounded-xl bg-[#9cc5ff] p-4 text-[#05070d]">
-                  <p className="text-xs font-black uppercase opacity-70">NexCall</p>
-                  <p className="mt-1 text-sm font-black leading-6">{receptionistPreview.text}</p>
-                </div>
-              </div>
-              <p className="mt-4 rounded-xl border border-white/10 bg-white/8 p-4 text-sm font-black text-blue-100">
-                Outcome: {scenario.result}
+              <p className="w-fit rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-black text-emerald-200">
+                {scenario.result}
               </p>
             </div>
-            <p className="mt-5 rounded-xl border border-stone-200 bg-[#f6f2ea] p-3 text-xs font-bold leading-5 text-stone-600">
-              This preview is illustrative. For the clearest test, place a real demo
-              call and hear the receptionist handle the flow live.
-            </p>
+
+            <div className="mt-6 grid gap-4">
+              {[
+                ["Caller need", scenario.callerNeed],
+                ["NexCall action", scenario.nexcallAction],
+                ["Team handoff", scenario.handoff]
+              ].map(([label, text], index) => (
+                <div key={label} className="grid gap-3 rounded-2xl border border-white/10 bg-white/6 p-4 sm:grid-cols-[8.5rem_1fr]">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#9cc5ff] text-sm font-black text-[#172033]">
+                      {index + 1}
+                    </span>
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{label}</p>
+                  </div>
+                  <p className="text-sm font-bold leading-6 text-slate-100">{text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-white/10 bg-[#05070d]/70 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#8dbdff]">
+                Captured details
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {scenario.captures.map((item) => (
+                  <div key={item} className="flex items-center gap-2 text-sm font-bold text-slate-200">
+                    <Check size={16} className="text-emerald-300" aria-hidden="true" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-[#8dbdff]/20 bg-[#8dbdff]/10 p-4">
+              <p className="text-sm font-black text-white">Preview the flow. Then try the real call.</p>
+              <p className="mt-2 text-sm leading-6 text-blue-100">
+                This section shows the handoff logic. The real demo call lets you hear
+                the receptionist experience on your own phone.
+              </p>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -1943,7 +1507,7 @@ function Badge({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
   );
 }
 
-function LiveChatDock() {
+function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ChatMode>("ai");
   const [question, setQuestion] = useState("");
@@ -1953,22 +1517,39 @@ function LiveChatDock() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hi - I can help like a front desk coordinator. Ask about assigned AI numbers, pricing, calendars, setup, industries, cleaning companies, legal offices, clinics, or human handoff."
+      text: "Hi - I am Nexa, NexCall's front desk assistant. I can help you try a demo call, compare plans, or get your info to the team. What would you like to handle better: missed calls, appointment requests, or lead capture?"
     }
   ]);
   const [humanForm, setHumanForm] = useState({
     name: "",
     email: "",
     phone: "",
-    business: "",
+    businessName: "",
+    businessType: "",
     message: ""
   });
   const [humanStatus, setHumanStatus] = useState("");
 
-  async function askQuestion(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const cleanQuestion = question.trim();
+  function askQuickQuestion(nextQuestion: string) {
+    setMode("ai");
+    if (!chatTerminated) {
+      void submitChatQuestion(nextQuestion);
+    }
+  }
 
+  function openDemoFromChat() {
+    setOpen(false);
+    setMessages((current) => [
+      ...current,
+      {
+        role: "assistant",
+        text: "Use the Call Demo and keep your phone nearby. No card is required for the demo request."
+      }
+    ]);
+    onCallDemo();
+  }
+
+  async function submitChatQuestion(cleanQuestion: string) {
     if (!cleanQuestion || chatTerminated) return;
 
     setChatError("");
@@ -1994,33 +1575,35 @@ function LiveChatDock() {
         throw new Error(result.error || "Chat is not ready yet.");
       }
 
-      const suffix =
-        result.needsHuman
-          ? " If your setup is unusual, send it through Human follow-up and a person can review it."
-          : "";
+      const answer = result.answer;
 
       setMessages((current) => [
         ...current,
         {
           role: "assistant",
-          text: `${result.answer}${suffix}`
+          text: answer
         }
       ]);
       if (result.terminated) {
         setChatTerminated(true);
       }
     } catch (error) {
-      setChatError(error instanceof Error ? error.message : "Chat failed.");
+      setChatError("I could not confirm an answer from here.");
       setMessages((current) => [
         ...current,
         {
           role: "assistant",
-          text: "I could not reach the AI answer route. Use Human follow-up and the message will go to the team."
+          text: `You can still reach the NexCall team at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.`
         }
       ]);
     } finally {
       setIsAsking(false);
     }
+  }
+
+  async function askQuestion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitChatQuestion(question.trim());
   }
 
   async function requestHuman(event: FormEvent<HTMLFormElement>) {
@@ -2031,23 +1614,31 @@ function LiveChatDock() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        name: humanForm.name,
         trucks: humanForm.name || "Chat visitor",
-        service: humanForm.business || "Live chat handoff",
+        service: humanForm.businessName || humanForm.businessType || "Live chat handoff",
         email: humanForm.email,
         phone: normalizeOutboundPhoneInput(humanForm.phone),
-        message: humanForm.message,
-        source: "ai-receptionist-live-chat-human-handoff"
+        message: [
+          humanForm.message,
+          humanForm.businessName ? `Business: ${humanForm.businessName}` : "",
+          humanForm.businessType ? `Business type: ${humanForm.businessType}` : ""
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        source: "live_chat"
       })
     });
 
     if (!response.ok) {
-      const result = (await response.json().catch(() => null)) as { error?: string } | null;
-      setHumanStatus(result?.error || "Could not send. Try the demo number instead.");
+      setHumanStatus(
+        `I could not confirm delivery from here. You can reach the team directly at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.`
+      );
       return;
     }
 
-    setHumanStatus("Human follow-up request sent.");
-    setHumanForm({ name: "", email: "", phone: "", business: "", message: "" });
+    setHumanStatus("Thanks - I will make sure the NexCall team has that.");
+    setHumanForm({ name: "", email: "", phone: "", businessName: "", businessType: "", message: "" });
   }
 
   return (
@@ -2056,7 +1647,7 @@ function LiveChatDock() {
         <motion.section
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1220] shadow-2xl shadow-black/45"
+          className="max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1220] shadow-2xl shadow-black/45"
           aria-label="NexCall live chat"
         >
           <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/6 px-4 py-3">
@@ -2065,8 +1656,8 @@ function LiveChatDock() {
                 <MessageSquareText size={20} aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-black text-white">Front desk assistant</p>
-                <p className="text-xs font-bold text-slate-400">Warm answers or human follow-up</p>
+                <p className="text-sm font-black text-white">Nexa</p>
+                <p className="text-xs font-bold text-slate-400">NexCall front desk assistant</p>
               </div>
             </div>
             <button
@@ -2100,6 +1691,38 @@ function LiveChatDock() {
 
           {mode === "ai" ? (
             <div className="bg-[#0b1220]">
+              <div className="border-b border-white/10 p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={openDemoFromChat}
+                    className="rounded-lg border border-white/10 bg-white/8 px-3 py-2 text-left text-xs font-black text-white transition hover:bg-white/12"
+                  >
+                    Try demo call
+                  </button>
+                  <a
+                    href="#pricing"
+                    onClick={() => setOpen(false)}
+                    className="rounded-lg border border-white/10 bg-white/8 px-3 py-2 text-left text-xs font-black text-white transition hover:bg-white/12"
+                  >
+                    View pricing
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => askQuickQuestion("Which plan fits my business?")}
+                    className="rounded-lg border border-white/10 bg-white/8 px-3 py-2 text-left text-xs font-black text-white transition hover:bg-white/12"
+                  >
+                    Which plan fits?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("human")}
+                    className="rounded-lg border border-white/10 bg-white/8 px-3 py-2 text-left text-xs font-black text-white transition hover:bg-white/12"
+                  >
+                    Talk to team
+                  </button>
+                </div>
+              </div>
               <div className="max-h-72 space-y-3 overflow-y-auto p-4">
                 {messages.map((message, index) => (
                   <div key={`${message.role}-${index}`} className={`flex ${message.role === "visitor" ? "justify-end" : "justify-start"}`}>
@@ -2127,7 +1750,7 @@ function LiveChatDock() {
                     id="live-chat-question"
                     value={question}
                     onChange={(event) => setQuestion(event.target.value)}
-                    placeholder={chatTerminated ? "Conversation ended" : "Ask about numbers, setup, appointments..."}
+                    placeholder={chatTerminated ? "Conversation ended" : "Ask about pricing, demos, appointments..."}
                     disabled={chatTerminated}
                     className="min-h-11 flex-1 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff]"
                   />
@@ -2141,29 +1764,36 @@ function LiveChatDock() {
                   </button>
                 </div>
                 <p className="mt-2 text-[11px] font-bold leading-4 text-slate-400">
-                  Guided by approved business details, polite responses, and human follow-up when needed.
+                  I am NexCall&apos;s website assistant. I can help now or route you to the team.
                 </p>
               </form>
             </div>
           ) : (
             <form onSubmit={requestHuman} className="space-y-3 bg-[#0b1220] p-4">
               <p className="text-sm leading-6 text-slate-300">
-                Send a quiet handoff to a person. No floating sales spam, just enough context to reply well.
+                Send your details to the NexCall team for human follow-up.
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <input
+                  required
                   value={humanForm.name}
                   onChange={(event) => setHumanForm((current) => ({ ...current, name: event.target.value }))}
                   placeholder="Name"
                   className="min-h-11 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
                 />
                 <input
-                  value={humanForm.business}
-                  onChange={(event) => setHumanForm((current) => ({ ...current, business: event.target.value }))}
-                  placeholder="Business type"
+                  value={humanForm.businessName}
+                  onChange={(event) => setHumanForm((current) => ({ ...current, businessName: event.target.value }))}
+                  placeholder="Business name"
                   className="min-h-11 rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
                 />
               </div>
+              <input
+                  value={humanForm.businessType}
+                  onChange={(event) => setHumanForm((current) => ({ ...current, businessType: event.target.value }))}
+                  placeholder="Business type"
+                  className="min-h-11 w-full rounded-lg border border-white/10 bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#8dbdff]"
+              />
               <div className="grid gap-2 sm:grid-cols-2">
                 <input
                   type="email"
@@ -2191,7 +1821,7 @@ function LiveChatDock() {
                 required
                 value={humanForm.message}
                 onChange={(event) => setHumanForm((current) => ({ ...current, message: event.target.value }))}
-                placeholder="What should the person know?"
+                placeholder="What do you want NexCall to handle?"
                 className="min-h-24 w-full rounded-lg border border-white/10 bg-white px-3 py-2 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#8dbdff]"
               />
               <button
@@ -2199,7 +1829,7 @@ function LiveChatDock() {
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-black text-[#05070d] transition hover:bg-slate-200"
               >
                 <UserRound size={17} aria-hidden="true" />
-                Send To A Person
+                Send to the team
               </button>
               {humanStatus ? (
                 <p className="rounded-lg border border-[#c8d7ef] bg-[#eef4ff] p-3 text-xs font-bold text-[#244f8f]">
