@@ -43,6 +43,8 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Private keys must only exist in Vercel environment variables.
 - Do not expose private provider names, IDs, API routes, or fallback chains in public copy.
 - Keep Upstash/Vercel KV configured so public API rate limiting is active.
+- If Upstash/Vercel KV is not configured, public APIs continue with route-level validation instead of breaking launch traffic.
+- Set `REQUIRE_UPSTASH_RATE_LIMIT=true` only if you intentionally want APIs to fail closed without KV.
 - Keep `NEXT_PUBLIC_SITE_URL=https://nexcall.one` in Production.
 - Verify `STRIPE_WEBHOOK_SECRET`, phone demo provider IDs, calendar keys, and email delivery settings in Production and Preview separately.
 

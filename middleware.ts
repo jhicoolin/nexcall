@@ -56,7 +56,7 @@ function isWebhook(pathname: string) {
 }
 
 function shouldFailClosedWithoutRateLimit() {
-  return process.env.VERCEL === "1" || process.env.REQUIRE_UPSTASH_RATE_LIMIT === "true";
+  return process.env.REQUIRE_UPSTASH_RATE_LIMIT === "true";
 }
 
 function getUpstashConfig() {
