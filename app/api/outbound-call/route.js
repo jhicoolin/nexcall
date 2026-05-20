@@ -50,6 +50,45 @@ function cleanLeadName(value) {
     .slice(0, 80) || 'Valued Lead';
 }
 
+function cleanTimeZone(value) {
+  const cleaned = String(value || "")
+    .replace(/[<>{}[\]\\]/g, "")
+    .replace(/\s+/g, "")
+    .trim()
+    .slice(0, 80);
+
+  return /^[A-Za-z_/-]+$/.test(cleaned) ? cleaned : "America/New_York";
+}
+
+function summarizeProviderDetail(value) {
+  if (!value) return "Provider rejected request";
+
+  if (typeof value === "string") return value.slice(0, 240);
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => item?.msg || item?.message || item?.type || "provider validation issue")
+      .join("; ")
+      .slice(0, 240);
+  }
+
+  if (typeof value === "object") {
+    return String(value.message || value.msg || value.type || "provider validation issue").slice(0, 240);
+  }
+
+  return "Provider rejected request";
+}
+
+function providerAcceptedCall(responseData) {
+  return Boolean(
+    responseData?.success === true ||
+      responseData?.conversation_id ||
+      responseData?.conversationId ||
+      responseData?.callSid ||
+      responseData?.call_sid
+  );
+}
+
 function getUpstashConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
@@ -157,11 +196,7 @@ export async function POST(request) {
       process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID ||
       process.env.ELEVENLABS_PHONE_NUMBER_ID ||
       process.env.TWILIO_PHONE_NUMBER_ID;
-    const twilioFromNumber =
-      process.env.TWILIO_FROM_NUMBER ||
-      process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER ||
-      process.env.NEXT_PUBLIC_DEMO_PHONE_NUMBER ||
-      "";
+    const userTimeZone = cleanTimeZone(user_timezone);
 
     if (!phone) {
       return NextResponse.json({ success: false, message: "Phone number is mandatory." }, { status: 400 });
@@ -202,7 +237,7 @@ export async function POST(request) {
         phone: normalizedPhone,
         inquiryType: "call demo",
         message: "A visitor requested the live phone demo, but the ElevenLabs outbound provider is not configured.",
-        metadata: { userTimezone: user_timezone || "America/New_York" }
+        metadata: { userTimezone: userTimeZone }
       });
 
       return NextResponse.json(
@@ -219,16 +254,17 @@ export async function POST(request) {
       phone: normalizedPhone,
       inquiryType: "call demo",
       message: "A visitor requested the live NexCall phone demo.",
-      metadata: { userTimezone: user_timezone || "America/New_York" }
+      metadata: { userTimezone: userTimeZone }
     });
 
     console.log("Initiating automated demo pipeline", {
       leadNameProvided: leadName !== "Valued Lead",
       phone: maskPhone(normalizedPhone),
-      user_timezone: user_timezone || "America/New_York"
+      user_timezone: userTimeZone
     });
 
-    // Build standard outbound request structure mapped directly to ElevenLabs endpoints
+    // Build the native ElevenLabs Twilio outbound request. Runtime values must be
+    // passed as dynamic_variables so the agent can access them during the call.
     const response = await fetch('https://api.elevenlabs.io/v1/convai/twilio/outbound-call', {
       method: 'POST',
       headers: {
@@ -240,10 +276,12 @@ export async function POST(request) {
         agent_phone_number_id: agentPhoneNumberId,
         to_number: normalizedPhone,
         conversation_initiation_client_data: {
-          custom_vars: {
+          dynamic_variables: {
             lead_name: leadName,
-            user_timezone: user_timezone || "America/New_York",
-            twilio_from_number: twilioFromNumber
+            customer_name: leadName,
+            caller_name: leadName,
+            user_timezone: userTimeZone,
+            source: "nexcall_website_demo"
           }
         }
       })
@@ -255,12 +293,12 @@ export async function POST(request) {
       console.error("ElevenLabs Outbound Engine Rejection", {
         status: response.status,
         phone: maskPhone(normalizedPhone),
-        message: responseData?.detail?.message || responseData?.message || "Provider rejected request"
+        message: responseData?.message || summarizeProviderDetail(responseData?.detail)
       });
       return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: response.status });
     }
 
-    if (responseData?.success !== true) {
+    if (!providerAcceptedCall(responseData)) {
       console.error("ElevenLabs Outbound Engine returned unsuccessful payload", {
         phone: maskPhone(normalizedPhone),
         providerMessage: responseData?.message || "Missing provider success flag"
