@@ -640,75 +640,75 @@ function HeroCallJourney() {
       initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative mx-auto min-h-[560px] w-full min-w-0 max-w-[22.25rem] overflow-hidden rounded-[1.75rem] sm:max-w-full lg:min-h-[620px]"
+      className="relative mx-auto w-full min-w-0 max-w-[23.5rem] overflow-hidden rounded-[1.75rem] sm:max-w-[39rem] lg:max-w-full"
     >
       <div className="absolute -inset-6 rounded-[2rem] bg-[radial-gradient(circle_at_50%_10%,rgba(141,189,255,0.22),transparent_34rem)] blur-2xl" />
       <div className="absolute inset-0 rotate-[-1.2deg] rounded-[1.75rem] border border-white/10 bg-white/5 shadow-2xl shadow-black/40" />
       <div className="absolute inset-4 rotate-[1deg] rounded-[1.5rem] border border-blue-200/15 bg-[#0b1220]/80 backdrop-blur" />
 
-      <div className="relative grid gap-4 p-4 sm:p-5">
-        <div className="metal-panel overflow-hidden rounded-[1.25rem] p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="relative h-12 w-12 shrink-0 drop-shadow-[0_0_18px_rgba(141,189,255,0.24)]">
-                <Image src={brandAssets.mark} alt="" fill sizes="48px" className="object-contain" />
+      <div className="relative grid gap-3 p-3 sm:p-4">
+        <div className="metal-panel overflow-hidden rounded-[1.25rem] p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <span className="relative h-10 w-10 shrink-0 drop-shadow-[0_0_18px_rgba(141,189,255,0.24)] sm:h-11 sm:w-11">
+                <Image src={brandAssets.mark} alt="" fill sizes="44px" className="object-contain" />
               </span>
               <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#8dbdff]">
+                <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#8dbdff]">
                   Live call journey
                 </p>
-                <p className="mt-1 break-words text-2xl font-black text-white">One caller. One clear next step.</p>
+                <p className="mt-1 text-lg font-black leading-tight text-white sm:text-xl">One caller. One clear next step.</p>
               </div>
             </div>
-            <div className="flex gap-2" aria-hidden="true">
-              <span className="h-3 w-3 rounded-full bg-emerald-400 live-pulse" />
-              <span className="h-3 w-3 rounded-full bg-[#d9a42f]" />
-              <span className="h-3 w-3 rounded-full bg-[#8dbdff]" />
+            <div className="hidden shrink-0 gap-1.5 sm:flex" aria-hidden="true">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 live-pulse" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#d9a42f]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#8dbdff]" />
             </div>
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-4 lg:grid-cols-[0.82fr_1.18fr]">
-          <div className="min-w-0 rounded-[1.25rem] border border-white/10 bg-white/7 p-4 shadow-2xl shadow-black/25">
+        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+          <div className="flex min-w-0 flex-col rounded-[1.25rem] border border-white/10 bg-white/7 p-3 shadow-2xl shadow-black/25 sm:p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-300">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-emerald-300">
                 Active call
               </p>
-              <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs font-black text-emerald-200">
+              <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 text-[0.68rem] font-black text-emerald-200">
                 live
               </span>
             </div>
-            <div className="mt-5 rounded-2xl bg-white/10 p-4 text-sm font-bold leading-6 text-slate-100">
+            <div className="mt-4 rounded-2xl bg-white/10 p-3 text-sm font-bold leading-6 text-slate-100">
               &quot;Can someone see me today? I need to change my appointment.&quot;
             </div>
-            <div className="mt-5 rounded-2xl border border-blue-200/15 bg-blue-300/10 p-4">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#8dbdff]">
+            <div className="mt-3 rounded-2xl border border-blue-200/15 bg-blue-300/10 p-3">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#8dbdff]">
                 Outcome
               </p>
               <p className="mt-1 text-sm font-black text-white">Appointment request captured. Team brief ready.</p>
             </div>
           </div>
 
-          <div className="min-w-0 rounded-[1.25rem] border border-white/10 bg-[#05070d] p-4 text-white shadow-2xl shadow-black/35">
+          <div className="min-w-0 rounded-[1.25rem] border border-white/10 bg-[#05070d] p-3 text-white shadow-2xl shadow-black/35 sm:p-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-200">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-blue-200">
                 Call Path
               </p>
             </div>
-            <div className="relative mt-5 space-y-3">
-              <div className="absolute bottom-6 left-[15px] top-6 w-px bg-white/20" />
+            <div className="relative mt-4 space-y-2.5">
+              <div className="absolute bottom-5 left-[13px] top-5 w-px bg-white/20" />
               {callSteps.map((step, index) => (
                 <motion.div
                   key={step.label}
                   initial={{ opacity: 1, x: 0 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.08 }}
-                  className="relative flex items-center gap-3"
+                  className="relative flex items-center gap-2.5"
                 >
-                  <span className="z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-[#9cc5ff] text-xs font-black text-[#172033]">
+                  <span className="z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#9cc5ff] text-xs font-black text-[#172033]">
                     {index + 1}
                   </span>
-                  <div className="rounded-xl bg-white/10 px-3 py-3">
+                  <div className="min-w-0 flex-1 rounded-xl bg-white/10 px-3 py-2.5">
                     <p className="text-sm font-black text-white">{step.label}</p>
                     <p className="mt-1 text-xs leading-5 text-slate-300">{step.detail}</p>
                   </div>
@@ -718,10 +718,10 @@ function HeroCallJourney() {
           </div>
         </div>
 
-        <div className="rounded-[1.25rem] border border-white/10 bg-white p-4 text-[#172033] shadow-2xl shadow-black/35">
-          <div className="grid gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ecfdf5] text-[#0f766e]">
-              <MessageSquareText size={21} aria-hidden="true" />
+        <div className="rounded-[1.25rem] border border-white/10 bg-white p-3 text-[#172033] shadow-2xl shadow-black/35 sm:p-4">
+          <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ecfdf5] text-[#0f766e]">
+              <MessageSquareText size={19} aria-hidden="true" />
             </span>
             <div>
               <p className="text-sm font-black">Team summary sent</p>
