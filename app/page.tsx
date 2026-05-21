@@ -248,46 +248,50 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
 
 function Hero({ onCallDemo }: { onCallDemo: () => void }) {
   return (
-    <section id="top" className="relative overflow-hidden pt-28">
+    <section id="top" className="relative overflow-hidden pt-24 sm:pt-28">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_10%,rgba(168,255,0,0.10),transparent_26rem),radial-gradient(circle_at_18%_22%,rgba(141,217,232,0.06),transparent_28rem)]" aria-hidden="true" />
       <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px glass-line" aria-hidden="true" />
-      <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-10 overflow-hidden px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:items-center lg:px-8 lg:pb-24 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
-        <motion.div
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
-          className="flex w-full min-w-0 max-w-full flex-col justify-center overflow-hidden sm:max-w-[42rem] lg:max-w-[40rem]"
-        >
-          <p className="inline-flex w-fit items-center gap-2 text-xs font-semibold tracking-[0.2em] text-[#A8FF00] uppercase mb-6">
+      <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-8 px-4 pb-14 pt-8 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:items-center lg:px-8 lg:pb-24 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
+        <div className="flex w-full min-w-0 max-w-full flex-col justify-center sm:max-w-[42rem] lg:max-w-[40rem]">
+          <p className="inline-flex w-fit items-center gap-2 text-xs font-semibold tracking-[0.2em] text-[#A8FF00] uppercase mb-5 sm:mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
             AI Receptionist · Available 24/7
           </p>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.92] tracking-tight text-white mb-6">
-            <DecryptTextNew text="Never miss your" duration={1600} />
-            <br />
-            <DecryptTextNew text="next call." className="text-[#A8FF00]" duration={1600} delay={400} />
+          {/*
+            ONE DecryptText for the FULL phrase — no dual animation, no layout shift.
+            accentSuffix applies lime colour to "next call." only after animation settles.
+            The container has min-h so scramble chars don't cause reflow.
+          */}
+          <h1 className="min-h-[1em] text-[2.6rem] leading-[1.02] sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-white mb-5 sm:mb-6 sm:leading-[0.92]">
+            <DecryptTextNew
+              text="Never miss your next call."
+              duration={1200}
+              delay={80}
+              accentSuffix="next call."
+              accentClassName="text-[#A8FF00]"
+            />
           </h1>
-          <p className="text-base sm:text-lg text-[#9CA3AF] max-w-lg mb-8 leading-relaxed">
+          <p className="text-base sm:text-lg text-[#9CA3AF] max-w-lg mb-7 sm:mb-8 leading-relaxed">
             NexCall answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="flex flex-col gap-3 sm:flex-row mb-4">
             <button
               type="button"
               onClick={onCallDemo}
-              className="px-7 py-3.5 bg-[#A8FF00] text-black font-bold text-sm tracking-wide rounded-[6px] hover:bg-[#bfff33] transition-colors"
+              className="inline-flex min-h-[52px] w-full items-center justify-center sm:w-auto sm:min-h-[46px] px-7 bg-[#A8FF00] text-black font-bold text-sm tracking-wide rounded-[6px] hover:bg-[#bfff33] transition-colors"
             >
               Try a Demo Call
             </button>
             <a
               href="#pricing"
-              className="px-7 py-3.5 border border-white/15 text-white font-semibold text-sm rounded-[6px] hover:bg-white/5 transition-colors text-center"
+              className="inline-flex min-h-[52px] w-full items-center justify-center sm:w-auto sm:min-h-[46px] px-7 border border-white/15 text-white font-semibold text-sm rounded-[6px] hover:bg-white/5 transition-colors"
             >
               View Plans
             </a>
           </div>
           <p className="text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
-        </motion.div>
+        </div>
         <HeroCallJourney />
       </div>
     </section>
@@ -304,36 +308,31 @@ function HeroCallJourney() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 1, y: 0 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative mx-auto w-full min-w-0 max-w-[calc(100vw-2rem)] sm:max-w-sm lg:max-w-sm"
-    >
-      <div className="bg-[#0E1117] border border-white/[0.08] rounded-[10px] p-5 space-y-3">
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/[0.06]">
-          <span className="brand-mark-shell relative h-8 w-8 shrink-0">
+    <div className="relative mx-auto w-full min-w-0 max-w-xs sm:max-w-sm lg:max-w-sm">
+      <div className="bg-[#0E1117] border border-white/[0.08] rounded-[10px] p-4 sm:p-5 space-y-2.5 sm:space-y-3">
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-white/[0.06]">
+          <span className="brand-mark-shell relative h-7 w-7 sm:h-8 sm:w-8 shrink-0">
             <Image src={brandAssets.mark} alt="" fill sizes="32px" className="brand-mark-img object-contain" />
           </span>
           <div>
-            <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-[#A8FF00]">NexCall Response Layer</p>
+            <p className="text-[0.6rem] sm:text-[0.65rem] font-black uppercase tracking-[0.18em] text-[#A8FF00]">NexCall Response Layer</p>
             <p className="text-xs text-[#9CA3AF]">Active · 24/7</p>
           </div>
           <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
         </div>
         {commandRows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <span className="text-base" role="img" aria-hidden="true">{row.icon}</span>
-              <span className="text-sm text-[#9CA3AF]">{row.label}</span>
+          <div key={row.label} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm sm:text-base" role="img" aria-hidden="true">{row.icon}</span>
+              <span className="text-xs sm:text-sm text-[#9CA3AF]">{row.label}</span>
             </div>
-            <span className="text-xs font-mono font-semibold tracking-wider" style={{ color: row.color }}>
+            <span className="text-[0.65rem] sm:text-xs font-mono font-semibold tracking-wider shrink-0" style={{ color: row.color }}>
               {row.status}
             </span>
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
