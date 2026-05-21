@@ -5,17 +5,17 @@
 :root {
   color-scheme: dark;
   --font-body: "Inter Tight", "Sora", "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: "Arial Black", "Inter Tight", "Space Grotesk", "Sora", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --brand-bg: #020403;
-  --brand-panel: #080d0d;
-  --brand-panel-2: #0c1211;
-  --brand-border: rgba(205, 255, 125, 0.16);
+  --font-display: "Inter Tight", "Space Grotesk", "Sora", "Arial Black", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --brand-bg: #020406;
+  --brand-panel: #070b10;
+  --brand-panel-2: #0b1216;
+  --brand-border: rgba(177, 248, 94, 0.15);
   --brand-silver: #eef3ee;
-  --brand-muted: #8f9d98;
-  --brand-blue: #97ffe5;
-  --brand-gold: #baff39;
-  --brand-lime: #baff39;
-  --brand-lime-soft: rgba(186, 255, 57, 0.14);
+  --brand-muted: #93a09f;
+  --brand-blue: #8dd9e8;
+  --brand-gold: #b1f85e;
+  --brand-lime: #b1f85e;
+  --brand-lime-soft: rgba(177, 248, 94, 0.12);
 }
 
 * {
@@ -29,9 +29,9 @@ html {
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 74% 8%, rgba(186, 255, 57, 0.12), transparent 24rem),
-    radial-gradient(circle at 8% 12%, rgba(151, 255, 229, 0.08), transparent 28rem),
-    linear-gradient(180deg, #020403 0%, #050808 48%, #020403 100%);
+    radial-gradient(circle at 76% 8%, rgba(177, 248, 94, 0.08), transparent 25rem),
+    radial-gradient(circle at 8% 12%, rgba(141, 217, 232, 0.055), transparent 28rem),
+    linear-gradient(180deg, #020406 0%, #05090d 48%, #020406 100%);
   color: #f8fbff;
   font-family: var(--font-body) !important;
   font-feature-settings: "kern", "liga", "calt";
@@ -110,16 +110,16 @@ h3.font-black {
 
 .metal-grid {
   background-image:
-    linear-gradient(rgba(221, 255, 184, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(221, 255, 184, 0.055) 1px, transparent 1px);
+    linear-gradient(rgba(201, 226, 218, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 226, 218, 0.045) 1px, transparent 1px);
   background-size: 42px 42px;
   mask-image: linear-gradient(180deg, black, rgba(0, 0, 0, 0.88), transparent 96%);
 }
 
 .metal-panel {
   background:
-    linear-gradient(145deg, rgba(186, 255, 57, 0.095), rgba(255, 255, 255, 0.026)),
-    linear-gradient(180deg, rgba(12, 18, 17, 0.96), rgba(2, 4, 3, 0.96));
+    linear-gradient(145deg, rgba(177, 248, 94, 0.06), rgba(141, 217, 232, 0.025)),
+    linear-gradient(180deg, rgba(9, 15, 20, 0.97), rgba(2, 4, 6, 0.97));
   border: 1px solid var(--brand-border);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
@@ -131,9 +131,9 @@ h3.font-black {
 .system-shell {
   position: relative;
   background:
-    radial-gradient(circle at 82% 16%, rgba(186, 255, 57, 0.11), transparent 24rem),
-    radial-gradient(circle at 10% 22%, rgba(151, 255, 229, 0.08), transparent 28rem),
-    linear-gradient(180deg, #020403 0%, #050808 47%, #020403 100%);
+    radial-gradient(circle at 82% 16%, rgba(177, 248, 94, 0.075), transparent 24rem),
+    radial-gradient(circle at 10% 22%, rgba(141, 217, 232, 0.055), transparent 28rem),
+    linear-gradient(180deg, #020406 0%, #05090d 47%, #020406 100%);
 }
 
 .system-shell::before {
@@ -143,20 +143,19 @@ h3.font-black {
   pointer-events: none;
   z-index: 0;
   background-image:
-    radial-gradient(circle, rgba(186, 255, 57, 0.22) 0 1px, transparent 1px),
-    radial-gradient(circle, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px);
+    radial-gradient(circle, rgba(177, 248, 94, 0.16) 0 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px);
   background-position: 0 0, 23px 17px;
   background-size: 130px 130px, 190px 190px;
-  opacity: 0.16;
+  opacity: 0.12;
 }
 
 .system-card {
   border: 1px solid rgba(205, 255, 125, 0.13);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015)),
-    rgba(8, 13, 13, 0.84);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.018)),
+    rgba(7, 11, 16, 0.9);
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
-  backdrop-filter: blur(18px);
 }
 
 .system-card-hover {
@@ -172,8 +171,8 @@ h3.font-black {
 .system-card-featured {
   border-color: rgba(186, 255, 57, 0.55);
   background:
-    linear-gradient(180deg, rgba(186, 255, 57, 0.1), rgba(255, 255, 255, 0.02)),
-    rgba(8, 13, 13, 0.9);
+    linear-gradient(180deg, rgba(177, 248, 94, 0.085), rgba(255, 255, 255, 0.022)),
+    rgba(7, 11, 16, 0.94);
 }
 
 .system-label {
@@ -207,8 +206,8 @@ h3.font-black {
 }
 
 .scanline {
-  background: linear-gradient(90deg, transparent, rgba(186, 255, 57, 0.75), transparent);
-  animation: scanline-pass 4.8s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(177, 248, 94, 0.58), transparent);
+  animation: scanline-pass 5.8s ease-in-out infinite;
 }
 
 @keyframes scanline-pass {
@@ -242,25 +241,25 @@ h3.font-black {
   border-radius: 999px;
   background:
     radial-gradient(circle, rgba(246, 255, 240, 0.18), transparent 66%),
-    radial-gradient(circle, rgba(186, 255, 57, 0.18), transparent 72%);
+    radial-gradient(circle, rgba(177, 248, 94, 0.12), transparent 72%);
   filter: blur(10px);
 }
 
 .brand-mark-img {
   filter:
-    drop-shadow(0 0 10px rgba(246, 255, 240, 0.22))
-    drop-shadow(0 0 18px rgba(186, 255, 57, 0.18));
+    drop-shadow(0 0 9px rgba(246, 255, 240, 0.18))
+    drop-shadow(0 0 14px rgba(177, 248, 94, 0.12));
 }
 
 @keyframes lead-reel-pop {
   0% {
     transform: translateY(12px) scale(0.97);
-    filter: blur(2px);
+    opacity: 0.7;
   }
 
   100% {
     transform: translateY(0) scale(1);
-    filter: blur(0);
+    opacity: 1;
   }
 }
 

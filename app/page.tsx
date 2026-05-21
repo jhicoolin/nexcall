@@ -11,7 +11,7 @@ import {
   ClipboardList,
   Clock3,
   HelpCircle,
-  LockKeyhole,
+  Headphones,
   Menu,
   MessageSquareText,
   Minus,
@@ -30,10 +30,10 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "r
 import { useForm } from "react-hook-form";
 
 const sectionMotion = {
-  initial: { opacity: 0.92, y: 14, filter: "blur(4px)" },
-  whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+  initial: { opacity: 0.98, y: 12 },
+  whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, amount: 0.2 },
-  transition: { duration: 0.55, ease: "easeOut" }
+  transition: { duration: 0.44, ease: "easeOut" }
 } as const;
 
 type LeadForm = {
@@ -225,7 +225,13 @@ function DecryptText({
     }
 
     let frame = 0;
-    const totalFrames = 34;
+    const totalFrames = 14;
+    const finalValueTimer = window.setTimeout(() => {
+      if (frameRef.current) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+      setDisplay(text);
+    }, 520);
 
     const tick = () => {
       frame += 1;
@@ -247,6 +253,7 @@ function DecryptText({
       if (frame < totalFrames) {
         frameRef.current = window.requestAnimationFrame(tick);
       } else {
+        window.clearTimeout(finalValueTimer);
         setDisplay(text);
       }
     };
@@ -262,6 +269,7 @@ function DecryptText({
     frameRef.current = window.requestAnimationFrame(tick);
 
     return () => {
+      window.clearTimeout(finalValueTimer);
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
     };
   }, [text]);
@@ -407,16 +415,15 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
           className="flex w-full min-w-0 max-w-full flex-col justify-center overflow-hidden sm:max-w-[42rem] lg:max-w-[40rem]"
         >
           <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-[#baff39]/20 bg-[#baff39]/8 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#d9ff8b] shadow-2xl shadow-black/20 backdrop-blur">
-            <LockKeyhole size={15} aria-hidden="true" />
-            Secure response layer active
+            <Headphones size={15} aria-hidden="true" />
+            AI receptionist coverage for real calls
           </div>
           <h1 className="max-w-full break-words text-[2.75rem] font-black leading-[0.9] text-white sm:max-w-4xl sm:text-7xl lg:text-7xl xl:text-8xl">
             <DecryptText text="Never miss your next call." highlight="next call" />
           </h1>
           <p className="mt-6 max-w-full text-lg leading-8 text-slate-300 sm:max-w-xl sm:text-xl">
-            NexCall answers when your team cannot, captures the caller&apos;s need,
-            supports appointment requests, and sends a clean handoff before the
-            opportunity goes cold.
+            NexCall answers calls, captures lead details, supports appointment
+            requests, and sends your team clean notes - 24/7.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
@@ -436,12 +443,12 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             </a>
           </div>
           <p className="mt-4 max-w-full break-words text-sm font-bold text-slate-400">
-            No card required. Live demo request uses your own phone.
+            No card required. Keep your phone nearby.
           </p>
           <div className="mt-8 grid max-w-xl gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500 sm:grid-cols-3">
-            <span className="text-[#baff39]">live routing</span>
-            <span>captured cleanly</span>
-            <span>human handoff ready</span>
+            <span className="text-[#baff39]">calls answered</span>
+            <span>details captured</span>
+            <span>next step sent</span>
           </div>
         </motion.div>
         <HeroCallJourney />
@@ -460,7 +467,7 @@ function HeroCallJourney() {
     {
       icon: Radar,
       label: "Intent captured",
-      detail: "Need, urgency, and contact details are locked in."
+      detail: "Need, urgency, and contact details are captured clearly."
     },
     {
       icon: Route,
@@ -481,7 +488,7 @@ function HeroCallJourney() {
       transition={{ duration: 0.45, ease: "easeOut" }}
       className="relative mx-auto w-full min-w-0 max-w-[calc(100vw-2rem)] overflow-hidden rounded-[1.35rem] sm:max-w-[36rem] sm:rounded-[1.75rem] lg:max-w-[34rem] xl:max-w-[36rem]"
     >
-      <div className="absolute -inset-8 rounded-[2rem] bg-[radial-gradient(circle_at_50%_6%,rgba(186,255,57,0.18),transparent_32rem)] blur-2xl" />
+      <div className="absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle_at_50%_6%,rgba(186,255,57,0.14),transparent_30rem)] opacity-60" />
       <div className="absolute inset-0 rotate-[-1deg] rounded-[1.75rem] border border-[#baff39]/10 bg-[#baff39]/5 shadow-2xl shadow-black/50" />
       <div className="absolute inset-4 rotate-[0.8deg] rounded-[1.5rem] border border-white/10 bg-[#050807]/86 backdrop-blur" />
 
@@ -495,7 +502,7 @@ function HeroCallJourney() {
               </span>
               <div className="min-w-0">
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#baff39]">
-                  Encrypted call layer
+                  NexCall response layer
                 </p>
                 <p className="mt-1 text-lg font-black leading-tight text-white sm:text-xl">One caller. One clear next step.</p>
               </div>
@@ -508,14 +515,27 @@ function HeroCallJourney() {
           </div>
         </div>
 
-        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+        <div className="system-card grid gap-2 rounded-[1.15rem] p-3 sm:hidden">
+          {[
+            ["Incoming call", "Answered before voicemail."],
+            ["Details captured", "Need, phone, timing, urgency."],
+            ["Team summary ready", "One clear next step."]
+          ].map(([label, detail]) => (
+            <div key={label} className="rounded-xl border border-white/8 bg-black/25 p-3">
+              <p className="text-sm font-black text-white">{label}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-300">{detail}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden min-w-0 gap-3 sm:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
           <div className="system-card flex min-w-0 flex-col rounded-[1.25rem] p-3 sm:p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#baff39]">
                 Active call
               </p>
               <span className="rounded-full border border-[#baff39]/25 bg-[#baff39]/10 px-2.5 py-1 text-[0.68rem] font-black text-[#dfff91]">
-                secure
+                live
               </span>
             </div>
             <div className="mt-4 rounded-2xl border border-white/8 bg-black/35 p-3 text-sm font-bold leading-6 text-slate-100">
@@ -534,7 +554,7 @@ function HeroCallJourney() {
               <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-slate-400">
                 Call path
               </p>
-              <LockKeyhole size={15} className="text-[#baff39]" aria-hidden="true" />
+              <Workflow size={15} className="text-[#baff39]" aria-hidden="true" />
             </div>
             <div className="relative mt-4 space-y-2.5">
               <div className="absolute bottom-5 left-[13px] top-5 w-px bg-[#baff39]/20" />
@@ -563,13 +583,13 @@ function HeroCallJourney() {
           </div>
         </div>
 
-        <div className="system-card rounded-[1.25rem] p-3 text-white sm:p-4">
+        <div className="system-card hidden rounded-[1.25rem] p-3 text-white sm:block sm:p-4">
           <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#baff39]/20 bg-[#baff39]/10 text-[#dfff91]">
               <MessageSquareText size={19} aria-hidden="true" />
             </span>
             <div>
-              <p className="text-sm font-black">Clean handoff transmitted</p>
+              <p className="text-sm font-black">Team summary ready</p>
               <p className="mt-1 text-xs leading-5 text-slate-300">
                 Caller need, phone, preferred time, urgency, and handoff note in one place.
               </p>
@@ -894,7 +914,7 @@ function TrustSignalBar() {
             Built for businesses that cannot afford <span className="accent-text">missed calls.</span>
           </h2>
           <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
-            A controlled response layer for answered calls, captured details,
+            A tight operating layer for answered calls, captured details,
             appointment requests, urgent routing, and clean team notes.
           </p>
         </div>
@@ -931,10 +951,10 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
           <div>
             <p className="system-label">Experience NexCall</p>
             <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-6xl">
-              Preview the flow. <span className="accent-text">Then try the real call.</span>
+              See how NexCall moves a caller to the <span className="accent-text">next step.</span>
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
-              See a common call path without the fake transcript clutter. NexCall turns one caller need into a clean, team-ready next step.
+              Preview the flow, then try the real call. NexCall turns one caller need into a clean, team-ready next step.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button
@@ -1006,7 +1026,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
             <div className="mt-6 grid gap-4">
               {[
                 { label: "Caller need", text: scenario.callerNeed, icon: Phone },
-                { label: "NexCall action", text: scenario.nexcallAction, icon: LockKeyhole },
+                { label: "NexCall action", text: scenario.nexcallAction, icon: Workflow },
                 { label: "Team handoff", text: scenario.handoff, icon: ClipboardList }
               ].map((item) => {
                 const ItemIcon = item.icon;
@@ -1116,7 +1136,7 @@ function HowItWorks() {
     {
       label: "Answer",
       title: "NexCall picks up",
-      copy: "NexCall picks up before callers hit voicemail."
+      copy: "NexCall picks up before callers hit a dead end."
     },
     {
       label: "Understand",
@@ -1124,14 +1144,14 @@ function HowItWorks() {
       copy: "It captures the caller's need, contact details, and urgency."
     },
     {
-      label: "Act",
-      title: "The workflow moves",
-      copy: "It supports appointment requests, routes callers, answers approved FAQs, or captures the lead."
+      label: "Route",
+      title: "The next step is routed",
+      copy: "It supports appointment requests, lead capture, FAQs, or human handoff."
     },
     {
       label: "Report",
       title: "Your team gets context",
-      copy: "Your team gets a clean note with the next step."
+      copy: "Your team receives a clean summary with the next step."
     }
   ];
 
@@ -1146,7 +1166,7 @@ function HowItWorks() {
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
               The workflow mirrors what a strong receptionist already does: answer,
-              listen, act, and brief the team.
+              listen, route, and brief the team.
             </p>
             <a
               href="#lead"
@@ -1246,12 +1266,16 @@ function Pricing() {
       const data = (await response.json()) as { url?: string; error?: string };
 
       if (!response.ok || !data.url) {
-        throw new Error(data.error || "Checkout is not ready yet.");
+        throw new Error("This plan is being finalized. Request a demo and we will help you activate it.");
       }
 
       window.location.href = data.url;
     } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : "Checkout failed.");
+      setCheckoutError(
+        error instanceof Error
+          ? error.message
+          : "This plan is being finalized. Request a demo and we will help you activate it."
+      );
       setCheckoutLoading(null);
     }
   }
@@ -1557,12 +1581,11 @@ function ClosingLeadCapture() {
         <div>
           <p className="system-label">Get started</p>
           <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
-            Ready to stop missing <span className="accent-text">next calls?</span>
+            Ready to stop missing <span className="accent-text">calls?</span>
           </h2>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            Try NexCall in a real demo call or choose a plan built around your call
-            flow. The first step is simple: tell us your business type and where Nexa
-            should call.
+            Try a real demo call or choose the plan that fits your call flow. The
+            first step is simple: tell us your business type and where Nexa should call.
           </p>
           <p className="mt-4 rounded-2xl border border-[#baff39]/20 bg-[#baff39]/10 p-4 text-sm font-bold leading-6 text-[#eaffb8]">
             Takes about 60 seconds. No card required for the demo request.
