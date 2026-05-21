@@ -617,9 +617,17 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
             <button
               type="submit"
               disabled={status === "calling"}
-              className="system-button-primary min-h-14 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 disabled:cursor-wait disabled:opacity-75"
+              className="system-button-primary inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 disabled:cursor-wait disabled:opacity-75"
             >
-              {status === "calling" ? "Calling Now..." : "Call Me Now"}
+              {status === "calling" ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Calling Now…
+                </>
+              ) : "Call Me Now"}
             </button>
             <p className="text-xs font-bold leading-5 text-slate-400">
               By submitting, you are asking for an automated demo call. Standard carrier rates may apply.
@@ -786,7 +794,7 @@ function HumanTrustStrip() {
 
           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
             <div className="system-card rounded-2xl p-4 sm:p-5" aria-live="polite">
-              <div className="flex items-center gap-4">
+              <div key={active} className="trust-card-fade flex items-center gap-4">
                 <HumanAvatar outcome={activeOutcome} active />
                 <div>
                   <p className="text-lg font-black leading-6 text-white">&ldquo;{activeOutcome.quote}&rdquo;</p>
@@ -1243,22 +1251,41 @@ function Pricing() {
                 type="button"
                 onClick={() => startCheckout(plan.id)}
                 disabled={checkoutLoading !== null}
-                className={`mt-8 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${
+                className={`mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${
                   plan.featured
                     ? "system-button-primary focus:ring-[#baff39]/25"
                     : "system-button-secondary hover:border-[#baff39]/30 hover:text-[#baff39] focus:ring-[#baff39]/15"
                 }`}
               >
-                {checkoutLoading === plan.id ? "Opening Checkout..." : `Start With ${plan.name}`}
+                {checkoutLoading === plan.id ? (
+                  <>
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Opening Checkout…
+                  </>
+                ) : `Start With ${plan.name}`}
               </button>
             </div>
           );
         })}
       </div>
       {checkoutError ? (
-        <p className="mt-5 rounded-xl border border-amber-300/40 bg-amber-300/10 p-4 text-sm font-bold text-amber-100">
-          {checkoutError}
-        </p>
+        <div className="mt-6 rounded-xl border border-amber-400/50 bg-amber-400/10 p-5 text-sm font-bold text-amber-100">
+          <p className="text-base font-black text-amber-50">{checkoutError}</p>
+          <p className="mt-2 text-amber-200/80">
+            Want to get started now?{" "}
+            <a href="mailto:nexcall@proton.me" className="underline underline-offset-2 hover:text-amber-100">
+              Email nexcall@proton.me
+            </a>{" "}
+            or call{" "}
+            <a href="tel:+12022006578" className="underline underline-offset-2 hover:text-amber-100">
+              (202) 200-6578
+            </a>
+            .
+          </p>
+        </div>
       ) : null}
     </motion.section>
   );

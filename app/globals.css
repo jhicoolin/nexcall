@@ -303,6 +303,28 @@ h3.font-black {
   animation: live-pulse 2.4s ease-in-out infinite;
 }
 
+/* Trust strip card fade animation */
+@keyframes trust-card-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.trust-card-fade {
+  animation: trust-card-fade 0.38s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trust-card-fade {
+    animation: none;
+  }
+}
+
 /* Grid background utility */
 .bg-grid {
   background-image:
