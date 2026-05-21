@@ -1754,12 +1754,12 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-[60] w-[calc(100vw-2rem)] max-w-[390px] sm:bottom-6 sm:right-6">
+    <div className="pointer-events-none fixed bottom-4 right-4 z-[60] w-[calc(100vw-2rem)] max-w-[390px] sm:bottom-6 sm:right-6">
       {open ? (
         <motion.section
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="metal-panel max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl shadow-2xl shadow-black/45"
+          className="pointer-events-auto metal-panel max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl shadow-2xl shadow-black/45"
           aria-label="NexCall live chat"
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#baff39]/10 bg-white/[0.035] px-4 py-3">
@@ -1955,7 +1955,7 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="ml-auto flex min-h-12 items-center gap-3 rounded-2xl border border-[#baff39]/18 bg-[#050807]/92 px-4 py-3 text-left shadow-xl shadow-black/30 backdrop-blur transition hover:-translate-y-0.5 hover:border-[#baff39]/40"
+          className="pointer-events-auto ml-auto flex min-h-12 items-center gap-3 rounded-2xl border border-[#baff39]/18 bg-[#050807]/92 px-4 py-3 text-left shadow-xl shadow-black/30 backdrop-blur transition hover:-translate-y-0.5 hover:border-[#baff39]/40"
           aria-label="Open NexCall live chat"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#baff39] text-[#020403]">
