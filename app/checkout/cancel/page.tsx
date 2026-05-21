@@ -26,7 +26,7 @@ export default function CheckoutCancelPage() {
             Back to Plans
           </Link>
           <Link
-            href="/#lead"
+            href="/?demo=1"
             className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
           >
             <Phone size={18} aria-hidden="true" />

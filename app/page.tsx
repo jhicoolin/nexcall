@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
+  ArrowLeft,
   ArrowRight,
   Bot,
   CalendarCheck,
@@ -296,17 +297,26 @@ function DecryptText({
 export default function Home() {
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("demo") === "1") {
+      setIsOutboundModalOpen(true);
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.hash}`);
+    }
+  }, []);
+
   return (
     <main className="system-shell min-h-screen w-full overflow-hidden text-slate-50">
       <Header onCallDemo={() => setIsOutboundModalOpen(true)} />
       <Hero onCallDemo={() => setIsOutboundModalOpen(true)} />
       <TrustSignalBar />
+      <HumanTrustStrip />
       <HowItWorks />
       <JobsDone />
       <VoiceAgentDemos onCallDemo={() => setIsOutboundModalOpen(true)} />
       <Pricing />
       <FAQSection />
-      <ClosingLeadCapture />
+      <ClosingLeadCapture onCallDemo={() => setIsOutboundModalOpen(true)} />
       <Footer />
       <LiveChatDock onCallDemo={() => setIsOutboundModalOpen(true)} />
       <OutboundCallModal open={isOutboundModalOpen} onClose={() => setIsOutboundModalOpen(false)} />
@@ -363,7 +373,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
             type="button"
             onClick={() => setMobileOpen((current) => !current)}
             className="system-button-primary flex h-11 w-11 items-center justify-center rounded-xl transition focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 md:hidden"
-            aria-label="Open navigation menu"
+            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={19} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
@@ -940,6 +950,125 @@ function TrustSignalBar() {
   );
 }
 
+function HumanTrustStrip() {
+  const outcomes = [
+    {
+      quote: "Fewer missed calls. Faster follow-up.",
+      role: "Local service team",
+      initials: "LS",
+      color: "from-[#baff39] via-[#7fdc75] to-[#476e7a]"
+    },
+    {
+      quote: "Calls get answered even when we are busy.",
+      role: "Clinic front desk",
+      initials: "CF",
+      color: "from-[#e7f7ff] via-[#8bc6c8] to-[#263848]"
+    },
+    {
+      quote: "Cleaner handoffs. Less chaos.",
+      role: "Appointment-heavy office",
+      initials: "AO",
+      color: "from-[#d7ff70] via-[#5f8c79] to-[#141a20]"
+    },
+    {
+      quote: "Our front desk finally has backup.",
+      role: "Owner-led business",
+      initials: "OB",
+      color: "from-[#f4f7ea] via-[#9db871] to-[#1f2b20]"
+    }
+  ];
+  const [active, setActive] = useState(0);
+  const activeOutcome = outcomes[active] || outcomes[0];
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      return undefined;
+    }
+
+    const interval = window.setInterval(() => {
+      setActive((current) => (current + 1) % outcomes.length);
+    }, 4200);
+
+    return () => window.clearInterval(interval);
+  }, [outcomes.length]);
+
+  const move = (direction: -1 | 1) => {
+    setActive((current) => (current + direction + outcomes.length) % outcomes.length);
+  };
+
+  return (
+    <section className="border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-14" aria-labelledby="human-trust-title">
+      <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-6 rounded-[1.35rem] border border-[#baff39]/12 bg-[#07100d]/80 p-4 shadow-2xl shadow-black/25 sm:p-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
+          <div>
+            <p className="system-label">Common outcomes businesses look for</p>
+            <h2 id="human-trust-title" className="mt-3 max-w-lg text-3xl font-black text-white sm:text-4xl">
+              Real teams need calls handled with <span className="accent-text">context.</span>
+            </h2>
+            <p className="mt-4 max-w-xl leading-7 text-slate-300">
+              NexCall is built around practical reception outcomes: answered calls,
+              captured details, clear handoffs, and fewer follow-up gaps.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="system-card rounded-2xl p-4 sm:p-5" aria-live="polite">
+              <div className="flex items-center gap-4">
+                <div
+                  role="img"
+                  aria-label={`${activeOutcome.role} representative placeholder`}
+                  className={`grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br ${activeOutcome.color} text-sm font-black text-[#061008] shadow-lg shadow-[#baff39]/10 ring-1 ring-white/20`}
+                >
+                  {activeOutcome.initials}
+                </div>
+                <div>
+                  <p className="text-lg font-black leading-6 text-white">&ldquo;{activeOutcome.quote}&rdquo;</p>
+                  <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                    {activeOutcome.role}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 grid gap-2 sm:grid-cols-4">
+                {outcomes.map((outcome, index) => (
+                  <button
+                    key={outcome.role}
+                    type="button"
+                    onClick={() => setActive(index)}
+                    aria-label={`Show outcome: ${outcome.quote}`}
+                    aria-pressed={active === index}
+                    className={`h-2 rounded-full transition focus:outline-none focus:ring-4 focus:ring-[#baff39]/20 ${
+                      active === index ? "bg-[#baff39]" : "bg-white/14 hover:bg-white/28"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 sm:flex-col">
+              <button
+                type="button"
+                onClick={() => move(-1)}
+                className="grid h-11 w-11 place-items-center rounded-full border border-[#baff39]/18 bg-black/30 text-slate-100 transition hover:-translate-y-0.5 hover:border-[#baff39]/45 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
+                aria-label="Previous outcome"
+              >
+                <ArrowLeft size={18} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => move(1)}
+                className="grid h-11 w-11 place-items-center rounded-full border border-[#baff39]/18 bg-black/30 text-slate-100 transition hover:-translate-y-0.5 hover:border-[#baff39]/45 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
+                aria-label="Next outcome"
+              >
+                <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
 function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
   const [selected, setSelected] = useState(0);
   const scenario = voiceDemos[selected] || voiceDemos[0];
@@ -1370,6 +1499,7 @@ function Pricing() {
 }
 
 function FAQSection() {
+  const [openFaqs, setOpenFaqs] = useState<Record<string, boolean>>({});
   const faqs = [
     {
       question: "What does NexCall do?",
@@ -1426,25 +1556,49 @@ function FAQSection() {
           Everything a practical buyer asks <span className="accent-text">before going live.</span>
         </h2>
         <div className="mt-10 grid gap-3">
-          {faqs.map((faq) => (
-            <details key={faq.question} className="system-card group rounded-2xl p-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-black text-white">
-                <span className="flex items-center gap-3">
-                  <HelpCircle className="shrink-0 text-[#baff39]" size={21} aria-hidden="true" />
-                  {faq.question}
-                </span>
-                <ChevronRight className="shrink-0 transition group-open:rotate-90" size={20} aria-hidden="true" />
-              </summary>
-              <p className="mt-4 leading-7 text-slate-300">{faq.answer}</p>
-            </details>
-          ))}
+          {faqs.map((faq, index) => {
+            const isOpen = Boolean(openFaqs[faq.question]);
+            const panelId = `faq-panel-${index}`;
+
+            return (
+              <div key={faq.question} className="system-card group rounded-2xl p-5">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  onClick={() => {
+                    setOpenFaqs((current) => ({
+                      ...current,
+                      [faq.question]: !isOpen
+                    }));
+                  }}
+                  className="flex w-full cursor-pointer list-none items-center justify-between gap-4 text-left text-lg font-black text-white focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
+                >
+                  <span className="flex items-center gap-3">
+                    <HelpCircle className="shrink-0 text-[#baff39]" size={21} aria-hidden="true" />
+                    {faq.question}
+                  </span>
+                  <ChevronRight
+                    className={`shrink-0 transition ${isOpen ? "rotate-90" : ""}`}
+                    size={20}
+                    aria-hidden="true"
+                  />
+                </button>
+                {isOpen ? (
+                  <p id={panelId} className="mt-4 leading-7 text-slate-300">
+                    {faq.answer}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </motion.div>
     </section>
   );
 }
 
-function ClosingLeadCapture() {
+function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
   const [step, setStep] = useState(0);
   const [leadError, setLeadError] = useState("");
   const {
@@ -1587,6 +1741,23 @@ function ClosingLeadCapture() {
             Try a real demo call or choose the plan that fits your call flow. The
             first step is simple: tell us your business type and where Nexa should call.
           </p>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={onCallDemo}
+              className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
+            >
+              <Phone size={18} aria-hidden="true" />
+              Try Demo Call
+            </button>
+            <a
+              href="#pricing"
+              className="system-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/15"
+            >
+              View Plans
+              <ArrowRight size={17} aria-hidden="true" />
+            </a>
+          </div>
           <p className="mt-4 rounded-2xl border border-[#baff39]/20 bg-[#baff39]/10 p-4 text-sm font-bold leading-6 text-[#eaffb8]">
             Takes about 60 seconds. No card required for the demo request.
           </p>
@@ -2037,7 +2208,7 @@ function Footer() {
     <footer className="border-t border-[#baff39]/10 bg-[#020403] px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-10 text-sm text-slate-400 md:grid-cols-[1.4fr_0.8fr_0.9fr_1fr]">
         <div>
-          <div className="flex items-center gap-4">
+          <a href="#top" className="flex w-fit items-center gap-4 transition hover:text-[#baff39]" aria-label="NexCall home">
             <span className="brand-mark-shell relative h-12 w-12">
               <Image
                 src={brandAssets.mark}
@@ -2051,7 +2222,7 @@ function Footer() {
               <p className="font-black text-white">NexCall</p>
               <p className="mt-1">AI receptionist coverage with clear handoffs to real people.</p>
             </div>
-          </div>
+          </a>
           <p className="mt-5 max-w-sm leading-7">
             NexCall answers when your team cannot, captures the details, helps move
             the next step forward, and sends clean notes.
@@ -2071,7 +2242,9 @@ function Footer() {
           <p className="font-black text-white">Services</p>
           <div className="mt-4 grid gap-3">
             {serviceLinks.map((item) => (
-              <span key={item}>{item}</span>
+              <a key={item} href="#services" className="transition hover:text-[#baff39]">
+                {item}
+              </a>
             ))}
           </div>
         </div>

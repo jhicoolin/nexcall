@@ -59,9 +59,19 @@ export async function POST(request: Request) {
     requestedTime: cleanText(rawPayload.requestedTime, 160)
   };
 
-  const missing = ["trucks", "service", "email", "phone"].filter(
-    (field) => !payload[field as keyof LeadPayload]
-  );
+  payload.trucks =
+    payload.trucks ||
+    cleanText(rawPayload.name, 120) ||
+    payload.businessName ||
+    "Not provided";
+  payload.service =
+    payload.service ||
+    payload.businessType ||
+    payload.businessName ||
+    payload.message ||
+    "General inquiry";
+
+  const missing = ["email", "phone"].filter((field) => !payload[field as keyof LeadPayload]);
 
   if (missing.length > 0) {
     return NextResponse.json(
