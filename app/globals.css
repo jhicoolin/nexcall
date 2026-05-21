@@ -303,6 +303,28 @@ h3.font-black {
   animation: live-pulse 2.4s ease-in-out infinite;
 }
 
+/* Modal / panel entrance — CSS-native, no framer-motion dependency */
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modal-enter 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-enter {
+    animation: none;
+  }
+}
+
 /* Trust strip card fade animation */
 @keyframes trust-card-fade {
   from {

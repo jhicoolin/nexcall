@@ -32,7 +32,7 @@ import { DecryptText as DecryptTextNew } from "@/components/ui/DecryptText";
 import { CountUpStat } from "@/components/ui/CountUpStat";
 
 const sectionMotion = {
-  initial: { opacity: 0.98, y: 12 },
+  initial: { opacity: 1, y: 0 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, amount: 0.2 },
   transition: { duration: 0.44, ease: "easeOut" }
@@ -534,14 +534,11 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm" role="presentation">
       <div className="absolute inset-0" onClick={status === "calling" ? undefined : onClose} aria-hidden="true" />
-      <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
+      <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="outbound-call-title"
-        className="metal-panel relative w-full max-w-lg overflow-hidden rounded-[1.35rem] p-5 text-white shadow-2xl shadow-black/55 sm:p-6"
+        className="modal-enter metal-panel relative w-full max-w-lg overflow-hidden rounded-[1.35rem] p-5 text-white shadow-2xl shadow-black/55 sm:p-6"
       >
         <div className="scanline pointer-events-none absolute left-0 top-0 h-px w-full" />
         <div className="flex items-start justify-between gap-4">
@@ -633,7 +630,7 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
             </p>
           </form>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -1756,10 +1753,8 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-[60] w-[calc(100vw-2rem)] max-w-[390px] sm:bottom-6 sm:right-6">
       {open ? (
-        <motion.section
-          initial={{ opacity: 0, y: 18, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="pointer-events-auto metal-panel max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl shadow-2xl shadow-black/45"
+        <section
+          className="modal-enter pointer-events-auto metal-panel max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl shadow-2xl shadow-black/45"
           aria-label="NexCall live chat"
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#baff39]/10 bg-white/[0.035] px-4 py-3">
@@ -1950,7 +1945,7 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
               ) : null}
             </form>
           )}
-        </motion.section>
+        </section>
       ) : (
         <button
           type="button"
