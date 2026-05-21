@@ -145,7 +145,7 @@ export default function Home() {
       <StatusStrip />
       <HumanTrustStrip />
       <TrustSignalBar />
-      <HowItWorks />
+      <HowItWorks onCallDemo={openDemo} />
       <JobsDone />
       <VoiceAgentDemos onCallDemo={openDemo} />
       <Pricing />
@@ -786,7 +786,8 @@ function HumanTrustStrip() {
       },
       role: "Local service team",
       outcome: "Fewer missed calls.",
-      sub: "Faster follow-up."
+      detail: "Calls get captured while the team is busy with jobs.",
+      tag: "📞 Calls answered"
     },
     {
       portrait: {
@@ -797,8 +798,9 @@ function HumanTrustStrip() {
         hasGlasses: true
       },
       role: "Clinic front desk",
-      outcome: "Calls answered 24/7.",
-      sub: "No dead-end voicemails."
+      outcome: "Cleaner handoffs.",
+      detail: "Caller details arrive with a clear next step for staff.",
+      tag: "✅ Details captured"
     },
     {
       portrait: {
@@ -809,8 +811,9 @@ function HumanTrustStrip() {
         hasGlasses: false
       },
       role: "Office coordinator",
-      outcome: "Cleaner handoffs.",
-      sub: "Less chaos at the desk."
+      outcome: "Faster follow-up.",
+      detail: "The team gets the summary instead of chasing voicemail.",
+      tag: "🧾 Team brief ready"
     },
     {
       portrait: {
@@ -821,43 +824,139 @@ function HumanTrustStrip() {
         hasGlasses: false
       },
       role: "Owner-led business",
-      outcome: "Front desk covered.",
-      sub: "Human backup ready."
+      outcome: "Human backup when it matters.",
+      detail: "Urgent callers can be routed with context when needed.",
+      tag: "👤 Human handoff"
+    },
+    {
+      portrait: {
+        skinTone: "#5C3317",
+        hairColor: "#2a1400",
+        shirtColor: "#0c4a6e",
+        hairStyle: "short" as const,
+        hasGlasses: false
+      },
+      role: "Appointment-heavy practice",
+      outcome: "Appointment requests captured.",
+      detail: "Overflow and after-hours calls get a professional response.",
+      tag: "📅 Request noted"
     }
   ];
+
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+    const interval = window.setInterval(() => {
+      setActive((c) => (c + 1) % profiles.length);
+    }, 4500);
+    return () => window.clearInterval(interval);
+  }, [profiles.length]);
+
+  const current = profiles[active];
 
   return (
     <section
       className="border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-14"
-      aria-labelledby="trust-portraits-label"
+      aria-labelledby="trust-outcomes-label"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <p
-          id="trust-portraits-label"
+          id="trust-outcomes-label"
           className="mb-8 text-center text-[0.65rem] font-black uppercase tracking-[0.2em] text-slate-500"
         >
           Built for teams that cannot miss calls
         </p>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {profiles.map((p) => (
-            <div
-              key={p.role}
-              className="system-card flex flex-col items-center rounded-[1.15rem] p-4 text-center sm:p-5"
-            >
+
+        <div className="mx-auto max-w-2xl">
+          {/* Main rotating outcome card */}
+          <div className="system-card relative overflow-hidden rounded-[1.35rem] p-5 sm:p-7">
+            <div className="scanline pointer-events-none absolute left-0 top-0 h-px w-full" aria-hidden="true" />
+
+            <div key={active} className="trust-card-fade flex items-start gap-4 sm:gap-6">
+              {/* Portrait */}
               <div
-                className="mb-3 h-16 w-16 overflow-hidden rounded-full border-2 border-[#baff39]/18 sm:h-20 sm:w-20"
+                className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-[#baff39]/22 sm:h-16 sm:w-16"
                 role="img"
-                aria-label={`Illustrated portrait representing a ${p.role}`}
+                aria-label={`Illustrated portrait representing ${current.role}`}
               >
-                <PortraitSVG {...p.portrait} />
+                <PortraitSVG {...current.portrait} />
               </div>
-              <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500">
-                {p.role}
-              </p>
-              <p className="mt-1.5 text-sm font-black leading-tight text-white">{p.outcome}</p>
-              <p className="mt-0.5 text-xs text-slate-400">{p.sub}</p>
+
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                <p className="mb-2 text-[0.58rem] font-black uppercase tracking-[0.15em] text-slate-500">
+                  {current.role}
+                </p>
+                <p className="text-xl font-black leading-tight text-white sm:text-2xl">
+                  &ldquo;{current.outcome}&rdquo;
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{current.detail}</p>
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#baff39]/20 bg-[#baff39]/[0.07] px-3 py-1">
+                  <span className="text-xs font-black text-[#baff39]">{current.tag}</span>
+                </div>
+              </div>
             </div>
-          ))}
+
+            {/* Navigation: pill dots + avatar stack */}
+            <div className="mt-6 flex items-center justify-between">
+              {/* Pill dots */}
+              <div className="flex items-center gap-1.5" role="tablist" aria-label="Outcome profiles">
+                {profiles.map((p, i) => (
+                  <button
+                    key={p.role}
+                    type="button"
+                    role="tab"
+                    onClick={() => setActive(i)}
+                    aria-selected={active === i}
+                    aria-label={`Show: ${p.outcome}`}
+                    className={`rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#baff39]/30 ${
+                      active === i ? "h-1.5 w-5 bg-[#baff39]" : "h-1.5 w-1.5 bg-white/15 hover:bg-white/30"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Avatar stack — click to jump */}
+              <div className="flex -space-x-2" aria-label="All profiles">
+                {profiles.map((p, i) => (
+                  <button
+                    key={p.role}
+                    type="button"
+                    onClick={() => setActive(i)}
+                    aria-label={`Switch to ${p.role}`}
+                    className={`h-7 w-7 overflow-hidden rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-[#baff39]/20 ${
+                      active === i
+                        ? "z-10 scale-110 border-[#baff39]"
+                        : "border-[#050807] opacity-55 hover:opacity-90"
+                    }`}
+                  >
+                    <PortraitSVG {...p.portrait} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Outcome chip row */}
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {[
+              "📞 Calls answered",
+              "✅ Details captured",
+              "🧾 Team brief ready",
+              "👤 Human handoff",
+              "📅 Request noted",
+              "⚡ Faster follow-up"
+            ].map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-[#baff39]/10 bg-[#baff39]/[0.035] px-3 py-1 text-xs font-semibold text-slate-500"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -1056,163 +1155,237 @@ function JobsDone() {
   );
 }
 
-function HowItWorks() {
+function HowItWorks({ onCallDemo }: { onCallDemo: () => void }) {
   const steps = [
     {
-      num: "01",
       label: "Answer",
       icon: Phone,
+      emoji: "📞",
       title: "Picks up every time",
-      copy: "NexCall answers before callers hit voicemail or a dead end. Every call gets a professional first response.",
+      copy: "NexCall answers before callers hit voicemail or a dead end.",
       status: "CONNECTED",
       statusColor: "#A8FF00"
     },
     {
-      num: "02",
       label: "Understand",
       icon: MessageSquareText,
+      emoji: "✅",
       title: "Captures need and context",
-      copy: "It identifies the caller's need, collects their contact details, and notes urgency — without guessing.",
+      copy: "It identifies the need, collects contact details, and notes urgency.",
       status: "CAPTURED",
       statusColor: "#A8FF00"
     },
     {
-      num: "03",
       label: "Route",
       icon: Workflow,
+      emoji: "📅",
       title: "Moves to the right next step",
-      copy: "Appointment requests, lead capture, FAQ answers, or a clean human handoff — routed with context.",
+      copy: "Appointment requests, lead capture, FAQs, or human handoff — with context.",
       status: "ROUTED",
       statusColor: "#60a5fa"
     },
     {
-      num: "04",
       label: "Report",
       icon: ClipboardList,
+      emoji: "🧾",
       title: "Team gets a clean brief",
-      copy: "Your team receives a context-rich summary with the next action already clear. No guesswork.",
+      copy: "Your team receives a summary with the next action already clear.",
       status: "READY",
       statusColor: "#A8FF00"
     }
   ];
 
-  const journeyItems = [
-    { label: "Call answered", status: "CONNECTED" },
-    { label: "Name & phone captured", status: "CAPTURED" },
-    { label: "Thursday PM noted", status: "NOTED" },
-    { label: "Team brief sent", status: "READY" }
+  const journeySteps = [
+    {
+      emoji: "📞",
+      label: "Incoming caller",
+      text: '"Can I get an appointment this week?"',
+      accent: false
+    },
+    {
+      emoji: "✅",
+      label: "Captured",
+      text: "Name · Phone · Preferred time · Reason · Urgency",
+      accent: false
+    },
+    {
+      emoji: "🧾",
+      label: "Team handoff",
+      text: "Appointment request + clean next step",
+      accent: false
+    },
+    {
+      emoji: "⚡",
+      label: "Outcome",
+      text: "Ready for follow-up",
+      accent: true
+    }
   ];
 
   return (
-    <section id="how-it-works" className="border-y border-[#baff39]/10 bg-[#020403] py-20 sm:py-28">
+    <section id="how-it-works" className="border-y border-[#baff39]/10 bg-[#020403] py-20 sm:py-28 lg:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        {/* Section header */}
-        <div className="mb-14 max-w-3xl">
-          <p className="system-label">How it works</p>
-          <h2 className="mt-4 text-5xl font-black text-white sm:text-6xl lg:text-[4.5rem] leading-[0.95] tracking-tight">
-            Answer. Understand.<br className="hidden sm:block" />
-            {" "}Route. <span className="accent-text">Report.</span>
-          </h2>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-            The workflow mirrors what a strong front desk already does — every call handled,
-            every detail captured, every next step clear for the team.
-          </p>
-        </div>
+        {/* ── Two-column layout: narrative left, process right ── */}
+        <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-16">
 
-        {/* Steps with connector line */}
-        <div className="relative">
-          {/* Horizontal connector line — desktop only, sits behind the icon circles */}
-          <div
-            className="pointer-events-none absolute top-[1.375rem] left-[4.5rem] right-[4.5rem] hidden h-px lg:block"
-            aria-hidden="true"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent 0%, rgba(186,255,57,0.30) 15%, rgba(186,255,57,0.30) 85%, transparent 100%)"
-            }}
-          />
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step) => {
-              const StepIcon = step.icon;
-              return (
-                <div key={step.label} className="relative flex flex-col">
-                  {/* Icon circle — sits on the connector line on desktop */}
-                  <div className="relative z-10 mb-5 flex h-[2.75rem] w-[2.75rem] shrink-0 items-center justify-center rounded-full border border-[#baff39]/30 bg-[#020403] text-[#baff39] lg:mx-auto">
-                    <StepIcon size={20} aria-hidden="true" />
-                  </div>
-                  <div className="system-card flex-1 rounded-[1.35rem] p-6">
-                    <div className="mb-5 flex items-center justify-between">
-                      <span className="rounded-full border border-[#baff39]/20 bg-[#baff39]/8 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#baff39]">
+          {/* LEFT: Headline + step summary + CTAs */}
+          <div className="lg:sticky lg:top-24">
+            <p className="system-label">How it works</p>
+            <h2 className="mt-4 text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
+              How <span className="accent-text">NexCall</span> turns a call into a clear next step.
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-slate-300">
+              From pickup to summary, NexCall captures what matters so your team can follow up without guessing.
+            </p>
+
+            {/* Step summary list — the four steps at a glance */}
+            <div className="mt-10 space-y-6">
+              {steps.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.label} className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#baff39]/22 bg-[#baff39]/[0.07] text-[#baff39]">
+                      <Icon size={18} aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-[0.65rem] font-black uppercase tracking-[0.12em] text-[#baff39]">
                         {step.label}
-                      </span>
-                      <span className="text-2xl font-black text-[#baff39]/18">{step.num}</span>
-                    </div>
-                    <h3 className="text-xl font-black leading-tight text-white">{step.title}</h3>
-                    <p className="mt-3 text-sm leading-6 text-slate-300">{step.copy}</p>
-                    <div className="mt-5 flex items-center gap-1.5">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: step.statusColor }}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className="text-[0.6rem] font-black uppercase tracking-[0.14em]"
-                        style={{ color: step.statusColor }}
-                      >
-                        {step.status}
-                      </span>
+                      </p>
+                      <p className="mt-0.5 font-black text-white">{step.title}</p>
+                      <p className="mt-1 text-sm leading-5 text-slate-400">{step.copy}</p>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                );
+              })}
+            </div>
 
-        {/* Call Journey Example Panel */}
-        <div className="mt-10 metal-panel rounded-[1.35rem] p-5 sm:p-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-xl">
-              <p className="system-label">Example call journey</p>
-              <p className="mt-3 text-xl font-black text-white">
-                &ldquo;I need to move my appointment to Thursday afternoon.&rdquo;
-              </p>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                NexCall answers, captures the caller&rsquo;s name, phone, preferred time, and urgency — then sends your team a clean summary ready for confirmation. No phone tag.
+            {/* CTAs */}
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={onCallDemo}
+                data-fallback-href="/?demo=1"
+                className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
+              >
+                <Phone size={17} aria-hidden="true" />
+                Try a Demo Call
+              </button>
+              <a
+                href="#lead"
+                className="system-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/15"
+              >
+                Map My First Call Flow
+                <ArrowRight size={17} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+
+          {/* RIGHT: Large process panel */}
+          <div className="metal-panel overflow-hidden rounded-[1.5rem]">
+
+            {/* Panel header bar */}
+            <div className="flex items-center gap-3 border-b border-[#baff39]/10 bg-[#baff39]/[0.04] px-6 py-4">
+              <span
+                className="h-2 w-2 rounded-full bg-[#baff39] live-pulse"
+                aria-hidden="true"
+              />
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#baff39]">
+                NexCall Response Layer · Active 24/7
               </p>
             </div>
-            <a
-              href="#demos"
-              className="system-button-primary shrink-0 inline-flex min-h-12 items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
-            >
-              See the demo
-              <ArrowRight size={17} aria-hidden="true" />
-            </a>
-          </div>
-          <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {journeyItems.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-xl border border-[#baff39]/12 bg-[#baff39]/5 px-3 py-3"
-              >
-                <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#baff39]">
-                  {item.status}
-                </p>
-                <p className="mt-1 text-xs font-bold text-slate-200">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* CTA */}
-        <div className="mt-10 text-center">
-          <a
-            href="#lead"
-            className="system-button-primary inline-flex min-h-12 items-center gap-2 rounded-xl px-7 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
-          >
-            Map My First Call Flow
-            <ArrowRight size={18} aria-hidden="true" />
-          </a>
+            {/* Process steps with vertical connector */}
+            <div className="relative p-6 sm:p-8">
+              {/* Vertical connector line — runs through icon centres */}
+              <div
+                className="pointer-events-none absolute bottom-8 top-8 w-px"
+                aria-hidden="true"
+                style={{
+                  left: "calc(2rem + 1.125rem)", /* px-8 + half icon width */
+                  background:
+                    "linear-gradient(180deg, rgba(186,255,57,0.40) 0%, rgba(186,255,57,0.18) 65%, transparent 100%)"
+                }}
+              />
+
+              <div className="space-y-0">
+                {steps.map((step, i) => {
+                  const Icon = step.icon;
+                  return (
+                    <div
+                      key={step.label}
+                      className={`relative flex items-start gap-5 ${i < steps.length - 1 ? "pb-9" : ""}`}
+                    >
+                      {/* Icon circle on connector */}
+                      <div className="relative z-10 flex h-[2.25rem] w-[2.25rem] shrink-0 items-center justify-center rounded-full border border-[#baff39]/30 bg-[#020403] text-[#baff39]">
+                        <Icon size={15} aria-hidden="true" />
+                      </div>
+
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <div className="mb-1.5 flex items-center gap-2.5">
+                          <span className="rounded-full border border-[#baff39]/18 bg-[#baff39]/[0.07] px-2.5 py-0.5 text-[0.6rem] font-black uppercase tracking-[0.12em] text-[#baff39]">
+                            {step.label}
+                          </span>
+                          <span
+                            className="flex items-center gap-1 text-[0.55rem] font-black uppercase tracking-[0.08em]"
+                            style={{ color: step.statusColor }}
+                          >
+                            <span
+                              className="inline-block h-1 w-1 rounded-full"
+                              style={{ backgroundColor: step.statusColor }}
+                              aria-hidden="true"
+                            />
+                            {step.status}
+                          </span>
+                        </div>
+                        <p className="font-black leading-tight text-white">{step.title}</p>
+                        <p className="mt-1 text-sm leading-5 text-slate-400">{step.copy}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sample Call Journey panel */}
+            <div className="border-t border-[#baff39]/10 bg-black/35 px-6 py-5 sm:px-8">
+              <p className="mb-4 text-[0.6rem] font-black uppercase tracking-[0.16em] text-[#baff39]">
+                Sample call journey
+              </p>
+              <div className="space-y-2">
+                {journeySteps.map((item) => (
+                  <div
+                    key={item.label}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${
+                      item.accent
+                        ? "border-[#baff39]/22 bg-[#baff39]/[0.07]"
+                        : "border-white/[0.05] bg-white/[0.025]"
+                    }`}
+                  >
+                    <span className="mt-0.5 shrink-0 text-sm" role="img" aria-hidden="true">
+                      {item.emoji}
+                    </span>
+                    <div className="min-w-0">
+                      <p
+                        className={`text-[0.57rem] font-black uppercase tracking-[0.1em] ${
+                          item.accent ? "text-[#baff39]" : "text-slate-500"
+                        }`}
+                      >
+                        {item.label}
+                      </p>
+                      <p
+                        className={`mt-0.5 text-xs font-bold leading-5 ${
+                          item.accent ? "text-[#baff39]" : "text-slate-300"
+                        }`}
+                      >
+                        {item.text}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
