@@ -199,6 +199,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
           <button
             type="button"
             onClick={onCallDemo}
+            data-fallback-href="/?demo=1"
             className="system-button-primary hidden min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 sm:inline-flex"
           >
             <Phone size={17} aria-hidden="true" />
@@ -234,6 +235,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
                 setMobileOpen(false);
                 onCallDemo();
               }}
+              data-fallback-href="/?demo=1"
               className="system-button-primary mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black"
             >
               <Phone size={17} aria-hidden="true" />
@@ -279,6 +281,7 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             <button
               type="button"
               onClick={onCallDemo}
+              data-fallback-href="/?demo=1"
               className="inline-flex min-h-[52px] w-full items-center justify-center sm:w-auto sm:min-h-[46px] px-7 bg-[#A8FF00] text-black font-bold text-sm tracking-wide rounded-[6px] hover:bg-[#bfff33] transition-colors"
             >
               Try a Demo Call
@@ -859,6 +862,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
               <button
                 type="button"
                 onClick={onCallDemo}
+                data-fallback-href="/?demo=1"
                 className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
               >
                 <Phone size={18} aria-hidden="true" />
@@ -1247,6 +1251,7 @@ function Pricing() {
                 type="button"
                 onClick={() => startCheckout(plan.id)}
                 disabled={checkoutLoading !== null}
+                data-fallback-href="/?demo=1"
                 className={`mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${
                   plan.featured
                     ? "system-button-primary focus:ring-[#baff39]/25"
@@ -1534,6 +1539,7 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
             <button
               type="button"
               onClick={onCallDemo}
+              data-fallback-href="/?demo=1"
               className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
             >
               <Phone size={18} aria-hidden="true" />

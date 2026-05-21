@@ -65,7 +65,31 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        {/* Vanilla-JS fallback: if React fails to hydrate (broken extension,
+            GPU driver, etc.) the buttons still do something useful.
+            Runs in capture phase ONLY if no __reactFiber is attached. */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  function hasReact(el){
+    try{return Object.keys(el).some(function(k){return k.indexOf('__react')===0});}
+    catch(e){return false;}
+  }
+  document.addEventListener('click',function(e){
+    var t=e.target;
+    var btn=t.closest&&(t.closest('a[data-fallback-href]')||t.closest('button[data-fallback-href]'));
+    if(!btn)return;
+    if(hasReact(btn))return;
+    e.preventDefault();e.stopPropagation();
+    window.location.href=btn.getAttribute('data-fallback-href');
+  },true);
+})();`
+          }}
+        />
+      </body>
     </html>
   );
 }
