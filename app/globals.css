@@ -311,6 +311,11 @@ h3.font-black {
   background-size: 40px 40px;
 }
 
+/* Prevent sticky nav from hiding section headings on anchor jump */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
 /* Focus visible */
 :focus-visible {
   outline: 2px solid #A8FF00;

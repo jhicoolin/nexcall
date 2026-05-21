@@ -134,8 +134,8 @@ export default function Home() {
 
     // Custom event support for live chat and other components
     const handler = () => setIsOutboundModalOpen(true);
-    window.addEventListener("openDemoModal", handler);
-    return () => window.removeEventListener("openDemoModal", handler);
+    window.addEventListener("nexcall:open-demo", handler);
+    return () => window.removeEventListener("nexcall:open-demo", handler);
   }, []);
 
   return (
@@ -249,9 +249,9 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
 function Hero({ onCallDemo }: { onCallDemo: () => void }) {
   return (
     <section id="top" className="relative overflow-hidden pt-28">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_10%,rgba(168,255,0,0.10),transparent_26rem),radial-gradient(circle_at_18%_22%,rgba(141,217,232,0.06),transparent_28rem)]" />
-      <div className="bg-grid absolute inset-0 opacity-40" />
-      <div className="absolute inset-x-0 bottom-0 h-px glass-line" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_10%,rgba(168,255,0,0.10),transparent_26rem),radial-gradient(circle_at_18%_22%,rgba(141,217,232,0.06),transparent_28rem)]" aria-hidden="true" />
+      <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px glass-line" aria-hidden="true" />
       <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-10 overflow-hidden px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:items-center lg:px-8 lg:pb-24 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
         <motion.div
           initial={{ opacity: 1, y: 0 }}
