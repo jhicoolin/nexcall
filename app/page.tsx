@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
-  ArrowLeft,
   ArrowRight,
   Bot,
   CalendarCheck,
@@ -275,7 +274,7 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
             />
           </h1>
           <p className="text-base sm:text-lg text-[#9CA3AF] max-w-lg mb-7 sm:mb-8 leading-relaxed">
-            NexCall answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
+            <span className="font-semibold text-[#A8FF00]">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row mb-4">
             <button
@@ -683,161 +682,184 @@ function TrustSignalBar() {
   );
 }
 
-type HumanAvatarOutcome = {
-  initials: string;
-  color: string;
-  skin: string;
-  shirt: string;
-  role: string;
-  quote: string;
+/* ── Illustrated portrait SVG ─────────────────────────────────────────────
+   Simple geometric face illustrations representing diverse business professionals.
+   Clearly stylised / not real photos. Used in the HumanTrustStrip.
+── ──────────────────────────────────────────────────────────────────────── */
+type PortraitConfig = {
+  skinTone: string;
+  hairColor: string;
+  shirtColor: string;
+  hairStyle: "afro" | "short" | "medium" | "long";
+  hasGlasses?: boolean;
 };
 
-function HumanAvatar({
-  outcome,
-  compact = false,
-  active = false
-}: {
-  outcome: HumanAvatarOutcome;
-  compact?: boolean;
-  active?: boolean;
-}) {
-  const size = compact ? "h-9 w-9" : "h-12 w-12";
-  const text = compact ? "text-xs" : "text-sm";
+function PortraitSVG({ skinTone, hairColor, shirtColor, hairStyle, hasGlasses = false }: PortraitConfig) {
   return (
-    <div
-      className={`${size} rounded-full flex items-center justify-center font-black text-white shrink-0 border-2 transition ${
-        active ? "border-[#baff39] scale-110" : "border-transparent opacity-70"
-      } ${outcome.skin}`}
-      aria-label={outcome.role}
-      title={outcome.role}
-    >
-      <span className={`${text} font-black`}>{outcome.initials}</span>
-    </div>
+    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" className="h-full w-full" aria-hidden="true">
+      {/* Dark background circle */}
+      <circle cx="30" cy="30" r="30" fill="#0b1218" />
+
+      {/* Hair — shape varies by style */}
+      {hairStyle === "afro" && (
+        <>
+          <ellipse cx="30" cy="18" rx="17" ry="15" fill={hairColor} />
+          <circle cx="13" cy="27" r="9" fill={hairColor} />
+          <circle cx="47" cy="27" r="9" fill={hairColor} />
+        </>
+      )}
+      {hairStyle === "short" && (
+        <>
+          <ellipse cx="30" cy="17" rx="14" ry="8" fill={hairColor} />
+          <rect x="16" y="17" width="28" height="7" fill={hairColor} />
+        </>
+      )}
+      {hairStyle === "medium" && (
+        <>
+          <ellipse cx="30" cy="16" rx="15" ry="10" fill={hairColor} />
+          <rect x="14" y="19" width="6" height="18" rx="3" fill={hairColor} />
+          <rect x="40" y="19" width="6" height="18" rx="3" fill={hairColor} />
+        </>
+      )}
+      {hairStyle === "long" && (
+        <>
+          <ellipse cx="30" cy="16" rx="15" ry="10" fill={hairColor} />
+          <rect x="13" y="19" width="7" height="26" rx="3.5" fill={hairColor} />
+          <rect x="40" y="19" width="7" height="26" rx="3.5" fill={hairColor} />
+        </>
+      )}
+
+      {/* Face / head */}
+      <ellipse cx="30" cy="30" rx="13" ry="15" fill={skinTone} />
+
+      {/* Eye whites */}
+      <ellipse cx="24.5" cy="27" rx="3.2" ry="3.5" fill="white" />
+      <ellipse cx="35.5" cy="27" rx="3.2" ry="3.5" fill="white" />
+      {/* Pupils */}
+      <circle cx="24.5" cy="27.5" r="2" fill="#0f0f0f" />
+      <circle cx="35.5" cy="27.5" r="2" fill="#0f0f0f" />
+      {/* Eye shine */}
+      <circle cx="25.2" cy="26.8" r="0.7" fill="white" />
+      <circle cx="36.2" cy="26.8" r="0.7" fill="white" />
+
+      {/* Eyebrows */}
+      <path d="M21 23 Q24.5 21.5 28 23" stroke={hairColor} strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      <path d="M32 23 Q35.5 21.5 39 23" stroke={hairColor} strokeWidth="1.3" fill="none" strokeLinecap="round" />
+
+      {/* Glasses (optional) */}
+      {hasGlasses && (
+        <g opacity="0.72">
+          <rect x="20" y="24.5" width="9" height="6" rx="2" stroke="#888" strokeWidth="1.2" fill="none" />
+          <rect x="31" y="24.5" width="9" height="6" rx="2" stroke="#888" strokeWidth="1.2" fill="none" />
+          <line x1="29" y1="27.5" x2="31" y2="27.5" stroke="#888" strokeWidth="1.2" />
+          <line x1="13" y1="27.5" x2="20" y2="27.5" stroke="#888" strokeWidth="0.9" />
+          <line x1="40" y1="27.5" x2="47" y2="27.5" stroke="#888" strokeWidth="0.9" />
+        </g>
+      )}
+
+      {/* Nose — subtle nostrils */}
+      <circle cx="27.5" cy="33" r="1.2" fill={skinTone === "#F5CBA7" ? "#c9956a" : "#4a2a0a"} opacity="0.4" />
+      <circle cx="32.5" cy="33" r="1.2" fill={skinTone === "#F5CBA7" ? "#c9956a" : "#4a2a0a"} opacity="0.4" />
+
+      {/* Mouth — gentle smile */}
+      <path d="M25 37.5 Q30 41.5 35 37.5" stroke="#5a2e0a" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.75" />
+
+      {/* Neck */}
+      <rect x="24.5" y="42" width="11" height="9" rx="2" fill={skinTone} />
+
+      {/* Shirt / collar */}
+      <path d="M0 60 L10 52 Q20 48 30 47 Q40 48 50 52 L60 60 Z" fill={shirtColor} />
+      <path d="M25 47 L28 55 L30 52 L32 55 L35 47" fill={shirtColor} stroke={shirtColor} strokeWidth="0.5" />
+    </svg>
   );
 }
 
 function HumanTrustStrip() {
-  const outcomes = [
+  const profiles = [
     {
-      quote: "Fewer missed calls. Faster follow-up.",
+      portrait: {
+        skinTone: "#7B4F2E",
+        hairColor: "#1a0a00",
+        shirtColor: "#1d4ed8",
+        hairStyle: "afro" as const,
+        hasGlasses: false
+      },
       role: "Local service team",
-      initials: "LS",
-      color: "from-[#baff39] via-[#7fdc75] to-[#476e7a]",
-      skin: "bg-[#8f5a3b]",
-      shirt: "bg-[#d9ff8b]"
+      outcome: "Fewer missed calls.",
+      sub: "Faster follow-up."
     },
     {
-      quote: "Calls get answered even when we are busy.",
+      portrait: {
+        skinTone: "#F5CBA7",
+        hairColor: "#3d1c02",
+        shirtColor: "#065f46",
+        hairStyle: "short" as const,
+        hasGlasses: true
+      },
       role: "Clinic front desk",
-      initials: "CF",
-      color: "from-[#e7f7ff] via-[#8bc6c8] to-[#263848]",
-      skin: "bg-[#d2a172]",
-      shirt: "bg-[#6db7c8]"
+      outcome: "Calls answered 24/7.",
+      sub: "No dead-end voicemails."
     },
     {
-      quote: "Cleaner handoffs. Less chaos.",
-      role: "Appointment-heavy office",
-      initials: "AO",
-      color: "from-[#d7ff70] via-[#5f8c79] to-[#141a20]",
-      skin: "bg-[#5f3a2f]",
-      shirt: "bg-[#f2f7ef]"
+      portrait: {
+        skinTone: "#A0522D",
+        hairColor: "#1a0a00",
+        shirtColor: "#7c3aed",
+        hairStyle: "medium" as const,
+        hasGlasses: false
+      },
+      role: "Office coordinator",
+      outcome: "Cleaner handoffs.",
+      sub: "Less chaos at the desk."
     },
     {
-      quote: "Our front desk finally has backup.",
+      portrait: {
+        skinTone: "#C68642",
+        hairColor: "#1a0a00",
+        shirtColor: "#9d174d",
+        hairStyle: "long" as const,
+        hasGlasses: false
+      },
       role: "Owner-led business",
-      initials: "OB",
-      color: "from-[#f4f7ea] via-[#9db871] to-[#1f2b20]",
-      skin: "bg-[#b67b56]",
-      shirt: "bg-[#99c46a]"
+      outcome: "Front desk covered.",
+      sub: "Human backup ready."
     }
   ];
-  const [active, setActive] = useState(0);
-  const activeOutcome = outcomes[active] || outcomes[0];
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      return undefined;
-    }
-
-    const interval = window.setInterval(() => {
-      setActive((current) => (current + 1) % outcomes.length);
-    }, 4200);
-
-    return () => window.clearInterval(interval);
-  }, [outcomes.length]);
-
-  const move = (direction: -1 | 1) => {
-    setActive((current) => (current + direction + outcomes.length) % outcomes.length);
-  };
 
   return (
-    <section className="border-b border-[#baff39]/10 bg-[#050807] py-8 sm:py-10" aria-labelledby="human-trust-title">
-      <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-6 rounded-[1.35rem] border border-[#baff39]/12 bg-[#07100d]/80 p-4 shadow-2xl shadow-black/25 sm:p-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
-          <div>
-            <p className="system-label">Common outcomes businesses look for</p>
-            <h2 id="human-trust-title" className="mt-3 max-w-lg text-3xl font-black text-white sm:text-4xl">
-              Real teams need calls handled with <span className="accent-text">context.</span>
-            </h2>
-            <p className="mt-4 max-w-xl leading-7 text-slate-300">
-              NexCall is built around practical reception outcomes: answered calls,
-              captured details, clear handoffs, and fewer follow-up gaps.
-            </p>
-            <div className="mt-5 flex items-center gap-2" aria-label="Representative business team avatars">
-              {outcomes.map((outcome, index) => (
-                <HumanAvatar key={outcome.role} outcome={outcome} compact active={active === index} />
-              ))}
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="system-card rounded-2xl p-4 sm:p-5" aria-live="polite">
-              <div key={active} className="trust-card-fade flex items-center gap-4">
-                <HumanAvatar outcome={activeOutcome} active />
-                <div>
-                  <p className="text-lg font-black leading-6 text-white">&ldquo;{activeOutcome.quote}&rdquo;</p>
-                  <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-                    {activeOutcome.role}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-5 grid gap-2 sm:grid-cols-4">
-                {outcomes.map((outcome, index) => (
-                  <button
-                    key={outcome.role}
-                    type="button"
-                    onClick={() => setActive(index)}
-                    aria-label={`Show outcome: ${outcome.quote}`}
-                    aria-pressed={active === index}
-                    className={`h-2 rounded-full transition focus:outline-none focus:ring-4 focus:ring-[#baff39]/20 ${
-                      active === index ? "bg-[#baff39]" : "bg-white/14 hover:bg-white/28"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2 sm:flex-col">
-              <button
-                type="button"
-                onClick={() => move(-1)}
-                className="grid h-11 w-11 place-items-center rounded-full border border-[#baff39]/18 bg-black/30 text-slate-100 transition hover:-translate-y-0.5 hover:border-[#baff39]/45 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
-                aria-label="Previous outcome"
+    <section
+      className="border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-14"
+      aria-labelledby="trust-portraits-label"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <p
+          id="trust-portraits-label"
+          className="mb-8 text-center text-[0.65rem] font-black uppercase tracking-[0.2em] text-slate-500"
+        >
+          Built for teams that cannot miss calls
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {profiles.map((p) => (
+            <div
+              key={p.role}
+              className="system-card flex flex-col items-center rounded-[1.15rem] p-4 text-center sm:p-5"
+            >
+              <div
+                className="mb-3 h-16 w-16 overflow-hidden rounded-full border-2 border-[#baff39]/18 sm:h-20 sm:w-20"
+                role="img"
+                aria-label={`Illustrated portrait representing a ${p.role}`}
               >
-                <ArrowLeft size={18} aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                onClick={() => move(1)}
-                className="grid h-11 w-11 place-items-center rounded-full border border-[#baff39]/18 bg-black/30 text-slate-100 transition hover:-translate-y-0.5 hover:border-[#baff39]/45 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
-                aria-label="Next outcome"
-              >
-                <ArrowRight size={18} aria-hidden="true" />
-              </button>
+                <PortraitSVG {...p.portrait} />
+              </div>
+              <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-slate-500">
+                {p.role}
+              </p>
+              <p className="mt-1.5 text-sm font-black leading-tight text-white">{p.outcome}</p>
+              <p className="mt-0.5 text-xs text-slate-400">{p.sub}</p>
             </div>
-          </div>
+          ))}
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -853,10 +875,10 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
           <div>
             <p className="system-label">Experience NexCall</p>
             <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-6xl">
-              See how NexCall moves a caller to the <span className="accent-text">next step.</span>
+              Hear how <span className="accent-text">NexCall</span> handles your next call.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
-              Preview the flow, then try the real call. NexCall turns one caller need into a clean, team-ready next step.
+              Preview the flow, then try the real call. <span className="font-semibold text-white">NexCall</span> turns one caller need into a clean, team-ready next step.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <button
@@ -1014,7 +1036,7 @@ function JobsDone() {
           The front desk layer for <span className="accent-text">calls that matter.</span>
         </h2>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
-          NexCall focuses on the moments that become revenue, bookings, and customer trust: answering,
+          <span className="font-semibold text-white">NexCall</span> focuses on the moments that become revenue, bookings, and customer trust: answering,
           capturing, routing, and handing off without making your team guess.
         </p>
         <div className="mt-7 flex flex-wrap gap-2">
@@ -1037,68 +1059,162 @@ function JobsDone() {
 function HowItWorks() {
   const steps = [
     {
+      num: "01",
       label: "Answer",
-      title: "NexCall picks up",
-      copy: "NexCall picks up before callers hit a dead end."
+      icon: Phone,
+      title: "Picks up every time",
+      copy: "NexCall answers before callers hit voicemail or a dead end. Every call gets a professional first response.",
+      status: "CONNECTED",
+      statusColor: "#A8FF00"
     },
     {
+      num: "02",
       label: "Understand",
-      title: "The need is identified",
-      copy: "It captures the caller's need, contact details, and urgency."
+      icon: MessageSquareText,
+      title: "Captures need and context",
+      copy: "It identifies the caller's need, collects their contact details, and notes urgency — without guessing.",
+      status: "CAPTURED",
+      statusColor: "#A8FF00"
     },
     {
+      num: "03",
       label: "Route",
-      title: "The next step is routed",
-      copy: "It supports appointment requests, lead capture, FAQs, or human handoff."
+      icon: Workflow,
+      title: "Moves to the right next step",
+      copy: "Appointment requests, lead capture, FAQ answers, or a clean human handoff — routed with context.",
+      status: "ROUTED",
+      statusColor: "#60a5fa"
     },
     {
+      num: "04",
       label: "Report",
-      title: "Your team gets context",
-      copy: "Your team receives a clean summary with the next step."
+      icon: ClipboardList,
+      title: "Team gets a clean brief",
+      copy: "Your team receives a context-rich summary with the next action already clear. No guesswork.",
+      status: "READY",
+      statusColor: "#A8FF00"
     }
   ];
 
+  const journeyItems = [
+    { label: "Call answered", status: "CONNECTED" },
+    { label: "Name & phone captured", status: "CAPTURED" },
+    { label: "Thursday PM noted", status: "NOTED" },
+    { label: "Team brief sent", status: "READY" }
+  ];
+
   return (
-    <section id="how-it-works" className="border-y border-[#baff39]/10 bg-[#020403] py-16 sm:py-20">
-      <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-          <div>
-            <p className="system-label">How it works</p>
-            <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
-              Answer. Understand. Route. <span className="accent-text">Report.</span>
-            </h2>
-            <p className="mt-5 text-lg leading-8 text-slate-300">
-              The workflow mirrors what a strong receptionist already does: answer,
-              listen, route, and brief the team.
-            </p>
+    <section id="how-it-works" className="border-y border-[#baff39]/10 bg-[#020403] py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        {/* Section header */}
+        <div className="mb-14 max-w-3xl">
+          <p className="system-label">How it works</p>
+          <h2 className="mt-4 text-5xl font-black text-white sm:text-6xl lg:text-[4.5rem] leading-[0.95] tracking-tight">
+            Answer. Understand.<br className="hidden sm:block" />
+            {" "}Route. <span className="accent-text">Report.</span>
+          </h2>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            The workflow mirrors what a strong front desk already does — every call handled,
+            every detail captured, every next step clear for the team.
+          </p>
+        </div>
+
+        {/* Steps with connector line */}
+        <div className="relative">
+          {/* Horizontal connector line — desktop only, sits behind the icon circles */}
+          <div
+            className="pointer-events-none absolute top-[1.375rem] left-[4.5rem] right-[4.5rem] hidden h-px lg:block"
+            aria-hidden="true"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent 0%, rgba(186,255,57,0.30) 15%, rgba(186,255,57,0.30) 85%, transparent 100%)"
+            }}
+          />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {steps.map((step) => {
+              const StepIcon = step.icon;
+              return (
+                <div key={step.label} className="relative flex flex-col">
+                  {/* Icon circle — sits on the connector line on desktop */}
+                  <div className="relative z-10 mb-5 flex h-[2.75rem] w-[2.75rem] shrink-0 items-center justify-center rounded-full border border-[#baff39]/30 bg-[#020403] text-[#baff39] lg:mx-auto">
+                    <StepIcon size={20} aria-hidden="true" />
+                  </div>
+                  <div className="system-card flex-1 rounded-[1.35rem] p-6">
+                    <div className="mb-5 flex items-center justify-between">
+                      <span className="rounded-full border border-[#baff39]/20 bg-[#baff39]/8 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#baff39]">
+                        {step.label}
+                      </span>
+                      <span className="text-2xl font-black text-[#baff39]/18">{step.num}</span>
+                    </div>
+                    <h3 className="text-xl font-black leading-tight text-white">{step.title}</h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">{step.copy}</p>
+                    <div className="mt-5 flex items-center gap-1.5">
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: step.statusColor }}
+                        aria-hidden="true"
+                      />
+                      <span
+                        className="text-[0.6rem] font-black uppercase tracking-[0.14em]"
+                        style={{ color: step.statusColor }}
+                      >
+                        {step.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Call Journey Example Panel */}
+        <div className="mt-10 metal-panel rounded-[1.35rem] p-5 sm:p-8">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-xl">
+              <p className="system-label">Example call journey</p>
+              <p className="mt-3 text-xl font-black text-white">
+                &ldquo;I need to move my appointment to Thursday afternoon.&rdquo;
+              </p>
+              <p className="mt-3 text-sm leading-6 text-slate-300">
+                NexCall answers, captures the caller&rsquo;s name, phone, preferred time, and urgency — then sends your team a clean summary ready for confirmation. No phone tag.
+              </p>
+            </div>
             <a
-              href="#lead"
-              className="system-button-primary mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
+              href="#demos"
+              className="system-button-primary shrink-0 inline-flex min-h-12 items-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
             >
-              Map My First Flow
-              <ArrowRight size={18} aria-hidden="true" />
+              See the demo
+              <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {steps.map((step, index) => (
-              <motion.article
-                key={step.title}
-                whileHover={{ y: -4 }}
-                className="system-card system-card-hover rounded-[1.25rem] p-6"
+          <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {journeyItems.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-[#baff39]/12 bg-[#baff39]/5 px-3 py-3"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <span className="rounded-full border border-[#baff39]/20 bg-[#baff39]/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#baff39]">
-                    {step.label}
-                  </span>
-                  <span className="text-3xl font-black text-[#baff39]/25">0{index + 1}</span>
-                </div>
-                <h3 className="mt-8 text-2xl font-black text-white">{step.title}</h3>
-                <p className="mt-3 leading-7 text-slate-300">{step.copy}</p>
-              </motion.article>
+                <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#baff39]">
+                  {item.status}
+                </p>
+                <p className="mt-1 text-xs font-bold text-slate-200">{item.label}</p>
+              </div>
             ))}
           </div>
         </div>
-      </motion.div>
+
+        {/* CTA */}
+        <div className="mt-10 text-center">
+          <a
+            href="#lead"
+            className="system-button-primary inline-flex min-h-12 items-center gap-2 rounded-xl px-7 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
+          >
+            Map My First Call Flow
+            <ArrowRight size={18} aria-hidden="true" />
+          </a>
+        </div>
+      </div>
     </section>
   );
 }

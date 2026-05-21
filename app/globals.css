@@ -35,6 +35,20 @@
   box-sizing: border-box;
 }
 
+/* Firefox: ensure backdrop-filter is supported with vendor prefix */
+.backdrop-blur-2xl,
+[class*="backdrop-blur"] {
+  -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+}
+
+/* Firefox: promote fixed/sticky layers to their own compositing layer to fix z-index stacking */
+header[class*="fixed"],
+div[class*="fixed"][class*="z-"] {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
 html {
   scroll-behavior: smooth;
 }
