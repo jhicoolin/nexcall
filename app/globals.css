@@ -16,6 +16,19 @@
   --brand-gold: #b1f85e;
   --brand-lime: #b1f85e;
   --brand-lime-soft: rgba(177, 248, 94, 0.12);
+
+  /* Design system tokens */
+  --bg-base: #080A0F;
+  --bg-surface: #0E1117;
+  --bg-card: #141920;
+  --accent: #A8FF00;
+  --accent-dim: rgba(168,255,0,0.12);
+  --text-primary: #FFFFFF;
+  --text-secondary: #9CA3AF;
+  --text-muted: #4B5563;
+  --border: rgba(255,255,255,0.07);
+  --radius-card: 10px;
+  --radius-btn: 6px;
 }
 
 * {
@@ -288,6 +301,20 @@ h3.font-black {
 
 .live-pulse {
   animation: live-pulse 2.4s ease-in-out infinite;
+}
+
+/* Grid background utility */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid #A8FF00;
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

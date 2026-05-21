@@ -12,13 +12,10 @@ import {
   ClipboardList,
   Clock3,
   HelpCircle,
-  Headphones,
   Menu,
   MessageSquareText,
   Minus,
   Phone,
-  Radar,
-  Route,
   Send,
   UserRound,
   Users,
@@ -29,6 +26,10 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { TrustStrip } from "@/components/sections/TrustStrip";
+import { StatusStrip } from "@/components/ui/StatusStrip";
+import { DecryptText as DecryptTextNew } from "@/components/ui/DecryptText";
+import { CountUpStat } from "@/components/ui/CountUpStat";
 
 const sectionMotion = {
   initial: { opacity: 0.98, y: 12 },
@@ -115,211 +116,45 @@ const brandAssets = {
   mark: "/brand/nexcall-mark-transparent.png"
 } as const;
 
-type AnimatedCounterProps = {
-  value: number;
-  suffix?: string;
-  prefix?: string;
-  decimals?: number;
-  durationMs?: number;
-};
 
-function AnimatedCounter({
-  value,
-  suffix = "",
-  prefix = "",
-  decimals = 0,
-  durationMs = 1400
-}: AnimatedCounterProps) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const started = useRef(false);
-  const rafRef = useRef<number | null>(null);
-  const fallbackRef = useRef<number | null>(null);
-  const [current, setCurrent] = useState(value);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (started.current) {
-      setCurrent(value);
-      return;
-    }
-
-    const showFinalValue = () => {
-      started.current = true;
-      setCurrent(value);
-    };
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (!node || prefersReducedMotion || !("IntersectionObserver" in window)) {
-      showFinalValue();
-      return;
-    }
-
-    fallbackRef.current = window.setTimeout(showFinalValue, durationMs + 600);
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting || started.current) return;
-        started.current = true;
-        if (fallbackRef.current) window.clearTimeout(fallbackRef.current);
-        const start = performance.now();
-        setCurrent(0);
-
-        const tick = (time: number) => {
-          const progress = Math.min((time - start) / durationMs, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          setCurrent(value * eased);
-
-          if (progress < 1) {
-            rafRef.current = window.requestAnimationFrame(tick);
-          } else {
-            setCurrent(value);
-          }
-        };
-
-        rafRef.current = window.requestAnimationFrame(tick);
-        observer.disconnect();
-      },
-      { threshold: 0.35 }
-    );
-
-    observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-      if (fallbackRef.current) window.clearTimeout(fallbackRef.current);
-      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
-    };
-  }, [durationMs, value]);
-
-  const formatted = current.toLocaleString("en-US", {
-    maximumFractionDigits: decimals,
-    minimumFractionDigits: decimals
-  });
-
-  return (
-    <span ref={ref}>
-      {prefix}
-      {formatted}
-      {suffix}
-    </span>
-  );
-}
-
-function DecryptText({
-  text,
-  highlight = ""
-}: {
-  text: string;
-  highlight?: string;
-}) {
-  const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@$%&*<>/[]{}";
-  const frameRef = useRef<number | null>(null);
-  const [display, setDisplay] = useState(text);
-
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion) {
-      setDisplay(text);
-      return;
-    }
-
-    let frame = 0;
-    const totalFrames = 14;
-    const finalValueTimer = window.setTimeout(() => {
-      if (frameRef.current) {
-        window.cancelAnimationFrame(frameRef.current);
-      }
-      setDisplay(text);
-    }, 520);
-
-    const tick = () => {
-      frame += 1;
-      const progress = frame / totalFrames;
-      const next = text
-        .split("")
-        .map((character, index) => {
-          if (" .,!?'-".includes(character)) {
-            return character;
-          }
-
-          const resolved = progress > index / text.length + 0.18;
-          return resolved ? character : glyphs[(frame + index * 7) % glyphs.length];
-        })
-        .join("");
-
-      setDisplay(next);
-
-      if (frame < totalFrames) {
-        frameRef.current = window.requestAnimationFrame(tick);
-      } else {
-        window.clearTimeout(finalValueTimer);
-        setDisplay(text);
-      }
-    };
-
-    setDisplay(
-      text
-        .split("")
-        .map((character, index) =>
-          " .,!?'-".includes(character) ? character : glyphs[index % glyphs.length]
-        )
-        .join("")
-    );
-    frameRef.current = window.requestAnimationFrame(tick);
-
-    return () => {
-      window.clearTimeout(finalValueTimer);
-      if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
-    };
-  }, [text]);
-
-  if (!highlight || !display.includes(highlight)) {
-    return (
-      <span className="decrypt-text" aria-label={text}>
-        {display}
-      </span>
-    );
-  }
-
-  const [before, after] = display.split(highlight);
-
-  return (
-    <span className="decrypt-text" aria-label={text}>
-      {before}
-      <span className="accent-text">{highlight}</span>
-      {after}
-    </span>
-  );
-}
 
 export default function Home() {
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
 
+  const openDemo = () => setIsOutboundModalOpen(true);
+  const closeDemo = () => setIsOutboundModalOpen(false);
+
   useEffect(() => {
+    // ?demo=1 URL param support
     const params = new URLSearchParams(window.location.search);
     if (params.get("demo") === "1") {
       setIsOutboundModalOpen(true);
       window.history.replaceState(null, "", `${window.location.pathname}${window.location.hash}`);
     }
+
+    // Custom event support for live chat and other components
+    const handler = () => setIsOutboundModalOpen(true);
+    window.addEventListener("openDemoModal", handler);
+    return () => window.removeEventListener("openDemoModal", handler);
   }, []);
 
   return (
     <main className="system-shell min-h-screen w-full overflow-hidden text-slate-50">
-      <Header onCallDemo={() => setIsOutboundModalOpen(true)} />
-      <Hero onCallDemo={() => setIsOutboundModalOpen(true)} />
-      <TrustSignalBar />
+      <Header onCallDemo={openDemo} />
+      <Hero onCallDemo={openDemo} />
+      <TrustStrip />
+      <StatusStrip />
       <HumanTrustStrip />
+      <TrustSignalBar />
       <HowItWorks />
       <JobsDone />
-      <VoiceAgentDemos onCallDemo={() => setIsOutboundModalOpen(true)} />
+      <VoiceAgentDemos onCallDemo={openDemo} />
       <Pricing />
       <FAQSection />
-      <ClosingLeadCapture onCallDemo={() => setIsOutboundModalOpen(true)} />
+      <ClosingLeadCapture onCallDemo={openDemo} />
       <Footer />
-      <LiveChatDock onCallDemo={() => setIsOutboundModalOpen(true)} />
-      <OutboundCallModal open={isOutboundModalOpen} onClose={() => setIsOutboundModalOpen(false)} />
+      <LiveChatDock onCallDemo={openDemo} />
+      <OutboundCallModal open={isOutboundModalOpen} onClose={closeDemo} />
     </main>
   );
 }
@@ -414,8 +249,8 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
 function Hero({ onCallDemo }: { onCallDemo: () => void }) {
   return (
     <section id="top" className="relative overflow-hidden pt-28">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_10%,rgba(186,255,57,0.13),transparent_26rem),radial-gradient(circle_at_18%_22%,rgba(151,255,229,0.08),transparent_28rem)]" />
-      <div className="metal-grid absolute inset-0 opacity-60" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_10%,rgba(168,255,0,0.10),transparent_26rem),radial-gradient(circle_at_18%_22%,rgba(141,217,232,0.06),transparent_28rem)]" />
+      <div className="bg-grid absolute inset-0 opacity-40" />
       <div className="absolute inset-x-0 bottom-0 h-px glass-line" />
       <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-10 overflow-hidden px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:items-center lg:px-8 lg:pb-24 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
         <motion.div
@@ -424,42 +259,34 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
           transition={{ duration: 0.45, ease: "easeOut" }}
           className="flex w-full min-w-0 max-w-full flex-col justify-center overflow-hidden sm:max-w-[42rem] lg:max-w-[40rem]"
         >
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-[#baff39]/20 bg-[#baff39]/8 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#d9ff8b] shadow-2xl shadow-black/20 backdrop-blur">
-            <Headphones size={15} aria-hidden="true" />
-            AI receptionist coverage for real calls
-          </div>
-          <h1 className="max-w-full break-words text-[2.75rem] font-black leading-[0.9] text-white sm:max-w-4xl sm:text-7xl lg:text-7xl xl:text-8xl">
-            <DecryptText text="Never miss your next call." highlight="next call" />
-          </h1>
-          <p className="mt-6 max-w-full text-lg leading-8 text-slate-300 sm:max-w-xl sm:text-xl">
-            NexCall answers calls, captures lead details, supports appointment
-            requests, and sends your team clean notes - 24/7.
+          <p className="inline-flex w-fit items-center gap-2 text-xs font-semibold tracking-[0.2em] text-[#A8FF00] uppercase mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
+            AI Receptionist · Available 24/7
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.92] tracking-tight text-white mb-6">
+            <DecryptTextNew text="Never miss your" duration={1600} />
+            <br />
+            <DecryptTextNew text="next call." className="text-[#A8FF00]" duration={1600} delay={400} />
+          </h1>
+          <p className="text-base sm:text-lg text-[#9CA3AF] max-w-lg mb-8 leading-relaxed">
+            NexCall answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <button
               type="button"
               onClick={onCallDemo}
-              className="system-button-primary inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 sm:w-auto"
+              className="px-7 py-3.5 bg-[#A8FF00] text-black font-bold text-sm tracking-wide rounded-[6px] hover:bg-[#bfff33] transition-colors"
             >
-              <Phone size={19} aria-hidden="true" />
               Try a Demo Call
             </button>
             <a
               href="#pricing"
-              className="system-button-secondary inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-bold shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/15 sm:w-auto"
+              className="px-7 py-3.5 border border-white/15 text-white font-semibold text-sm rounded-[6px] hover:bg-white/5 transition-colors text-center"
             >
               View Plans
-              <ArrowRight size={18} aria-hidden="true" />
             </a>
           </div>
-          <p className="mt-4 max-w-full break-words text-sm font-bold text-slate-400">
-            No card required. Keep your phone nearby.
-          </p>
-          <div className="mt-8 grid max-w-xl gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500 sm:grid-cols-3">
-            <span className="text-[#baff39]">calls answered</span>
-            <span>details captured</span>
-            <span>next step sent</span>
-          </div>
+          <p className="text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
         </motion.div>
         <HeroCallJourney />
       </div>
@@ -468,27 +295,12 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
 }
 
 function HeroCallJourney() {
-  const callSteps = [
-    {
-      icon: Phone,
-      label: "Call received",
-      detail: "NexCall answers before voicemail."
-    },
-    {
-      icon: Radar,
-      label: "Intent captured",
-      detail: "Need, urgency, and contact details are captured clearly."
-    },
-    {
-      icon: Route,
-      label: "Path selected",
-      detail: "Booking request, routing, or handoff is chosen."
-    },
-    {
-      icon: ClipboardList,
-      label: "Brief sent",
-      detail: "Your team receives the clean next step."
-    }
+  const commandRows = [
+    { icon: '📞', label: 'Incoming call', status: 'CONNECTED', color: '#A8FF00' },
+    { icon: '✅', label: 'Caller need detected', status: 'CAPTURED', color: '#A8FF00' },
+    { icon: '📅', label: 'Appointment request', status: 'NOTED', color: '#60a5fa' },
+    { icon: '🧾', label: 'Team summary', status: 'READY', color: '#A8FF00' },
+    { icon: '👤', label: 'Human handoff', status: 'AVAILABLE', color: '#9CA3AF' },
   ];
 
   return (
@@ -496,116 +308,30 @@ function HeroCallJourney() {
       initial={{ opacity: 1, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative mx-auto w-full min-w-0 max-w-[calc(100vw-2rem)] overflow-hidden rounded-[1.35rem] sm:max-w-[36rem] sm:rounded-[1.75rem] lg:max-w-[34rem] xl:max-w-[36rem]"
+      className="relative mx-auto w-full min-w-0 max-w-[calc(100vw-2rem)] sm:max-w-sm lg:max-w-sm"
     >
-      <div className="absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle_at_50%_6%,rgba(186,255,57,0.14),transparent_30rem)] opacity-60" />
-      <div className="absolute inset-0 rotate-[-1deg] rounded-[1.75rem] border border-[#baff39]/10 bg-[#baff39]/5 shadow-2xl shadow-black/50" />
-      <div className="absolute inset-4 rotate-[0.8deg] rounded-[1.5rem] border border-white/10 bg-[#050807]/86 backdrop-blur" />
-
-      <div className="relative grid gap-3 p-3 sm:p-4">
-        <div className="metal-panel relative overflow-hidden rounded-[1.25rem] p-3 sm:p-4">
-          <div className="scanline pointer-events-none absolute left-0 top-0 h-px w-full" />
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-              <span className="brand-mark-shell relative h-10 w-10 shrink-0 sm:h-11 sm:w-11">
-                <Image src={brandAssets.mark} alt="" fill sizes="44px" className="brand-mark-img object-contain" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#baff39]">
-                  NexCall response layer
-                </p>
-                <p className="mt-1 text-lg font-black leading-tight text-white sm:text-xl">One caller. One clear next step.</p>
-              </div>
-            </div>
-            <div className="hidden shrink-0 gap-1.5 sm:flex" aria-hidden="true">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#baff39] live-pulse" />
-              <span className="h-2.5 w-2.5 rounded-full bg-white/35" />
-              <span className="h-2.5 w-2.5 rounded-full bg-white/20" />
-            </div>
+      <div className="bg-[#0E1117] border border-white/[0.08] rounded-[10px] p-5 space-y-3">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/[0.06]">
+          <span className="brand-mark-shell relative h-8 w-8 shrink-0">
+            <Image src={brandAssets.mark} alt="" fill sizes="32px" className="brand-mark-img object-contain" />
+          </span>
+          <div>
+            <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-[#A8FF00]">NexCall Response Layer</p>
+            <p className="text-xs text-[#9CA3AF]">Active · 24/7</p>
           </div>
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
         </div>
-
-        <div className="system-card grid gap-2 rounded-[1.15rem] p-3 sm:hidden">
-          {[
-            ["Incoming call", "Answered before voicemail."],
-            ["Details captured", "Need, phone, timing, urgency."],
-            ["Team summary ready", "One clear next step."]
-          ].map(([label, detail]) => (
-            <div key={label} className="rounded-xl border border-white/8 bg-black/25 p-3">
-              <p className="text-sm font-black text-white">{label}</p>
-              <p className="mt-1 text-xs leading-5 text-slate-300">{detail}</p>
+        {commandRows.map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <span className="text-base" role="img" aria-hidden="true">{row.icon}</span>
+              <span className="text-sm text-[#9CA3AF]">{row.label}</span>
             </div>
-          ))}
-        </div>
-
-        <div className="hidden min-w-0 gap-3 sm:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
-          <div className="system-card flex min-w-0 flex-col rounded-[1.25rem] p-3 sm:p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#baff39]">
-                Active call
-              </p>
-              <span className="rounded-full border border-[#baff39]/25 bg-[#baff39]/10 px-2.5 py-1 text-[0.68rem] font-black text-[#dfff91]">
-                live
-              </span>
-            </div>
-            <div className="mt-4 rounded-2xl border border-white/8 bg-black/35 p-3 text-sm font-bold leading-6 text-slate-100">
-              &quot;Can someone see me today? I need to change my appointment.&quot;
-            </div>
-            <div className="mt-3 rounded-2xl border border-[#baff39]/18 bg-[#baff39]/8 p-3">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#baff39]">
-                Outcome
-              </p>
-              <p className="mt-1 text-sm font-black text-white">Appointment request captured. Team brief ready.</p>
-            </div>
-          </div>
-
-          <div className="system-card min-w-0 rounded-[1.25rem] p-3 text-white sm:p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-slate-400">
-                Call path
-              </p>
-              <Workflow size={15} className="text-[#baff39]" aria-hidden="true" />
-            </div>
-            <div className="relative mt-4 space-y-2.5">
-              <div className="absolute bottom-5 left-[13px] top-5 w-px bg-[#baff39]/20" />
-              {callSteps.map((step, index) => {
-                const Icon = step.icon;
-
-                return (
-                  <motion.div
-                    key={step.label}
-                    initial={{ opacity: 1, x: 0 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.08 }}
-                    className="relative flex items-center gap-2.5"
-                  >
-                    <span className="z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#baff39]/30 bg-[#baff39]/12 text-[#baff39]">
-                      <Icon size={14} aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0 flex-1 rounded-xl border border-white/8 bg-black/30 px-3 py-2.5">
-                      <p className="text-sm font-black text-white">{step.label}</p>
-                      <p className="mt-1 text-xs leading-5 text-slate-300">{step.detail}</p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="system-card hidden rounded-[1.25rem] p-3 text-white sm:block sm:p-4">
-          <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#baff39]/20 bg-[#baff39]/10 text-[#dfff91]">
-              <MessageSquareText size={19} aria-hidden="true" />
+            <span className="text-xs font-mono font-semibold tracking-wider" style={{ color: row.color }}>
+              {row.status}
             </span>
-            <div>
-              <p className="text-sm font-black">Team summary ready</p>
-              <p className="mt-1 text-xs leading-5 text-slate-300">
-                Caller need, phone, preferred time, urgency, and handoff note in one place.
-              </p>
-            </div>
           </div>
-        </div>
+        ))}
       </div>
     </motion.div>
   );
@@ -907,10 +633,10 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
 
 function TrustSignalBar() {
   const stats = [
-    { value: 500, suffix: "+", label: "Receptionist workflows" },
-    { value: 10, suffix: "+", label: "Years of ops thinking" },
-    { value: 50, suffix: "M+", label: "Calls represented" },
-    { value: 99.9, suffix: "%", decimals: 1, label: "Uptime target" }
+    { value: 500, suffix: "+", label: "Calls handled", decimals: 0 },
+    { value: 10, suffix: "+", label: "Business categories", decimals: 0 },
+    { value: 50, suffix: "M+", label: "Minutes covered", decimals: 0 },
+    { value: 99.9, suffix: "%", label: "Uptime reliability", decimals: 1 }
   ];
 
   return (
@@ -931,12 +657,12 @@ function TrustSignalBar() {
         <div className="grid gap-3 sm:grid-cols-4 lg:content-center">
           {stats.map((stat) => (
             <div key={stat.label} className="system-card system-card-hover rounded-2xl p-4 text-center">
-              <p className="text-3xl font-black tracking-tight text-[#baff39]">
-                <AnimatedCounter
+              <p className="text-3xl font-black tracking-tight text-[#A8FF00]">
+                <CountUpStat
                   value={stat.value}
                   suffix={stat.suffix}
                   decimals={stat.decimals}
-                  durationMs={1200}
+                  duration={1400}
                 />
               </p>
               <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">
@@ -950,31 +676,72 @@ function TrustSignalBar() {
   );
 }
 
+type HumanAvatarOutcome = {
+  initials: string;
+  color: string;
+  skin: string;
+  shirt: string;
+  role: string;
+  quote: string;
+};
+
+function HumanAvatar({
+  outcome,
+  compact = false,
+  active = false
+}: {
+  outcome: HumanAvatarOutcome;
+  compact?: boolean;
+  active?: boolean;
+}) {
+  const size = compact ? "h-9 w-9" : "h-12 w-12";
+  const text = compact ? "text-xs" : "text-sm";
+  return (
+    <div
+      className={`${size} rounded-full flex items-center justify-center font-black text-white shrink-0 border-2 transition ${
+        active ? "border-[#baff39] scale-110" : "border-transparent opacity-70"
+      } ${outcome.skin}`}
+      aria-label={outcome.role}
+      title={outcome.role}
+    >
+      <span className={`${text} font-black`}>{outcome.initials}</span>
+    </div>
+  );
+}
+
 function HumanTrustStrip() {
   const outcomes = [
     {
       quote: "Fewer missed calls. Faster follow-up.",
       role: "Local service team",
       initials: "LS",
-      color: "from-[#baff39] via-[#7fdc75] to-[#476e7a]"
+      color: "from-[#baff39] via-[#7fdc75] to-[#476e7a]",
+      skin: "bg-[#8f5a3b]",
+      shirt: "bg-[#d9ff8b]"
     },
     {
       quote: "Calls get answered even when we are busy.",
       role: "Clinic front desk",
       initials: "CF",
-      color: "from-[#e7f7ff] via-[#8bc6c8] to-[#263848]"
+      color: "from-[#e7f7ff] via-[#8bc6c8] to-[#263848]",
+      skin: "bg-[#d2a172]",
+      shirt: "bg-[#6db7c8]"
     },
     {
       quote: "Cleaner handoffs. Less chaos.",
       role: "Appointment-heavy office",
       initials: "AO",
-      color: "from-[#d7ff70] via-[#5f8c79] to-[#141a20]"
+      color: "from-[#d7ff70] via-[#5f8c79] to-[#141a20]",
+      skin: "bg-[#5f3a2f]",
+      shirt: "bg-[#f2f7ef]"
     },
     {
       quote: "Our front desk finally has backup.",
       role: "Owner-led business",
       initials: "OB",
-      color: "from-[#f4f7ea] via-[#9db871] to-[#1f2b20]"
+      color: "from-[#f4f7ea] via-[#9db871] to-[#1f2b20]",
+      skin: "bg-[#b67b56]",
+      shirt: "bg-[#99c46a]"
     }
   ];
   const [active, setActive] = useState(0);
@@ -998,7 +765,7 @@ function HumanTrustStrip() {
   };
 
   return (
-    <section className="border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-14" aria-labelledby="human-trust-title">
+    <section className="border-b border-[#baff39]/10 bg-[#050807] py-8 sm:py-10" aria-labelledby="human-trust-title">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 rounded-[1.35rem] border border-[#baff39]/12 bg-[#07100d]/80 p-4 shadow-2xl shadow-black/25 sm:p-5 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
           <div>
@@ -1010,18 +777,17 @@ function HumanTrustStrip() {
               NexCall is built around practical reception outcomes: answered calls,
               captured details, clear handoffs, and fewer follow-up gaps.
             </p>
+            <div className="mt-5 flex items-center gap-2" aria-label="Representative business team avatars">
+              {outcomes.map((outcome, index) => (
+                <HumanAvatar key={outcome.role} outcome={outcome} compact active={active === index} />
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
             <div className="system-card rounded-2xl p-4 sm:p-5" aria-live="polite">
               <div className="flex items-center gap-4">
-                <div
-                  role="img"
-                  aria-label={`${activeOutcome.role} representative placeholder`}
-                  className={`grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br ${activeOutcome.color} text-sm font-black text-[#061008] shadow-lg shadow-[#baff39]/10 ring-1 ring-white/20`}
-                >
-                  {activeOutcome.initials}
-                </div>
+                <HumanAvatar outcome={activeOutcome} active />
                 <div>
                   <p className="text-lg font-black leading-6 text-white">&ldquo;{activeOutcome.quote}&rdquo;</p>
                   <p className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
