@@ -10,10 +10,13 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "discord:register": "node discord/scripts/register-commands.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "discord-interactions": "^3.4.0",
+    "openai": "^4.47.1",
     "@tanstack/react-table": "^8.21.3",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
