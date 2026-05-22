@@ -250,10 +250,10 @@ async function run() {
   });
 
   // Mobile check
-  // Always fresh navigate for mobile tests
+  // Always fresh navigate for mobile tests — use networkidle so React fully hydrates
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.waitForTimeout(3000);
+  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.waitForTimeout(2000); // let animations settle
 
   await test('Mobile: no horizontal scroll', async () => {
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -262,6 +262,8 @@ async function run() {
   });
 
   await test('Mobile: review marquee section visible', async () => {
+    // Wait for the marquee section to be present in the DOM
+    await page.waitForSelector('[aria-labelledby="marquee-label"]', { timeout: 8000 }).catch(() => null);
     const result = await page.evaluate(() => {
       const section =
         document.querySelector('[aria-labelledby="marquee-label"]') ||
@@ -275,11 +277,8 @@ async function run() {
   });
 
   await test('Mobile: hero CTA tap target ≥44px', async () => {
-    // Navigate fresh in case pricing redirected away
-    if (!page.url().includes('localhost')) {
-      await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 20000 });
-      await page.waitForTimeout(2000);
-    }
+    // Wait for hero button to be present
+    await page.waitForSelector('section#top button', { timeout: 8000 }).catch(() => null);
     const btnH = await page.evaluate(() => {
       const btn = document.querySelector('section#top button');
       return btn?.getBoundingClientRect().height;
