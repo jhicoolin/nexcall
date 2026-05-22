@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { verifyKey } from 'discord-interactions';
-// @ts-ignore — JS module in discord/ subfolder
+// @ts-ignore — JS modules in discord/ subfolder
 import { route } from '@/discord/src/router.js';
 
-// Needs Node.js runtime (not Edge) for Buffer and discord-interactions
 export const runtime = 'nodejs';
-
-// 60s for /setup which creates multiple channels via Discord REST
 export const maxDuration = 60;
 
 interface FakeRes {
@@ -28,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   const publicKey = process.env.DISCORD_PUBLIC_KEY;
   if (!publicKey) {
-    console.error('DISCORD_PUBLIC_KEY env var is not set');
+    console.error('DISCORD_PUBLIC_KEY is not configured');
     return new NextResponse('Server misconfiguration', { status: 500 });
   }
 
@@ -44,7 +41,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ type: 1 });
   }
 
-  // Capture response via fake res object (command handlers call res.json())
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let responseData: any;
   const fakeRes: FakeRes = {
@@ -64,18 +60,15 @@ export async function POST(req: NextRequest) {
   try {
     const handlerPromise: Promise<void> = route(interaction, fakeRes);
 
-    // Yield one microtask so synchronous res.json() calls (like the deferred
-    // response in /setup) run before we check responseData.
+    // Yield one microtask so synchronous res.json() calls (e.g. deferred in /setup) run first
     await Promise.resolve();
 
     if (fakeRes.headersSent && responseData?.type === 5) {
-      // Deferred response: /setup sends type:5 then continues async channel creation.
-      // next/server `after` keeps the function alive after the response is sent.
+      // /setup: deferred — return type:5 immediately, keep function alive via after()
       after(handlerPromise);
       return NextResponse.json({ type: 5 });
     }
 
-    // All other commands: wait for full completion before responding
     await handlerPromise;
 
     return NextResponse.json(

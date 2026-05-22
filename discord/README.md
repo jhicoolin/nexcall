@@ -1,72 +1,79 @@
 # Bad Genetics Genie — Discord Bot
 
-Nested inside the NexCall project. Lives at `discord/` and is completely isolated from the NexCall website.
+Internal developer docs. This bot is publicly known only as **Genie** for **BadGenes (@badgenetic)**.
+
+Lives in the `discord/` folder. Completely isolated from the main website codebase.
 
 ---
 
-## How It Works
+## Endpoint
 
-| Component | Location | Purpose |
-|---|---|---|
-| Bot source | `discord/src/` | All command handlers, utilities |
-| API endpoint | `app/api/discord/interactions/` | Receives Discord webhooks |
-| Registration script | `discord/scripts/register-commands.mjs` | Registers slash commands |
-| DB schema | `discord/db/schema.sql` | Postgres schema for Phase 2 |
+```
+https://nexcall.one/api/interactions
+```
 
-The interactions endpoint lives at:
-```
-https://your-nexcall-domain.vercel.app/api/discord/interactions
-```
+Set this as the **Interactions Endpoint URL** in Discord Developer Portal.
+
+---
+
+## Structure
+
+| Path | Purpose |
+|---|---|
+| `discord/src/commands/` | All slash command handlers |
+| `discord/src/router.js` | Routes interactions to handlers |
+| `discord/src/permissions.js` | Permission bit-field helpers |
+| `discord/src/rateLimit.js` | In-memory rate limiter |
+| `discord/src/discordApi.js` | Discord REST API helpers |
+| `discord/src/commandDefinitions.js` | Slash command schemas |
+| `discord/scripts/register-commands.mjs` | Registers commands with Discord |
+| `discord/db/schema.sql` | Postgres schema for Phase 2 |
+| `app/api/interactions/route.ts` | Next.js API route — Discord webhook |
 
 ---
 
 ## Setup
 
-### 1. Add environment variables
-
-Add these to your `.env` (or Vercel project settings):
+### 1. Add environment variables to Vercel
 
 ```
 DISCORD_PUBLIC_KEY=        # Discord Dev Portal → App → General Information → Public Key
 DISCORD_APPLICATION_ID=   # Discord Dev Portal → App → General Information → Application ID
-DISCORD_BOT_TOKEN=        # Discord Dev Portal → App → Bot → Token (never commit this)
+DISCORD_BOT_TOKEN=        # Discord Dev Portal → App → Bot → Token
 OPENAI_API_KEY=           # platform.openai.com
-BADGENES_SITE_URL=        # e.g. https://badgenes.com
+BADGENES_SITE_URL=        # https://nexcall.one (or future badgenes.com)
 ```
 
-These are prefixed differently from NexCall's vars — no conflicts.
+### 2. Deploy
 
-### 2. Install dependencies
+Deploy as normal. The `/api/interactions` route is picked up automatically.
 
-From the nexcall project root:
-```bash
-npm install
+### 3. Set interactions endpoint in Discord Developer Portal
+
+Go to: **Your App → General Information → Interactions Endpoint URL**
+
+Paste:
+```
+https://nexcall.one/api/interactions
 ```
 
-`discord-interactions` and `openai` are added to nexcall's package.json.
+Click **Save Changes**. Discord will ping it to verify.
 
-### 3. Deploy
+### 4. Register slash commands
 
-Deploy NexCall as normal — Vercel picks up the new `/api/discord/interactions` route automatically.
-
-### 4. Set interactions endpoint in Discord
-
-Go to **Discord Developer Portal → Your App → General Information → Interactions Endpoint URL** and set:
-```
-https://your-nexcall-domain.vercel.app/api/discord/interactions
-```
-
-Click **Save Changes**. Discord will ping the endpoint to verify. ✓
-
-### 5. Register slash commands
-
+From the project root:
 ```bash
 node discord/scripts/register-commands.mjs
 ```
 
-Run this once (or after adding new commands). For instant testing during development, uncomment the guild-scoped URL in the script.
+Or use the npm shortcut:
+```bash
+npm run discord:register
+```
 
-### 6. Invite the bot
+Global commands take up to 1 hour to propagate. For instant dev testing, uncomment the guild-scoped URL in the register script.
+
+### 5. Invite the bot
 
 Discord Dev Portal → OAuth2 → URL Generator
 - Scopes: `bot`, `applications.commands`
@@ -76,41 +83,31 @@ Discord Dev Portal → OAuth2 → URL Generator
 
 ## Commands
 
-| Command | Description | Admin Only |
+| Command | Description | Admin |
 |---|---|---|
-| `/setup` | Create the full Bad Genetics HQ channel structure | Yes |
-| `/rules` | Post server rules embed | No |
-| `/shop` | Link to BadGenes.com | No |
+| `/setup` | Build full BadGenes HQ channel structure | Yes |
+| `/rules` | Post server rules | No |
+| `/shop` | Link to brand site | No |
 | `/drop` | Announce a product drop | Yes |
-| `/genie ask` | AI assistant (OpenAI) | No |
-| `/vip` | VIP role info | No |
+| `/genie ask` | AI assistant | No |
+| `/vip` | VIP perks info | No |
 | `/support` | Support info | No |
-| `/level` | XP/level progress (stub — DB required) | No |
-| `/leaderboard` | Top XP earners (stub — DB required) | No |
-| `/routine` | Generate a workout routine | No |
-| `/minigame` | Coinflip, trivia, daily challenge, guess | No |
-| `/market` | Competitor signals, stock/crypto watch | No |
-| `/ideas` | AI-generated marketing ideas | No |
-| `/email` | Email subscription management (stub) | No |
+| `/level` | XP/level stub (DB required) | No |
+| `/leaderboard` | Top XP stub (DB required) | No |
+| `/routine` | Workout routine generator | No |
+| `/minigame` | Coinflip, trivia, guess, daily | No |
+| `/market` | Competitor + market intel | No |
+| `/ideas` | AI marketing ideas | No |
+| `/email` | Email opt-in stub | No |
 
 ---
 
 ## Phase 2
 
-A separate always-on worker (Railway or Render) handles:
-- XP tracking from messages (requires `DATABASE_URL`)
+Needs a separate always-on worker (Railway or Render) and `DATABASE_URL` for:
+- XP tracking from messages
 - Level-up announcements and role assignments
-- Scheduled drop announcements
+- Scheduled posts
 - Market/news polling via official APIs
 
-Add `DATABASE_URL` (Supabase or Neon) to enable. Schema is in `discord/db/schema.sql`.
-
----
-
-## NexCall Independence
-
-This bot has zero impact on NexCall:
-- No shared code with NexCall's app logic
-- No shared database tables
-- No pages, routes, or components visible on the website
-- Environment variables use different key names
+Schema: `discord/db/schema.sql`

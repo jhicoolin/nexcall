@@ -1,7 +1,7 @@
 /**
  * Bad Genetics Genie — Slash Command Registration
  *
- * Run from the nexcall project root:
+ * Run from the project root:
  *   node discord/scripts/register-commands.mjs
  *
  * Requires a .env file (or environment) with:
@@ -34,7 +34,7 @@ const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 if (!APP_ID || !BOT_TOKEN) {
   console.error('ERROR: DISCORD_APPLICATION_ID and DISCORD_BOT_TOKEN must be set.');
-  console.error('Add them to .env in the nexcall project root.');
+  console.error('Add them to .env in the project root.');
   process.exit(1);
 }
 

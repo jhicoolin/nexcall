@@ -1,5 +1,5 @@
 export function handleShop(_interaction, res) {
-  const siteUrl = process.env.BADGENES_SITE_URL || 'https://badgenes.com';
+  const siteUrl = process.env.BADGENES_SITE_URL || 'https://nexcall.one';
 
   return res.json({
     type: 4,
