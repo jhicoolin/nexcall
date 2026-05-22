@@ -1477,8 +1477,8 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
                 <MessageSquareText size={20} aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-black text-white">Nexa</p>
-                <p className="text-xs font-bold text-slate-400">NexCall · AI front desk</p>
+                <p className="text-sm font-black text-white">Nexa <span className="ml-1 rounded-full bg-[#baff39]/15 px-1.5 py-0.5 text-[0.6rem] font-black uppercase tracking-wider text-[#baff39]">AI</span></p>
+                <p className="text-xs font-bold text-slate-400">NexCall front desk assistant</p>
               </div>
             </div>
             <button type="button" onClick={() => setOpen(false)}
@@ -1587,7 +1587,7 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
                   </button>
                 </div>
                 <p className="mt-2 text-[11px] font-bold leading-4 text-slate-500">
-                  I&apos;m NexCall&apos;s website assistant. I can help now or route you to the team.
+                  AI assistant · I can answer questions or connect you to the team.
                 </p>
               </form>
             </>

@@ -5,14 +5,22 @@
  * Tries AI provider first (OpenAI-compatible), falls back to
  * the keyword response bank if AI is unconfigured or fails.
  *
- * Rate limiting: handled by middleware (20 req/min per IP for high-cost routes).
- * This route adds its own payload-size and message-length guards.
+ * Security layers:
+ * 1. Middleware rate limit   — 20 req/min per IP (high-cost route)
+ * 2. Payload size cap        — 8 KB max body
+ * 3. Message length cap      — 2,000 chars
+ * 4. History cap             — last 20 messages, each 1,000 chars max
+ * 5. Safety policy           — profanity/harassment/threat termination
+ * 6. Jailbreak detection     — logged + forwarded as signal to AI
+ * 7. SSRF guard              — AI base URL validated against allowlist
+ * 8. Output sanitisation     — cleanText + minimum length + leak scan
+ * 9. No raw provider errors  — all exceptions return safe fallback copy
  */
 import { NextResponse } from "next/server";
-import { readJsonObject, cleanText, validationResponse } from "@/lib/security";
+import { readJsonObject, cleanText, cleanIdentifier, validationResponse } from "@/lib/security";
 import { callNexaAI, isAIChatConfigured, type ChatMessage } from "@/lib/nexa-chat-ai";
 import { answerFrontDeskChat } from "@/services/receptionist/web-chat-engine";
-import { evaluateConversationSafety } from "@/services/receptionist/safety-policy";
+import { evaluateConversationSafety, detectJailbreakAttempt } from "@/services/receptionist/safety-policy";
 
 const MAX_MESSAGE_CHARS = 2000;
 const MAX_HISTORY_MESSAGES = 20;
@@ -41,7 +49,6 @@ export async function POST(request: Request) {
   // ── Parse & validate body ────────────────────────────────────────────────
   let body: Record<string, unknown>;
   try {
-    // Generous limit — history can contain multiple messages
     body = await readJsonObject(request, 8000);
   } catch (error) {
     return validationResponse(error);
@@ -64,6 +71,11 @@ export async function POST(request: Request) {
     );
   }
 
+  // Clean optional tracking fields — never trust raw values
+  const source = cleanIdentifier(body.source, 40) || "live_chat";
+  const page = cleanIdentifier(body.page, 40) || "homepage";
+  void source; void page; // used for logging context if needed
+
   const history = sanitizeHistory(body.history);
 
   // ── Safety check ─────────────────────────────────────────────────────────
@@ -76,14 +88,27 @@ export async function POST(request: Request) {
         "I need to keep this conversation professional. You can reach the NexCall team at nexcall@proton.me.",
       actions: [],
       needsHuman: false,
-      terminated: true
+      terminated: true,
+      answer: safety.signOff,
+      ok: true
     });
+  }
+
+  // ── Jailbreak detection — log silently, pass signal to AI ─────────────────
+  const injectionAttempted = detectJailbreakAttempt(userMessage);
+  if (injectionAttempted) {
+    console.warn("[NEXA_CHAT_INJECTION_ATTEMPT]", {
+      messageLength: userMessage.length,
+      hadHistory: history.length > 0,
+      source
+    });
+    // Do NOT tell the user we detected this. The AI system prompt handles it.
   }
 
   // ── Try AI provider ───────────────────────────────────────────────────────
   if (isAIChatConfigured()) {
     try {
-      const aiResult = await callNexaAI(userMessage, history);
+      const aiResult = await callNexaAI(userMessage, history, injectionAttempted);
       return NextResponse.json({
         success: true,
         message: aiResult.message,
@@ -91,17 +116,16 @@ export async function POST(request: Request) {
         needsHuman: aiResult.needsHuman,
         terminated: false,
         mode: "ai",
-        // legacy field for any existing consumers
         answer: aiResult.message,
         ok: true
       });
     } catch (err) {
-      // Log safely — never log the message content or API key
       console.warn("[NEXA_CHAT_AI_FALLBACK]", {
         reason: err instanceof Error ? err.message.slice(0, 100) : "unknown",
-        hadHistory: history.length > 0
+        hadHistory: history.length > 0,
+        injectionAttempted
       });
-      // Fall through to keyword engine below
+      // Fall through to keyword engine
     }
   }
 
