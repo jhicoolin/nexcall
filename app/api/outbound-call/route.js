@@ -347,21 +347,39 @@ export async function POST(request) {
     const responseData = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      const upstreamStatus = response.status;
+      const providerMsg = responseData?.message || summarizeProviderDetail(responseData?.detail) || '';
+      const providerDetail = JSON.stringify(responseData).slice(0, 600);
+
       console.error("[NEXCALL_CALL_DEMO_PROVIDER_ERROR]", {
         requestId,
-        status: response.status,
+        upstreamStatus,
         phone: maskPhone(normalizedPhone),
-        message: responseData?.message || summarizeProviderDetail(responseData?.detail),
-        // Full response body — needed to diagnose ElevenLabs rejections
-        responseBody: JSON.stringify(responseData).slice(0, 600),
+        providerMsg,
+        providerDetail,
         detail: responseData?.detail ? summarizeProviderDetail(responseData.detail) : undefined,
         errorType: responseData?.error || responseData?.type || undefined
       });
-      return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
+
+      // Map common upstream codes to actionable messages
+      let userMessage = CALL_FAILURE_MESSAGE;
+      if (upstreamStatus === 401 || upstreamStatus === 403) {
+        userMessage = 'Call service authentication error (code 401/403). Contact NexCall support.';
+      } else if (upstreamStatus === 422) {
+        userMessage = `Call configuration error (code 422): ${providerMsg || 'invalid agent or phone number ID'}. Contact NexCall support.`;
+      } else if (upstreamStatus === 404) {
+        userMessage = 'Call service resource not found (code 404) — agent or phone number ID may be incorrect.';
+      } else if (upstreamStatus === 429) {
+        userMessage = 'Too many demo call attempts right now. Please wait a moment and try again.';
+      } else if (providerMsg) {
+        userMessage = `Demo call failed: ${providerMsg}`;
+      }
+
+      return NextResponse.json({ success: false, message: userMessage, _upstream: upstreamStatus }, { status: 502 });
     }
 
     if (!providerAcceptedCall(responseData)) {
-      console.error("[NEXCALL_CALL_DEMO_PROVIDER_ERROR]", {
+      console.error("[NEXCALL_CALL_DEMO_PROVIDER_UNEXPECTED]", {
         requestId,
         status: response.status,
         phone: maskPhone(normalizedPhone),
