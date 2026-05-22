@@ -249,52 +249,93 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
 
 function Hero({ onCallDemo }: { onCallDemo: () => void }) {
   return (
-    <section id="top" className="relative overflow-hidden pt-24 sm:pt-28">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_10%,rgba(168,255,0,0.10),transparent_26rem),radial-gradient(circle_at_18%_22%,rgba(141,217,232,0.06),transparent_28rem)]" aria-hidden="true" />
-      <div className="bg-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
+    <section id="top" className="relative flex min-h-[92vh] flex-col overflow-hidden pt-20 sm:pt-24">
+      {/* Background: stronger radial + grid */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          background: [
+            "radial-gradient(ellipse 80% 55% at 72% -5%, rgba(168,255,0,0.13), transparent)",
+            "radial-gradient(ellipse 55% 45% at -8% 55%, rgba(141,217,232,0.07), transparent)",
+            "radial-gradient(ellipse 40% 30% at 50% 100%, rgba(168,255,0,0.04), transparent)"
+          ].join(", ")
+        }}
+      />
+      <div className="bg-grid pointer-events-none absolute inset-0 opacity-[0.28]" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px glass-line" aria-hidden="true" />
-      <div className="relative mx-auto grid w-full min-w-0 max-w-7xl grid-cols-1 gap-8 px-4 pb-14 pt-8 sm:gap-10 sm:px-6 sm:pb-16 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.94fr)] lg:items-center lg:px-8 lg:pb-24 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
-        <div className="flex w-full min-w-0 max-w-full flex-col justify-center sm:max-w-[42rem] lg:max-w-[40rem]">
-          <p className="inline-flex w-fit items-center gap-2 text-xs font-semibold tracking-[0.2em] text-[#A8FF00] uppercase mb-5 sm:mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
+
+      <div className="relative flex flex-1 flex-col justify-center">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+
+          {/* Status badge */}
+          <p className="mb-6 inline-flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.22em] text-[#A8FF00] sm:mb-8">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
             AI Receptionist · Available 24/7
           </p>
-          {/*
-            ONE DecryptText for the FULL phrase — no dual animation, no layout shift.
-            accentSuffix applies lime colour to "next call." only after animation settles.
-            The container has min-h so scramble chars don't cause reflow.
-          */}
-          <h1 className="min-h-[1em] text-[2.6rem] leading-[1.02] sm:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight text-white mb-5 sm:mb-6 sm:leading-[0.92]">
-            <DecryptTextNew
-              text="Never miss your next call."
-              duration={1200}
-              delay={80}
-              accentSuffix="next call."
-              accentClassName="text-[#A8FF00]"
-            />
-          </h1>
-          <p className="text-base sm:text-lg text-[#9CA3AF] max-w-lg mb-7 sm:mb-8 leading-relaxed">
-            <span className="font-semibold text-[#A8FF00]">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row mb-4">
-            <button
-              type="button"
-              onClick={onCallDemo}
-              data-fallback-href="/?demo=1"
-              className="inline-flex min-h-[52px] w-full items-center justify-center sm:w-auto sm:min-h-[46px] px-7 bg-[#A8FF00] text-black font-bold text-sm tracking-wide rounded-[6px] hover:bg-[#bfff33] transition-colors"
-            >
-              Try a Demo Call
-            </button>
-            <a
-              href="#pricing"
-              className="inline-flex min-h-[52px] w-full items-center justify-center sm:w-auto sm:min-h-[46px] px-7 border border-white/15 text-white font-semibold text-sm rounded-[6px] hover:bg-white/5 transition-colors"
-            >
-              View Plans
-            </a>
+
+          {/* TWO-ROW layout: massive headline top, content + panel bottom */}
+          <div>
+            {/* HEADLINE — the biggest type on the page */}
+            <h1 className="text-[3.2rem] font-black leading-[0.88] tracking-[-0.025em] text-white sm:text-[5rem] lg:text-[7rem] xl:text-[8.5rem]">
+              <DecryptTextNew
+                text="Never miss your next call."
+                duration={1200}
+                delay={80}
+                accentSuffix="next call."
+                accentClassName="text-[#A8FF00]"
+              />
+            </h1>
+
+            {/* Below headline: subcopy left, panel right */}
+            <div className="mt-10 grid gap-10 sm:mt-12 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+              <div>
+                <p className="max-w-xl text-lg leading-[1.65] text-[#93a09f] sm:text-xl">
+                  <span className="font-semibold text-white">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
+                </p>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:mt-10">
+                  <button
+                    type="button"
+                    onClick={onCallDemo}
+                    data-fallback-href="/?demo=1"
+                    className="inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#A8FF00] px-8 text-sm font-black tracking-wide text-black transition hover:bg-[#bfff33] hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-[#A8FF00]/30 sm:w-auto"
+                  >
+                    <Phone size={16} aria-hidden="true" />
+                    Try a Demo Call
+                  </button>
+                  <a
+                    href="#pricing"
+                    className="inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-[8px] border border-white/12 px-8 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.04] sm:w-auto"
+                  >
+                    View Plans
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </a>
+                </div>
+                <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
+              </div>
+
+              <HeroCallJourney />
+            </div>
           </div>
-          <p className="text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
         </div>
-        <HeroCallJourney />
+      </div>
+
+      {/* Bottom: proof ticker — small stat row */}
+      <div className="relative mt-auto border-t border-white/[0.06]">
+        <div className="mx-auto flex max-w-7xl items-center gap-8 overflow-x-auto px-4 py-4 sm:px-6 lg:px-8">
+          {[
+            { num: "500+", label: "Calls handled" },
+            { num: "24/7", label: "Always on" },
+            { num: "99.9%", label: "Uptime" },
+            { num: "60s", label: "Avg. response" }
+          ].map((stat) => (
+            <div key={stat.label} className="flex shrink-0 items-baseline gap-2">
+              <span className="text-base font-black text-white sm:text-lg">{stat.num}</span>
+              <span className="text-xs font-semibold text-[#4B5563] uppercase tracking-[0.1em]">{stat.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -302,37 +343,63 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
 
 function HeroCallJourney() {
   const commandRows = [
-    { icon: '📞', label: 'Incoming call', status: 'CONNECTED', color: '#A8FF00' },
-    { icon: '✅', label: 'Caller need detected', status: 'CAPTURED', color: '#A8FF00' },
-    { icon: '📅', label: 'Appointment request', status: 'NOTED', color: '#60a5fa' },
-    { icon: '🧾', label: 'Team summary', status: 'READY', color: '#A8FF00' },
-    { icon: '👤', label: 'Human handoff', status: 'AVAILABLE', color: '#9CA3AF' },
+    { icon: "📞", label: "Incoming call", status: "CONNECTED", color: "#A8FF00" },
+    { icon: "✅", label: "Caller need detected", status: "CAPTURED", color: "#A8FF00" },
+    { icon: "📅", label: "Appointment request", status: "NOTED", color: "#60a5fa" },
+    { icon: "🧾", label: "Team summary", status: "READY", color: "#A8FF00" },
+    { icon: "👤", label: "Human handoff", status: "AVAILABLE", color: "#9CA3AF" }
   ];
 
   return (
-    <div className="relative mx-auto w-full min-w-0 max-w-xs sm:max-w-sm lg:max-w-sm">
-      <div className="bg-[#0E1117] border border-white/[0.08] rounded-[10px] p-4 sm:p-5 space-y-2.5 sm:space-y-3">
-        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-white/[0.06]">
-          <span className="brand-mark-shell relative h-7 w-7 sm:h-8 sm:w-8 shrink-0">
+    <div className="relative mx-auto w-full min-w-0 max-w-xs sm:max-w-[22rem] lg:max-w-[22rem]">
+      {/* Glow behind panel */}
+      <div
+        className="pointer-events-none absolute -inset-4 rounded-2xl opacity-30 blur-2xl"
+        aria-hidden="true"
+        style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(168,255,0,0.2), transparent 70%)" }}
+      />
+      <div className="metal-panel relative rounded-[14px] p-5 sm:p-6">
+        <div className="scanline pointer-events-none absolute left-0 top-0 h-px w-full" aria-hidden="true" />
+
+        {/* Header */}
+        <div className="mb-4 flex items-center gap-3 border-b border-[#baff39]/10 pb-4">
+          <span className="brand-mark-shell relative h-8 w-8 shrink-0">
             <Image src={brandAssets.mark} alt="" fill sizes="32px" className="brand-mark-img object-contain" />
           </span>
           <div>
-            <p className="text-[0.6rem] sm:text-[0.65rem] font-black uppercase tracking-[0.18em] text-[#A8FF00]">NexCall Response Layer</p>
-            <p className="text-xs text-[#9CA3AF]">Active · 24/7</p>
+            <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#A8FF00]">
+              NexCall Response Layer
+            </p>
+            <p className="text-[0.7rem] text-[#9CA3AF]">Active · 24/7</p>
           </div>
-          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#A8FF00] animate-pulse" aria-hidden="true" />
+          <span className="live-pulse ml-auto h-2 w-2 rounded-full bg-[#A8FF00]" aria-hidden="true" />
         </div>
-        {commandRows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm sm:text-base" role="img" aria-hidden="true">{row.icon}</span>
-              <span className="text-xs sm:text-sm text-[#9CA3AF]">{row.label}</span>
+
+        {/* Rows */}
+        <div className="space-y-3">
+          {commandRows.map((row) => (
+            <div key={row.label} className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base" role="img" aria-hidden="true">{row.icon}</span>
+                <span className="text-sm text-[#9CA3AF]">{row.label}</span>
+              </div>
+              <span
+                className="shrink-0 text-[0.65rem] font-black font-mono tracking-wider"
+                style={{ color: row.color }}
+              >
+                {row.status}
+              </span>
             </div>
-            <span className="text-[0.65rem] sm:text-xs font-mono font-semibold tracking-wider shrink-0" style={{ color: row.color }}>
-              {row.status}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-4 flex items-center gap-2 border-t border-[#baff39]/8 pt-4">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#A8FF00]" aria-hidden="true" />
+          <p className="text-[0.6rem] font-black uppercase tracking-[0.14em] text-[#A8FF00]">
+            Response layer active
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -652,7 +719,7 @@ function TrustSignalBar() {
           <p className="system-label">
             Proof, not noise
           </p>
-          <h2 className="mt-3 text-3xl font-black text-white sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
             Built for businesses that cannot afford <span className="accent-text">missed calls.</span>
           </h2>
           <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
@@ -662,8 +729,8 @@ function TrustSignalBar() {
         </div>
         <div className="grid gap-3 sm:grid-cols-4 lg:content-center">
           {stats.map((stat) => (
-            <div key={stat.label} className="system-card system-card-hover rounded-2xl p-4 text-center">
-              <p className="text-3xl font-black tracking-tight text-[#A8FF00]">
+            <div key={stat.label} className="system-card system-card-hover rounded-2xl p-5 text-center sm:p-6">
+              <p className="text-4xl font-black tracking-tight text-[#A8FF00] sm:text-5xl">
                 <CountUpStat
                   value={stat.value}
                   suffix={stat.suffix}
@@ -973,7 +1040,7 @@ function VoiceAgentDemos({ onCallDemo }: { onCallDemo: () => void }) {
         <div className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
           <div>
             <p className="system-label">Experience NexCall</p>
-            <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-6xl">
+            <h2 className="mt-3 max-w-3xl text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-6xl lg:text-7xl">
               Hear how <span className="accent-text">NexCall</span> handles your next call.
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-300">
@@ -1131,7 +1198,7 @@ function JobsDone() {
     <section id="services" className="border-b border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <p className="system-label">Core capabilities</p>
-        <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-5xl">
+        <h2 className="mt-3 max-w-3xl text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
           The front desk layer for <span className="accent-text">calls that matter.</span>
         </h2>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
@@ -1409,7 +1476,7 @@ function FeatureCard({
       <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-[#baff39]/20 bg-[#baff39]/10 text-[#baff39]">
         <Icon size={24} aria-hidden="true" />
       </div>
-      <h3 className="text-2xl font-black text-white">{title}</h3>
+      <h3 className="text-2xl font-black leading-tight text-white sm:text-3xl">{title}</h3>
       <p className="mt-3 leading-7 text-slate-300">{copy}</p>
     </motion.div>
   );
@@ -1477,7 +1544,7 @@ function Pricing() {
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <p className="system-label">Predictable pricing</p>
-          <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
             Clear plans for teams ready to <span className="accent-text">stop missing calls.</span>
           </h2>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
@@ -1519,10 +1586,10 @@ function Pricing() {
                   Best fit
                 </p>
               ) : null}
-              <h3 className="text-3xl font-black text-white">{plan.name}</h3>
+              <h3 className="text-4xl font-black tracking-tight text-white">{plan.name}</h3>
               <p className="mt-2 text-sm font-bold text-slate-400">{plan.limit}</p>
               <div className="mt-5 flex items-end gap-1">
-                <span className="text-5xl font-black text-white">${price.toLocaleString()}</span>
+                <span className="text-6xl font-black tracking-tight text-white">${price.toLocaleString()}</span>
                 <span className="pb-2 text-slate-400">/mo{plan.plus ? "+" : ""}</span>
               </div>
               <p className="mt-2 text-sm text-slate-400">
@@ -1635,7 +1702,7 @@ function FAQSection() {
     <section id="faq" className="border-t border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
       <motion.div {...sectionMotion} className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <p className="system-label text-center">FAQ</p>
-        <h2 className="mt-3 text-center text-4xl font-black text-white sm:text-5xl">
+        <h2 className="mt-3 text-center text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
           Everything a practical buyer asks <span className="accent-text">before going live.</span>
         </h2>
         <div className="mt-10 grid gap-3">
@@ -1817,7 +1884,7 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
       <motion.div {...sectionMotion} className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.85fr_1fr] lg:px-8">
         <div>
           <p className="system-label">Get started</p>
-          <h2 className="mt-3 text-4xl font-black text-white sm:text-5xl">
+          <h2 className="mt-3 text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
             Ready to stop missing <span className="accent-text">calls?</span>
           </h2>
           <p className="mt-5 text-lg leading-8 text-slate-300">

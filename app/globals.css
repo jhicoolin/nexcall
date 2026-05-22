@@ -203,11 +203,24 @@ h3.font-black {
 }
 
 .system-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--brand-lime);
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.18em;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+
+.system-label::before {
+  content: "";
+  display: inline-block;
+  width: 1.5rem;
+  height: 1px;
+  background: var(--brand-lime);
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
 .accent-text {
