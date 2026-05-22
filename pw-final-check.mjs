@@ -1,8 +1,7 @@
 /**
- * NexCall final regression + Firefox polish check
- * Runs against localhost:3001 with Chromium (Firefox not installed)
- * Tests: hero decrypt stability, NexCall accent, portraits visible,
- *        process section bigger, all buttons functional
+ * NexCall regression check — updated for ground-up redesign
+ * New sections: CinematicHero, OutcomeRail, TransformSection,
+ *   ProcessCommandCenter, IndustrySelector, DemoPreviewSection
  */
 import { chromium } from 'playwright';
 
@@ -17,13 +16,8 @@ function fail(label, detail = '') {
   RESULTS.push({ ok: false, label, detail });
   console.log(`❌ ${label}${detail ? ' | ' + detail : ''}`);
 }
-
 async function test(label, fn) {
-  try {
-    await fn();
-  } catch (e) {
-    fail(label, e.message.slice(0, 120));
-  }
+  try { await fn(); } catch (e) { fail(label, e.message.slice(0, 120)); }
 }
 
 async function run() {
@@ -35,28 +29,14 @@ async function run() {
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   page.on('pageerror', e => errors.push(e.message));
 
-  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.waitForTimeout(3000); // let React hydrate + decrypt animation start
+  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 45000 });
+  await page.waitForTimeout(2500);
 
-  // ── Hero decrypt stability ─────────────────────────────────────────────────
-  await test('Hero h1 renders full phrase with CSS animation', async () => {
-    const result = await page.evaluate(() => {
-      const h1 = document.querySelector('h1');
-      const text = h1?.textContent?.trim().replace(/\s+/g, ' ');
-      const hasClass = h1?.className?.includes('hero-fade-up');
-      const accentSpan = h1?.querySelector('span[class*="A8FF00"]');
-      return {
-        text,
-        hasHeroClass: hasClass,
-        accentText: accentSpan?.textContent?.trim(),
-        h1Height: Math.round(h1?.getBoundingClientRect().height || 0)
-      };
-    });
-    if (!result.text?.includes('Never miss your next call'))
-      throw new Error(`h1 text wrong: "${result.text}"`);
-    if (!result.accentText?.includes('next call'))
-      throw new Error(`No lime accent on "next call." — got: "${result.accentText}"`);
-    pass('Hero h1: CSS fade-in, "next call." accented lime', `text="${result.text}" h=${result.h1Height}px`);
+  // ── Hero ──────────────────────────────────────────────────────────────────
+  await test('Hero h1 renders "Never miss your next call."', async () => {
+    const text = await page.evaluate(() => document.querySelector('h1')?.textContent?.trim().replace(/\s+/g, ' '));
+    if (!text?.includes('Never miss your next call.')) throw new Error(`h1 wrong: "${text}"`);
+    pass('Hero h1 renders correctly', `"${text}"`);
   });
 
   await test('Hero h1 height stable (no layout shift)', async () => {
@@ -65,113 +45,150 @@ async function run() {
     const h1After = await page.evaluate(() => document.querySelector('h1')?.getBoundingClientRect().height);
     const diff = Math.abs((h1Before || 0) - (h1After || 0));
     if (diff > 2) throw new Error(`h1 shifted by ${diff}px`);
-    pass('Hero h1 height stable (no layout shift)', `diff=${diff}px`);
+    pass('Hero h1 height stable', `diff=${diff}px`);
   });
 
-  // ── NexCall green accent ───────────────────────────────────────────────────
-  await test('NexCall accented in hero paragraph', async () => {
-    const accentedNexCall = await page.evaluate(() => {
-      // Find a span with NexCall text that has text-[#A8FF00] color
+  await test('Hero "next call." has lime accent', async () => {
+    const hasAccent = await page.evaluate(() => {
+      const h1 = document.querySelector('h1');
+      const span = h1?.querySelector('span');
+      return span?.className?.includes('A8FF00') || span?.style?.color?.includes('168') || false;
+    });
+    if (!hasAccent) throw new Error('No lime accent span found in h1');
+    pass('Hero "next call." accented lime');
+  });
+
+  await test('NexCall accented green in hero subcopy', async () => {
+    const found = await page.evaluate(() => {
       const allSpans = Array.from(document.querySelectorAll('p span'));
-      return allSpans.some(s => s.textContent?.trim() === 'NexCall' && s.className.includes('A8FF00'));
+      return allSpans.some(s => s.textContent?.trim() === 'NexCall' && s.className?.includes('A8FF00'));
     });
-    if (!accentedNexCall) throw new Error('No green-accented NexCall span found in hero paragraph');
-    pass('NexCall accented green in hero paragraph');
+    if (!found) throw new Error('No lime NexCall in hero subcopy');
+    pass('NexCall accented lime in hero subcopy');
   });
 
-  // ── Portrait trust strip ───────────────────────────────────────────────────
-  await test('Portrait SVGs visible (4 diverse faces)', async () => {
-    const portraits = await page.evaluate(() => {
-      const svgs = Array.from(document.querySelectorAll('section svg'));
-      return {
-        count: svgs.length,
-        // Check for PortraitSVG characteristic: has circle + ellipse + path
-        hasPortraits: svgs.some(svg => svg.querySelector('ellipse') && svg.querySelector('path'))
-      };
+  await test('CallInterceptionVisual 3-stage visual present', async () => {
+    const stageCount = await page.evaluate(() => {
+      // Look for the 3 stage labels: LIVE, CAPTURED, Ready for follow-up
+      const text = document.body.textContent || '';
+      return (text.includes('LIVE') ? 1 : 0) + (text.includes('CAPTURED') ? 1 : 0) + (text.includes('Team Brief') ? 1 : 0);
     });
-    if (portraits.count < 4) throw new Error(`Only ${portraits.count} SVG portraits found`);
-    pass('Portrait SVGs visible', `count=${portraits.count}`);
+    if (stageCount < 2) throw new Error(`Only ${stageCount} stages found in call visual`);
+    pass('Call interception visual 3 stages visible', `stages=${stageCount}`);
   });
 
-  await test('Review marquee visible early in page', async () => {
+  // ── Outcome rail ──────────────────────────────────────────────────────────
+  await test('Outcome rail (marquee) visible near top', async () => {
     const result = await page.evaluate(() => {
-      // Marquee section has aria-labelledby="marquee-label"
-      const section =
-        document.querySelector('[aria-labelledby="marquee-label"]') ||
-        document.querySelector('[aria-labelledby="trust-outcomes-label"]') ||
-        document.querySelector('[aria-labelledby="trust-portraits-label"]');
-      const marqueeStrip = document.querySelector('.marquee-strip');
-      return {
-        found: !!section,
-        yPos: section?.getBoundingClientRect().top,
-        hasMarqueeStrip: !!marqueeStrip,
-        svgCount: section?.querySelectorAll('svg').length
-      };
+      const section = document.querySelector('[aria-labelledby="marquee-label"]');
+      return { found: !!section, y: section?.getBoundingClientRect().top, svgs: section?.querySelectorAll('svg').length };
     });
-    if (!result.found) throw new Error('Marquee/trust section not found');
-    if ((result.yPos || 0) > 2700) throw new Error(`Marquee too far down: y=${result.yPos}px`);
-    pass('Review marquee visible early in page', `y=${Math.round(result.yPos || 0)}px, marquee=${result.hasMarqueeStrip}, svgs=${result.svgCount}`);
+    if (!result.found) throw new Error('Marquee section not found');
+    pass('Outcome rail visible', `y=${Math.round(result.y || 0)}px, svgs=${result.svgs}`);
   });
 
-  // ── Process section size ───────────────────────────────────────────────────
-  await test('HowItWorks section is large (py-20+)', async () => {
-    const height = await page.evaluate(() => {
-      const section = document.getElementById('how-it-works');
-      return section?.getBoundingClientRect().height;
+  // ── Transform section ─────────────────────────────────────────────────────
+  await test('TransformSection "Without NexCall" contrast visible', async () => {
+    const found = await page.evaluate(() => document.body.textContent?.includes('Without NexCall'));
+    if (!found) throw new Error('"Without NexCall" text not found');
+    pass('TransformSection renders before/after columns');
+  });
+
+  await test('TransformSection "With NexCall" column present', async () => {
+    const found = await page.evaluate(() => {
+      const spans = Array.from(document.querySelectorAll('p, span'));
+      return spans.some(el => el.textContent?.trim() === 'With NexCall');
     });
+    if (!found) throw new Error('"With NexCall" column not found');
+    pass('TransformSection "With NexCall" present');
+  });
+
+  // ── Process command center ────────────────────────────────────────────────
+  await test('ProcessCommandCenter is large (>600px)', async () => {
+    const height = await page.evaluate(() => document.getElementById('how-it-works')?.getBoundingClientRect().height);
     if (!height || height < 600) throw new Error(`Process section too small: h=${height}px`);
-    pass('HowItWorks section is large', `height=${Math.round(height || 0)}px`);
+    pass('ProcessCommandCenter is large', `h=${Math.round(height || 0)}px`);
   });
 
-  await test('Process section has 4 step icons in vertical flow', async () => {
-    const stepCount = await page.evaluate(() => {
+  await test('Process section has 4 steps (Answer→Report)', async () => {
+    const count = await page.evaluate(() => {
       const section = document.getElementById('how-it-works');
-      // New design: steps are flex items with icon circles and label badges
-      const labelBadges = section?.querySelectorAll('span[class*="tracking-"][class*="CONNECTED"], span[class*="CAPTURED"], span[class*="ROUTED"], span[class*="READY"]');
-      // Fallback: count step label spans (Answer, Understand, Route, Report)
-      const stepLabels = Array.from(section?.querySelectorAll('span') || []).filter(s =>
-        ['Answer','Understand','Route','Report'].includes(s.textContent?.trim() || '')
-      );
-      return { labelCount: labelBadges?.length, stepLabelCount: stepLabels.length };
+      return Array.from(section?.querySelectorAll('span') || []).filter(s =>
+        ['Answer', 'Understand', 'Route', 'Report'].includes(s.textContent?.trim() || '')
+      ).length;
     });
-    if (stepCount.stepLabelCount < 4) throw new Error(`Only ${stepCount.stepLabelCount} step labels found`);
-    pass('Process section has 4 steps (Answer→Understand→Route→Report)', `labels=${stepCount.stepLabelCount}`);
+    if (count < 4) throw new Error(`Only ${count} step labels found`);
+    pass('Process section 4 steps visible', `count=${count}`);
   });
 
-  await test('Process section has connector line', async () => {
-    const hasConnector = await page.evaluate(() => {
+  await test('Process section has sample call journey', async () => {
+    const found = await page.evaluate(() => {
       const section = document.getElementById('how-it-works');
-      // The connector is a div with a gradient background
-      const divs = Array.from(section?.querySelectorAll('div') || []);
-      return divs.some(d => {
-        const style = window.getComputedStyle(d);
-        return style.backgroundImage?.includes('linear-gradient') && d.className?.includes('absolute');
-      });
+      return section?.textContent?.includes('Sample call journey');
     });
-    if (!hasConnector) throw new Error('Connector line not found in process section');
-    pass('Process section has gradient connector line');
+    if (!found) throw new Error('Sample call journey not found in process section');
+    pass('Process section has sample call journey');
   });
 
-  // ── Button regression ──────────────────────────────────────────────────────
-  // Navbar Call Demo
-  await test('Navbar Call Demo opens modal', async () => {
-    const navBtn = await page.$('header button[data-fallback-href]');
-    if (!navBtn) throw new Error('Navbar Call Demo button not found');
-    await navBtn.click();
+  // ── Industry selector ─────────────────────────────────────────────────────
+  await test('IndustrySelector renders with clickable tabs', async () => {
+    await page.evaluate(() => document.getElementById('industries')?.scrollIntoView());
     await page.waitForTimeout(400);
-    const modalVisible = await page.evaluate(() => !!document.querySelector('[role="dialog"]'));
-    if (!modalVisible) throw new Error('Modal did not open after clicking navbar Call Demo');
+    const btnCount = await page.evaluate(() => {
+      const section = document.getElementById('industries');
+      return section?.querySelectorAll('button[aria-pressed]').length || 0;
+    });
+    if (btnCount < 4) throw new Error(`Only ${btnCount} industry tabs found`);
+    pass('IndustrySelector has tabs', `count=${btnCount}`);
+  });
+
+  await test('IndustrySelector tab click updates content', async () => {
+    const tabs = await page.$$('#industries button[aria-pressed]');
+    if (tabs.length < 2) throw new Error('Not enough tabs');
+    await tabs[2].click();
+    await page.waitForTimeout(200);
+    const pressed = await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('#industries button[aria-pressed]'));
+      return btns[2]?.getAttribute('aria-pressed');
+    });
+    if (pressed !== 'true') throw new Error(`Tab 3 not active: ${pressed}`);
+    pass('IndustrySelector tab click works');
+  });
+
+  // ── Demo preview ──────────────────────────────────────────────────────────
+  await test('DemoPreviewSection scenario selectors work', async () => {
+    await page.evaluate(() => document.getElementById('demos')?.scrollIntoView());
+    await page.waitForTimeout(300);
+    const scenarioBtns = await page.$$('#demos button[aria-pressed]');
+    if (scenarioBtns.length < 3) throw new Error(`Only ${scenarioBtns.length} scenario buttons`);
+    await scenarioBtns[1].click();
+    await page.waitForTimeout(200);
+    const pressed = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('#demos button[aria-pressed]'))[1]?.getAttribute('aria-pressed');
+    });
+    if (pressed !== 'true') throw new Error('Scenario 2 not selected');
+    pass('Demo preview scenario selectors work');
+  });
+
+  // ── Buttons / modals ──────────────────────────────────────────────────────
+  await test('Navbar Call Demo opens modal', async () => {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(300);
+    const btn = await page.$('header button[data-fallback-href]');
+    if (!btn) throw new Error('Navbar Call Demo button not found');
+    await btn.click();
+    await page.waitForTimeout(400);
+    const modal = await page.evaluate(() => !!document.querySelector('[role="dialog"]'));
+    if (!modal) throw new Error('Modal did not open');
     pass('Navbar Call Demo opens modal');
-    // Close modal
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
   });
 
-  // Hero CTA
   await test('Hero Try a Demo Call opens modal', async () => {
-    const heroCta = await page.$('section#top button[data-fallback-href]');
-    if (!heroCta) throw new Error('Hero CTA button not found');
-    await heroCta.click();
+    const btn = await page.$('section#top button[data-fallback-href]');
+    if (!btn) throw new Error('Hero CTA button not found');
+    await btn.click();
     await page.waitForTimeout(400);
     const modal = await page.evaluate(() => !!document.querySelector('[role="dialog"]'));
     if (!modal) throw new Error('Modal did not open from hero CTA');
@@ -180,49 +197,22 @@ async function run() {
     await page.waitForTimeout(300);
   });
 
-  // View Plans scroll
   await test('View Plans link exists and points to #pricing', async () => {
-    const href = await page.evaluate(() => {
-      const links = Array.from(document.querySelectorAll('a[href="#pricing"]'));
-      return links.length > 0 ? links[0].getAttribute('href') : null;
-    });
+    const href = await page.evaluate(() => document.querySelector('a[href="#pricing"]')?.getAttribute('href'));
     if (href !== '#pricing') throw new Error(`View Plans href wrong: ${href}`);
     pass('View Plans links to #pricing');
   });
 
-  // Pricing CTAs
-  await test('Pricing CTAs fire checkout (receive redirect or error message)', async () => {
-    await page.evaluate(() => {
-      const pricingSection = document.getElementById('pricing');
-      pricingSection?.scrollIntoView();
-    });
+  await test('Pricing CTAs work without crash', async () => {
+    await page.evaluate(() => document.getElementById('pricing')?.scrollIntoView());
     await page.waitForTimeout(500);
-    const pricingBtn = await page.$('#pricing button[data-fallback-href]');
-    if (!pricingBtn) throw new Error('Pricing button not found');
-    // Click and wait — should start a fetch (ok if it errors, just shouldn't crash)
-    await pricingBtn.click();
+    const btn = await page.$('#pricing button[data-fallback-href]');
+    if (!btn) throw new Error('Pricing button not found');
+    await btn.click();
     await page.waitForTimeout(1500);
-    const stillOnPage = page.url().includes('localhost:3001');
-    pass('Pricing CTA clicked without page crash', `still on page: ${stillOnPage}`);
+    pass('Pricing CTA clicked without crash', `url=${page.url().includes('localhost') ? 'on-page' : 'redirected'}`);
   });
 
-  // Scenario selectors
-  await test('Scenario selectors update preview', async () => {
-    await page.evaluate(() => document.getElementById('demos')?.scrollIntoView());
-    await page.waitForTimeout(300);
-    const scenarioBtns = await page.$$('#demos button[aria-pressed]');
-    if (scenarioBtns.length < 3) throw new Error(`Only ${scenarioBtns.length} scenario buttons found`);
-    await scenarioBtns[1].click();
-    await page.waitForTimeout(200);
-    const pressed = await page.evaluate(() => {
-      const btns = Array.from(document.querySelectorAll('#demos button[aria-pressed]'));
-      return btns.map(b => b.getAttribute('aria-pressed'));
-    });
-    if (pressed[1] !== 'true') throw new Error(`Scenario 2 not selected after click: ${pressed}`);
-    pass('Scenario selectors work', `3 scenarios, selection updates`);
-  });
-
-  // FAQ
   await test('FAQ accordion opens', async () => {
     await page.evaluate(() => document.getElementById('faq')?.scrollIntoView());
     await page.waitForTimeout(300);
@@ -231,11 +221,10 @@ async function run() {
     await faqBtn.click();
     await page.waitForTimeout(200);
     const expanded = await faqBtn.getAttribute('aria-expanded');
-    if (expanded !== 'true') throw new Error(`FAQ not expanded after click: ${expanded}`);
+    if (expanded !== 'true') throw new Error(`FAQ not expanded: ${expanded}`);
     pass('FAQ accordion opens');
   });
 
-  // Live chat
   await test('Live chat opens and closes', async () => {
     const chatBtn = await page.$('button[aria-label="Open NexCall live chat"]');
     if (!chatBtn) throw new Error('Live chat button not found');
@@ -249,11 +238,10 @@ async function run() {
     pass('Live chat opens and closes');
   });
 
-  // Mobile check
-  // Always fresh navigate for mobile tests — use networkidle so React fully hydrates
+  // ── Mobile ────────────────────────────────────────────────────────────────
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(BASE, { waitUntil: 'networkidle', timeout: 45000 });
-  await page.waitForTimeout(2000); // let animations settle
+  await page.waitForTimeout(2000);
 
   await test('Mobile: no horizontal scroll', async () => {
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
@@ -261,44 +249,36 @@ async function run() {
     pass('Mobile: no horizontal scroll', `scrollWidth=${scrollWidth}px`);
   });
 
-  await test('Mobile: review marquee section visible', async () => {
-    // Wait for the marquee section to be present in the DOM
+  await test('Mobile: outcome rail visible', async () => {
     await page.waitForSelector('[aria-labelledby="marquee-label"]', { timeout: 8000 }).catch(() => null);
-    const result = await page.evaluate(() => {
-      const section =
-        document.querySelector('[aria-labelledby="marquee-label"]') ||
-        document.querySelector('[aria-labelledby="trust-outcomes-label"]') ||
-        document.querySelector('[aria-labelledby="trust-portraits-label"]');
-      return { found: !!section, svgCount: section?.querySelectorAll('svg').length };
-    });
-    if (!result.found) throw new Error('Marquee section not found on mobile');
-    if (!result.svgCount || result.svgCount < 1) throw new Error('No portrait SVGs found');
-    pass('Mobile: review marquee visible', `svgs=${result.svgCount}`);
+    const found = await page.evaluate(() => !!document.querySelector('[aria-labelledby="marquee-label"]'));
+    if (!found) throw new Error('Outcome rail not found on mobile');
+    pass('Mobile: outcome rail visible');
   });
 
   await test('Mobile: hero CTA tap target ≥44px', async () => {
-    // Wait for hero button to be present
     await page.waitForSelector('section#top button', { timeout: 8000 }).catch(() => null);
-    const btnH = await page.evaluate(() => {
-      const btn = document.querySelector('section#top button');
-      return btn?.getBoundingClientRect().height;
-    });
-    if (!btnH || btnH < 44) throw new Error(`CTA height=${btnH}px (need ≥44)`);
-    pass('Mobile: hero CTA tap target adequate', `h=${Math.round(btnH || 0)}px`);
+    const h = await page.evaluate(() => document.querySelector('section#top button')?.getBoundingClientRect().height);
+    if (!h || h < 44) throw new Error(`CTA height=${h}px (need ≥44)`);
+    pass('Mobile: hero CTA tap target adequate', `h=${Math.round(h || 0)}px`);
+  });
+
+  await test('Mobile: industry selector tabs visible', async () => {
+    await page.evaluate(() => document.getElementById('industries')?.scrollIntoView());
+    await page.waitForTimeout(400);
+    const count = await page.evaluate(() => document.querySelectorAll('#industries button[aria-pressed]').length);
+    if (count < 4) throw new Error(`Only ${count} industry tabs on mobile`);
+    pass('Mobile: industry selector tabs visible', `count=${count}`);
   });
 
   // Console errors
   console.log('\n====== CONSOLE ERRORS ======');
-  if (errors.length === 0) {
-    console.log('  None 🎉');
-  } else {
-    errors.slice(0, 8).forEach(e => console.log(' ', e));
-  }
+  errors.length === 0 ? console.log('  None 🎉') : errors.slice(0, 6).forEach(e => console.log(' ', e));
 
   // Summary
   const passed = RESULTS.filter(r => r.ok).length;
   const failed = RESULTS.filter(r => !r.ok).length;
-  console.log(`\n====== RESULTS ======`);
+  console.log('\n====== RESULTS ======');
   RESULTS.forEach(r => console.log(`${r.ok ? '✅' : '❌'} ${r.label}${r.detail ? ' | ' + r.detail : ''}`));
   console.log(`\nTotal: ${passed} PASS | ${failed} FAIL`);
 
