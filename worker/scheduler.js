@@ -1,14 +1,12 @@
 import cron from 'node-cron';
 import { updateChannel } from './channelUpdater.js';
-import { fetchAndBuildCrypto } from './feeds/crypto.js';
-import { fetchAndBuildStocks } from './feeds/stocks.js';
-import { fetchAndBuildFilings } from './feeds/filings.js';
-import { fetchAndBuildCompetitors, fetchAndBuildBrandRadar } from './feeds/competitors.js';
+import { fetchAndBuildMarketWatch } from './feeds/marketWatch.js';
+import { fetchAndBuildCompetitorWatch } from './feeds/competitorWatch.js';
 import { fetchAndBuildMarketing, buildVulnerabilitiesEmbed, buildCreativeLabEmbed } from './feeds/marketing.js';
 
 async function run(label, channelName, fetcher) {
   try {
-    console.log(`  → updating ${channelName}`);
+    console.log(`  → ${channelName}`);
     const payload = await fetcher();
     await updateChannel(channelName, payload);
   } catch (err) {
@@ -16,29 +14,33 @@ async function run(label, channelName, fetcher) {
   }
 }
 
-async function runAll() {
-  console.log(`[${new Date().toISOString()}] Running all channel updates...`);
-
+// Every 15 min: market watch + competitor watch
+async function runMarket() {
+  console.log(`[${new Date().toISOString()}] Market update`);
   await Promise.allSettled([
-    run('crypto',          'crypto-watch',      fetchAndBuildCrypto),
-    run('stocks',          'stock-watch',        fetchAndBuildStocks),
-    run('filings',         'public-filings',     fetchAndBuildFilings),
-    run('competitors',     'competitor-drops',   fetchAndBuildCompetitors),
-    run('brand-radar',     'brand-radar',        fetchAndBuildBrandRadar),
-    run('marketing',       'marketing-ideas',    fetchAndBuildMarketing),
-    run('vulnerabilities', 'vulnerabilities',    async () => buildVulnerabilitiesEmbed()),
-    run('creative-lab',    'creative-lab',       async () => buildCreativeLabEmbed()),
+    run('market-watch',    'market-watch',     fetchAndBuildMarketWatch),
+    run('competitor-watch','competitor-watch', fetchAndBuildCompetitorWatch),
   ]);
+}
 
-  console.log(`[${new Date().toISOString()}] Done.`);
+// Every 30 min: marketing ideas rotation
+async function runMarketing() {
+  console.log(`[${new Date().toISOString()}] Marketing update`);
+  await Promise.allSettled([
+    run('marketing-ideas', 'marketing-ideas', fetchAndBuildMarketing),
+  ]);
 }
 
 export function startScheduler() {
-  // Run immediately on startup
-  runAll();
+  // Run everything immediately on startup
+  runMarket();
+  runMarketing();
 
-  // Then every 5 minutes
-  cron.schedule('*/5 * * * *', runAll);
+  // Market + competitors: every 15 min
+  cron.schedule('*/15 * * * *', runMarket);
 
-  console.log('Scheduler started — updates every 5 minutes.');
+  // Marketing ideas: every 30 min
+  cron.schedule('*/30 * * * *', runMarketing);
+
+  console.log('Scheduler started — market every 15 min, marketing every 30 min.');
 }
