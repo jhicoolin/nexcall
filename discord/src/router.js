@@ -12,23 +12,27 @@ import { handleMinigame, handleTriviaComponent } from './commands/minigame.js';
 import { handleMarket } from './commands/market.js';
 import { handleIdeas } from './commands/ideas.js';
 import { handleEmail } from './commands/email.js';
+import { handleRoles, handleRoleSelect } from './commands/roles.js';
+import { handleMusic } from './commands/music.js';
 import { EPHEMERAL } from './permissions.js';
 
 const COMMAND_HANDLERS = {
-  setup: handleSetup,
-  rules: handleRules,
-  shop: handleShop,
-  drop: handleDrop,
-  genie: handleGenie,
-  vip: handleVip,
-  support: handleSupport,
-  level: handleLevel,
+  setup:       handleSetup,
+  rules:       handleRules,
+  shop:        handleShop,
+  drop:        handleDrop,
+  genie:       handleGenie,
+  vip:         handleVip,
+  support:     handleSupport,
+  level:       handleLevel,
   leaderboard: handleLeaderboard,
-  routine: handleRoutine,
-  minigame: handleMinigame,
-  market: handleMarket,
-  ideas: handleIdeas,
-  email: handleEmail,
+  routine:     handleRoutine,
+  minigame:    handleMinigame,
+  market:      handleMarket,
+  ideas:       handleIdeas,
+  email:       handleEmail,
+  roles:       handleRoles,
+  music:       handleMusic,
 };
 
 export async function route(interaction, res) {
@@ -36,26 +40,23 @@ export async function route(interaction, res) {
   if (interaction.type === 2) {
     const name = interaction.data?.name;
     const handler = COMMAND_HANDLERS[name];
-    if (handler) {
-      return handler(interaction, res);
-    }
+    if (handler) return handler(interaction, res);
     return res.json({
       type: 4,
       data: { content: `Unknown command: \`/${name}\``, flags: EPHEMERAL },
     });
   }
 
-  // MESSAGE_COMPONENT (type 3) — buttons / selects
+  // MESSAGE_COMPONENT (type 3)
   if (interaction.type === 3) {
     const customId = interaction.data?.custom_id ?? '';
-    if (customId.startsWith('trivia:')) {
-      return handleTriviaComponent(interaction, res);
-    }
+    if (customId.startsWith('roles:'))  return handleRoleSelect(interaction, res);
+    if (customId.startsWith('trivia:')) return handleTriviaComponent(interaction, res);
     return res.json({
       type: 4,
-      data: { content: 'Unknown component interaction.', flags: EPHEMERAL },
+      data: { content: 'Unknown component.', flags: EPHEMERAL },
     });
   }
 
-  return res.json({ type: 4, data: { content: 'Unhandled interaction type.', flags: EPHEMERAL } });
+  return res.json({ type: 4, data: { content: 'Unhandled interaction.', flags: EPHEMERAL } });
 }
