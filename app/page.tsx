@@ -27,7 +27,6 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "r
 import { useForm } from "react-hook-form";
 import { TrustStrip } from "@/components/sections/TrustStrip";
 import { StatusStrip } from "@/components/ui/StatusStrip";
-import { DecryptText as DecryptTextNew } from "@/components/ui/DecryptText";
 import { CountUpStat } from "@/components/ui/CountUpStat";
 
 const sectionMotion = {
@@ -143,7 +142,7 @@ export default function Home() {
       <Hero onCallDemo={openDemo} />
       <TrustStrip />
       <StatusStrip />
-      <HumanTrustStrip />
+      <ReviewMarquee />
       <TrustSignalBar />
       <HowItWorks onCallDemo={openDemo} />
       <JobsDone />
@@ -276,22 +275,17 @@ function Hero({ onCallDemo }: { onCallDemo: () => void }) {
 
           {/* TWO-ROW layout: massive headline top, content + panel bottom */}
           <div>
-            {/* HEADLINE — the biggest type on the page */}
-            <h1 className="text-[3.2rem] font-black leading-[0.88] tracking-[-0.025em] text-white sm:text-[5rem] lg:text-[7rem] xl:text-[8.5rem]">
-              <DecryptTextNew
-                text="Never miss your next call."
-                duration={1200}
-                delay={80}
-                accentSuffix="next call."
-                accentClassName="text-[#A8FF00]"
-              />
+            {/* HEADLINE — smooth CSS fade-in, no scramble, no layout shift */}
+            <h1 className="hero-fade-up text-[3.2rem] font-black leading-[0.88] tracking-[-0.025em] text-white sm:text-[5rem] lg:text-[7rem] xl:text-[8.5rem]">
+              Never miss your{" "}
+              <span className="text-[#A8FF00]">next call.</span>
             </h1>
 
-            {/* Below headline: subcopy left, panel right */}
-            <div className="mt-10 grid gap-10 sm:mt-12 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+            {/* Below headline: subcopy left, panel right — staggered entrance */}
+            <div className="hero-stagger-1 mt-10 grid gap-10 sm:mt-12 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
               <div>
                 <p className="max-w-xl text-lg leading-[1.65] text-[#93a09f] sm:text-xl">
-                  <span className="font-semibold text-white">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
+                  <span className="font-semibold text-[#A8FF00]">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:mt-10">
@@ -841,189 +835,109 @@ function PortraitSVG({ skinTone, hairColor, shirtColor, hairStyle, hasGlasses = 
   );
 }
 
-function HumanTrustStrip() {
-  const profiles = [
+/* ── ReviewMarquee ───────────────────────────────────────────────────────────
+   Horizontal infinite-scroll trust strip. Pure CSS marquee — no JS needed.
+   Each slot is exactly 300px wide so -50% translation creates a seamless loop.
+   Pauses on hover. Reduced-motion shows static cards.
+── ──────────────────────────────────────────────────────────────────────── */
+function ReviewMarquee() {
+  const cards = [
     {
-      portrait: {
-        skinTone: "#7B4F2E",
-        hairColor: "#1a0a00",
-        shirtColor: "#1d4ed8",
-        hairStyle: "afro" as const,
-        hasGlasses: false
-      },
+      portrait: { skinTone: "#7B4F2E", hairColor: "#1a0a00", shirtColor: "#1d4ed8", hairStyle: "afro" as const, hasGlasses: false },
       role: "Local service team",
       outcome: "Fewer missed calls.",
       detail: "Calls get captured while the team is busy with jobs.",
       tag: "📞 Calls answered"
     },
     {
-      portrait: {
-        skinTone: "#F5CBA7",
-        hairColor: "#3d1c02",
-        shirtColor: "#065f46",
-        hairStyle: "short" as const,
-        hasGlasses: true
-      },
+      portrait: { skinTone: "#F5CBA7", hairColor: "#3d1c02", shirtColor: "#065f46", hairStyle: "short" as const, hasGlasses: true },
       role: "Clinic front desk",
       outcome: "Cleaner handoffs.",
-      detail: "Caller details arrive with a clear next step for staff.",
+      detail: "Caller details arrive with a clear next step.",
       tag: "✅ Details captured"
     },
     {
-      portrait: {
-        skinTone: "#A0522D",
-        hairColor: "#1a0a00",
-        shirtColor: "#7c3aed",
-        hairStyle: "medium" as const,
-        hasGlasses: false
-      },
+      portrait: { skinTone: "#A0522D", hairColor: "#1a0a00", shirtColor: "#7c3aed", hairStyle: "medium" as const, hasGlasses: false },
       role: "Office coordinator",
       outcome: "Faster follow-up.",
       detail: "The team gets the summary instead of chasing voicemail.",
       tag: "🧾 Team brief ready"
     },
     {
-      portrait: {
-        skinTone: "#C68642",
-        hairColor: "#1a0a00",
-        shirtColor: "#9d174d",
-        hairStyle: "long" as const,
-        hasGlasses: false
-      },
+      portrait: { skinTone: "#C68642", hairColor: "#1a0a00", shirtColor: "#9d174d", hairStyle: "long" as const, hasGlasses: false },
       role: "Owner-led business",
-      outcome: "Human backup when it matters.",
-      detail: "Urgent callers can be routed with context when needed.",
+      outcome: "Human backup ready.",
+      detail: "Urgent callers can be routed with context.",
       tag: "👤 Human handoff"
     },
     {
-      portrait: {
-        skinTone: "#5C3317",
-        hairColor: "#2a1400",
-        shirtColor: "#0c4a6e",
-        hairStyle: "short" as const,
-        hasGlasses: false
-      },
+      portrait: { skinTone: "#5C3317", hairColor: "#2a1400", shirtColor: "#0c4a6e", hairStyle: "short" as const, hasGlasses: false },
       role: "Appointment-heavy practice",
       outcome: "Appointment requests captured.",
-      detail: "Overflow and after-hours calls get a professional response.",
+      detail: "After-hours calls get a professional response.",
       tag: "📅 Request noted"
+    },
+    {
+      portrait: { skinTone: "#D2A679", hairColor: "#1a0a00", shirtColor: "#4a1942", hairStyle: "long" as const, hasGlasses: false },
+      role: "Legal front desk",
+      outcome: "No dead-end calls.",
+      detail: "Every caller gets a clear next step, not a voicemail.",
+      tag: "⚡ Faster follow-up"
     }
   ];
 
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-    const interval = window.setInterval(() => {
-      setActive((c) => (c + 1) % profiles.length);
-    }, 4500);
-    return () => window.clearInterval(interval);
-  }, [profiles.length]);
-
-  const current = profiles[active];
+  // Duplicate for seamless infinite loop. Each slot = 300px, so -50% = exactly one set.
+  const doubled = [...cards, ...cards];
 
   return (
     <section
-      className="border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-14"
-      aria-labelledby="trust-outcomes-label"
+      className="border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-12 overflow-hidden"
+      aria-labelledby="marquee-label"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p
-          id="trust-outcomes-label"
-          className="mb-8 text-center text-[0.65rem] font-black uppercase tracking-[0.2em] text-slate-500"
-        >
-          Built for teams that cannot miss calls
-        </p>
+      <p
+        id="marquee-label"
+        className="system-label mx-auto mb-8 w-fit px-4"
+      >
+        Built for teams that cannot miss calls
+      </p>
 
-        <div className="mx-auto max-w-2xl">
-          {/* Main rotating outcome card */}
-          <div className="system-card relative overflow-hidden rounded-[1.35rem] p-5 sm:p-7">
-            <div className="scanline pointer-events-none absolute left-0 top-0 h-px w-full" aria-hidden="true" />
-
-            <div key={active} className="trust-card-fade flex items-start gap-4 sm:gap-6">
-              {/* Portrait */}
-              <div
-                className="h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-[#baff39]/22 sm:h-16 sm:w-16"
-                role="img"
-                aria-label={`Illustrated portrait representing ${current.role}`}
-              >
-                <PortraitSVG {...current.portrait} />
-              </div>
-
-              {/* Content */}
-              <div className="min-w-0 flex-1">
-                <p className="mb-2 text-[0.58rem] font-black uppercase tracking-[0.15em] text-slate-500">
-                  {current.role}
-                </p>
-                <p className="text-xl font-black leading-tight text-white sm:text-2xl">
-                  &ldquo;{current.outcome}&rdquo;
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{current.detail}</p>
-                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#baff39]/20 bg-[#baff39]/[0.07] px-3 py-1">
-                  <span className="text-xs font-black text-[#baff39]">{current.tag}</span>
+      {/* Marquee container — overflow hidden, pauses on hover */}
+      <div className="marquee-container overflow-hidden" aria-label="Common outcomes businesses look for">
+        <div className="marquee-strip flex w-max">
+          {doubled.map((card, i) => (
+            <div
+              key={i}
+              className="w-[300px] shrink-0 pr-4"
+              aria-hidden={i >= cards.length ? true : undefined}
+            >
+              <div className="system-card h-full rounded-[1.15rem] p-4 flex flex-col gap-3">
+                {/* Portrait + role */}
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#baff39]/18"
+                    role="img"
+                    aria-label={`Illustrated portrait of a ${card.role}`}
+                  >
+                    <PortraitSVG {...card.portrait} />
+                  </div>
+                  <p className="text-[0.55rem] font-black uppercase tracking-[0.12em] text-slate-500 leading-tight">
+                    {card.role}
+                  </p>
+                </div>
+                {/* Outcome */}
+                <div className="flex-1">
+                  <p className="text-sm font-black leading-tight text-white">
+                    &ldquo;{card.outcome}&rdquo;
+                  </p>
+                  <p className="mt-1 text-[0.7rem] leading-[1.5] text-slate-400">{card.detail}</p>
+                </div>
+                {/* Status tag */}
+                <div className="inline-flex w-fit items-center gap-1 rounded-full border border-[#baff39]/18 bg-[#baff39]/[0.06] px-2.5 py-1">
+                  <span className="text-[0.58rem] font-black text-[#baff39]">{card.tag}</span>
                 </div>
               </div>
             </div>
-
-            {/* Navigation: pill dots + avatar stack */}
-            <div className="mt-6 flex items-center justify-between">
-              {/* Pill dots */}
-              <div className="flex items-center gap-1.5" role="tablist" aria-label="Outcome profiles">
-                {profiles.map((p, i) => (
-                  <button
-                    key={p.role}
-                    type="button"
-                    role="tab"
-                    onClick={() => setActive(i)}
-                    aria-selected={active === i}
-                    aria-label={`Show: ${p.outcome}`}
-                    className={`rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#baff39]/30 ${
-                      active === i ? "h-1.5 w-5 bg-[#baff39]" : "h-1.5 w-1.5 bg-white/15 hover:bg-white/30"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Avatar stack — click to jump */}
-              <div className="flex -space-x-2" aria-label="All profiles">
-                {profiles.map((p, i) => (
-                  <button
-                    key={p.role}
-                    type="button"
-                    onClick={() => setActive(i)}
-                    aria-label={`Switch to ${p.role}`}
-                    className={`h-7 w-7 overflow-hidden rounded-full border-2 transition-all focus:outline-none focus:ring-2 focus:ring-[#baff39]/20 ${
-                      active === i
-                        ? "z-10 scale-110 border-[#baff39]"
-                        : "border-[#050807] opacity-55 hover:opacity-90"
-                    }`}
-                  >
-                    <PortraitSVG {...p.portrait} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Outcome chip row */}
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {[
-              "📞 Calls answered",
-              "✅ Details captured",
-              "🧾 Team brief ready",
-              "👤 Human handoff",
-              "📅 Request noted",
-              "⚡ Faster follow-up"
-            ].map((chip) => (
-              <span
-                key={chip}
-                className="rounded-full border border-[#baff39]/10 bg-[#baff39]/[0.035] px-3 py-1 text-xs font-semibold text-slate-500"
-              >
-                {chip}
-              </span>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
     </section>

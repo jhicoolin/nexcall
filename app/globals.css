@@ -393,6 +393,53 @@ section[id] {
   outline-offset: 2px;
 }
 
+/* ── Hero fade-up reveal ─────────────────────────────────────────────────────
+   Replaces the scramble/decrypt effect. One phrase, one smooth entrance.
+   No random chars, no layout shift, works without JS (text always in DOM).
+── ──────────────────────────────────────────────────────────────────────── */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-fade-up {
+  animation: hero-fade-up 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered siblings — content below the headline enters slightly later */
+.hero-stagger-1 {
+  animation: hero-fade-up 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+/* ── Outcome card marquee ────────────────────────────────────────────────────
+   Horizontal infinite scroll. Pure CSS — no JS required.
+   Each card slot must be the same fixed pixel width so -50% aligns exactly.
+── ──────────────────────────────────────────────────────────────────────── */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-strip {
+  animation: marquee-scroll 55s linear infinite;
+  will-change: transform;
+}
+
+/* Pause on hover (container wraps the strip) */
+.marquee-container:hover .marquee-strip {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

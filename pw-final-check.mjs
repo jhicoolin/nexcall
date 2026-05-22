@@ -39,58 +39,33 @@ async function run() {
   await page.waitForTimeout(3000); // let React hydrate + decrypt animation start
 
   // ── Hero decrypt stability ─────────────────────────────────────────────────
-  await test('Hero h1 has stable block structure', async () => {
-    const structure = await page.evaluate(() => {
+  await test('Hero h1 renders full phrase with CSS animation', async () => {
+    const result = await page.evaluate(() => {
       const h1 = document.querySelector('h1');
-      const relativeSpan = h1?.querySelector('span.relative');
-      const invisibleSpan = relativeSpan?.querySelector('span.invisible');
-      const overlaySpan = relativeSpan?.querySelector('span.absolute');
+      const text = h1?.textContent?.trim().replace(/\s+/g, ' ');
+      const hasClass = h1?.className?.includes('hero-fade-up');
+      const accentSpan = h1?.querySelector('span[class*="A8FF00"]');
       return {
-        hasRelative: !!relativeSpan,
-        hasInvisible: !!invisibleSpan,
-        hasOverlay: !!overlaySpan,
-        invisibleText: invisibleSpan?.textContent?.trim(),
-        h1Height: h1?.getBoundingClientRect().height
+        text,
+        hasHeroClass: hasClass,
+        accentText: accentSpan?.textContent?.trim(),
+        h1Height: Math.round(h1?.getBoundingClientRect().height || 0)
       };
     });
-    if (!structure.hasRelative || !structure.hasInvisible || !structure.hasOverlay)
-      throw new Error(`Missing layout-stable structure: ${JSON.stringify(structure)}`);
-    pass('Hero decrypt layout-stable structure present', `invisible anchor + absolute overlay`);
+    if (!result.text?.includes('Never miss your next call'))
+      throw new Error(`h1 text wrong: "${result.text}"`);
+    if (!result.accentText?.includes('next call'))
+      throw new Error(`No lime accent on "next call." — got: "${result.accentText}"`);
+    pass('Hero h1: CSS fade-in, "next call." accented lime', `text="${result.text}" h=${result.h1Height}px`);
   });
 
-  await test('Invisible anchor has final text', async () => {
-    const text = await page.evaluate(() => {
-      const inv = document.querySelector('h1 span.invisible');
-      return inv?.textContent?.trim();
-    });
-    if (text !== 'Never miss your next call.')
-      throw new Error(`Got: "${text}"`);
-    pass('Invisible anchor contains "Never miss your next call."', text);
-  });
-
-  await test('Hero h1 height stable (no jump)', async () => {
+  await test('Hero h1 height stable (no layout shift)', async () => {
     const h1Before = await page.evaluate(() => document.querySelector('h1')?.getBoundingClientRect().height);
-    await page.waitForTimeout(1500); // through the 1200ms animation
+    await page.waitForTimeout(900);
     const h1After = await page.evaluate(() => document.querySelector('h1')?.getBoundingClientRect().height);
     const diff = Math.abs((h1Before || 0) - (h1After || 0));
-    if (diff > 2) throw new Error(`h1 height changed by ${diff}px (before=${h1Before}, after=${h1After})`);
-    pass('Hero h1 height stable during decrypt animation', `diff=${diff}px`);
-  });
-
-  await test('Decrypt completes with accent on "next call."', async () => {
-    await page.waitForTimeout(1500); // animation should be done
-    const overlay = await page.evaluate(() => {
-      const overlay = document.querySelector('h1 span.absolute');
-      const accentSpan = overlay?.querySelector('span[class*="A8FF00"]');
-      return {
-        overlayText: overlay?.textContent?.trim(),
-        accentText: accentSpan?.textContent?.trim(),
-        hasAccent: !!accentSpan
-      };
-    });
-    if (!overlay.hasAccent) throw new Error(`No accent span found. overlay text: "${overlay.overlayText}"`);
-    if (overlay.accentText !== 'next call.') throw new Error(`Accent text wrong: "${overlay.accentText}"`);
-    pass('Decrypt completed: "next call." has lime accent', `accent="${overlay.accentText}"`);
+    if (diff > 2) throw new Error(`h1 shifted by ${diff}px`);
+    pass('Hero h1 height stable (no layout shift)', `diff=${diff}px`);
   });
 
   // ── NexCall green accent ───────────────────────────────────────────────────
@@ -118,17 +93,24 @@ async function run() {
     pass('Portrait SVGs visible', `count=${portraits.count}`);
   });
 
-  await test('Trust strip appears early in page (above fold or near it)', async () => {
-    const yPos = await page.evaluate(() => {
-      // Section has aria-labelledby="trust-outcomes-label" (renamed in revamp)
-      const trustSection =
+  await test('Review marquee visible early in page', async () => {
+    const result = await page.evaluate(() => {
+      // Marquee section has aria-labelledby="marquee-label"
+      const section =
+        document.querySelector('[aria-labelledby="marquee-label"]') ||
         document.querySelector('[aria-labelledby="trust-outcomes-label"]') ||
         document.querySelector('[aria-labelledby="trust-portraits-label"]');
-      return trustSection?.getBoundingClientRect().top;
+      const marqueeStrip = document.querySelector('.marquee-strip');
+      return {
+        found: !!section,
+        yPos: section?.getBoundingClientRect().top,
+        hasMarqueeStrip: !!marqueeStrip,
+        svgCount: section?.querySelectorAll('svg').length
+      };
     });
-    if (yPos === undefined || yPos === null) throw new Error('Trust section not found (checked trust-outcomes-label and trust-portraits-label)');
-    if ((yPos || 0) > 2700) throw new Error(`Trust strip too far down: y=${yPos}px`);
-    pass('Trust strip visible early in page', `y=${Math.round(yPos || 0)}px from viewport top`);
+    if (!result.found) throw new Error('Marquee/trust section not found');
+    if ((result.yPos || 0) > 2700) throw new Error(`Marquee too far down: y=${result.yPos}px`);
+    pass('Review marquee visible early in page', `y=${Math.round(result.yPos || 0)}px, marquee=${result.hasMarqueeStrip}, svgs=${result.svgCount}`);
   });
 
   // ── Process section size ───────────────────────────────────────────────────
@@ -279,20 +261,25 @@ async function run() {
     pass('Mobile: no horizontal scroll', `scrollWidth=${scrollWidth}px`);
   });
 
-  await test('Mobile: portrait trust section visible', async () => {
-    const portraits = await page.evaluate(() => {
+  await test('Mobile: review marquee section visible', async () => {
+    const result = await page.evaluate(() => {
       const section =
+        document.querySelector('[aria-labelledby="marquee-label"]') ||
         document.querySelector('[aria-labelledby="trust-outcomes-label"]') ||
         document.querySelector('[aria-labelledby="trust-portraits-label"]');
-      const svgs = section?.querySelectorAll('svg');
-      return { found: !!section, svgCount: svgs?.length };
+      return { found: !!section, svgCount: section?.querySelectorAll('svg').length };
     });
-    if (!portraits.found) throw new Error('Trust section not found on mobile');
-    if (!portraits.svgCount || portraits.svgCount < 1) throw new Error(`No SVG portraits found`);
-    pass('Mobile: trust portrait section visible', `svgs=${portraits.svgCount}`);
+    if (!result.found) throw new Error('Marquee section not found on mobile');
+    if (!result.svgCount || result.svgCount < 1) throw new Error('No portrait SVGs found');
+    pass('Mobile: review marquee visible', `svgs=${result.svgCount}`);
   });
 
   await test('Mobile: hero CTA tap target ≥44px', async () => {
+    // Navigate fresh in case pricing redirected away
+    if (!page.url().includes('localhost')) {
+      await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      await page.waitForTimeout(2000);
+    }
     const btnH = await page.evaluate(() => {
       const btn = document.querySelector('section#top button');
       return btn?.getBoundingClientRect().height;
