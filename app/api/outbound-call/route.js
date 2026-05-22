@@ -313,7 +313,10 @@ export async function POST(request) {
       phone: maskPhone(normalizedPhone),
       user_timezone: userTimeZone,
       hasAgentId: Boolean(elevenLabsAgentId),
-      hasAgentPhoneNumberId: Boolean(agentPhoneNumberId)
+      agentIdPrefix: elevenLabsAgentId ? elevenLabsAgentId.slice(0, 8) : "missing",
+      hasAgentPhoneNumberId: Boolean(agentPhoneNumberId),
+      phoneNumberIdPrefix: agentPhoneNumberId ? agentPhoneNumberId.slice(0, 8) : "missing",
+      endpoint: "https://api.elevenlabs.io/v1/convai/twilio/outbound-call"
     });
 
     // Build the native ElevenLabs Twilio outbound request. Runtime values must be
@@ -348,7 +351,11 @@ export async function POST(request) {
         requestId,
         status: response.status,
         phone: maskPhone(normalizedPhone),
-        message: responseData?.message || summarizeProviderDetail(responseData?.detail)
+        message: responseData?.message || summarizeProviderDetail(responseData?.detail),
+        // Full response body — needed to diagnose ElevenLabs rejections
+        responseBody: JSON.stringify(responseData).slice(0, 600),
+        detail: responseData?.detail ? summarizeProviderDetail(responseData.detail) : undefined,
+        errorType: responseData?.error || responseData?.type || undefined
       });
       return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
     }
@@ -358,7 +365,8 @@ export async function POST(request) {
         requestId,
         status: response.status,
         phone: maskPhone(normalizedPhone),
-        providerMessage: responseData?.message || "Missing provider success flag"
+        providerMessage: responseData?.message || "Missing provider success flag",
+        responseBody: JSON.stringify(responseData).slice(0, 600)
       });
       return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
     }
@@ -382,9 +390,11 @@ export async function POST(request) {
       }
     );
   } catch (error) {
-    console.error("[NEXCALL_CALL_DEMO_PROVIDER_ERROR]", {
+    console.error("[NEXCALL_CALL_DEMO_UNHANDLED_ERROR]", {
       requestId,
-      message: error instanceof Error ? error.message : "Unknown outbound call error"
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : "Unknown outbound call error",
+      stack: error instanceof Error ? error.stack?.slice(0, 400) : undefined
     });
     return NextResponse.json({ success: false, message: CALL_FAILURE_MESSAGE }, { status: 502 });
   }
