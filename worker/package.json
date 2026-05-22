@@ -1,0 +1,16 @@
+{
+  "name": "badgenes-genie-worker",
+  "version": "1.0.0",
+  "description": "Bad Genetics HQ — always-on Discord worker for live channel updates",
+  "type": "module",
+  "main": "index.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "node-cron": "^3.0.3"
+  }
+}
