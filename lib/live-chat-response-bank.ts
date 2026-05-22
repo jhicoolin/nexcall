@@ -86,7 +86,7 @@ const topics: ChatTopic[] = [
     keywords: ["price", "pricing", "cost", "plans", "how much"],
     title: "Pricing",
     answer:
-      "NexCall has three plan paths: Starter for basic answering and lead capture, Appointment for teams that need appointment-request support, and Growth for higher-volume workflows with more customization. The Pricing section shows the current plan options."
+      "NexCall has three plans: Starter at $349/mo, Appointment at $549/mo, and Growth at $849/mo. All plans save 15% with yearly billing. The Pricing section has the full breakdown."
   },
   {
     intent: "starter_plan",

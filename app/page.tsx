@@ -971,15 +971,15 @@ function Pricing() {
   const [checkoutError, setCheckoutError] = useState("");
   const plans = [
     {
-      id: "starter", name: "Starter", monthly: 149, limit: "Up to 120 calls/mo",
+      id: "starter", name: "Starter", monthly: 349, limit: "Up to 120 calls/mo",
       features: ["24/7 answering", "Lead qualification", "Clean call summaries", "Basic FAQs", "Simple call routing"]
     },
     {
-      id: "appointment", name: "Appointment", monthly: 199, featured: true, limit: "Up to 250 calls/mo",
+      id: "appointment", name: "Appointment", monthly: 549, featured: true, limit: "Up to 250 calls/mo",
       features: ["Everything in Starter", "Appointment request support", "Reschedule and cancellation intake", "Follow-up messaging", "Human fallback rules"]
     },
     {
-      id: "growth", name: "Growth", monthly: 349, plus: true, limit: "Higher call volume",
+      id: "growth", name: "Growth", monthly: 849, plus: true, limit: "Higher call volume",
       features: ["Everything in Appointment", "Business system handoff", "Multiple appointment types", "Custom call scripts", "Monthly performance review"]
     }
   ];
@@ -1093,7 +1093,7 @@ function FAQSection() {
     { question: "What if a caller needs a human?", answer: "NexCall can collect the important details and pass the conversation to your team with the context needed for follow-up." },
     { question: "Does NexCall work after hours?", answer: "Yes. NexCall covers nights, weekends, lunch rushes, and busy moments so callers do not hit a dead end." },
     { question: "What types of businesses is NexCall for?", answer: "The strongest fit is any business with repeat call patterns: dental offices, salons, clinics, restaurants, auto repair, legal offices, contractors, and local shops." },
-    { question: "How does pricing work?", answer: "Three flat-rate plans: Starter ($149/mo), Appointment ($199/mo), and Growth ($349/mo+). Yearly billing saves 15%. No card required for demo requests." },
+    { question: "How does pricing work?", answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card required for demo requests." },
     { question: "How do I get started?", answer: "Start with a demo call or choose a plan. From there, the first setup focuses on your highest-value call types and the information your team needs." }
   ];
 

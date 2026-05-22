@@ -287,8 +287,8 @@ WHAT NEXCALL DOES NOT HANDLE
 SECTION 5: PRICING AND PLANS
 ================================================================
 
-STARTER PLAN — $149/month
-Yearly rate: $127/month (save 15%)
+STARTER PLAN — $349/month
+Yearly rate: $297/month (save 15%)
 Call volume: Up to 120 calls per month
 Best for: Businesses that want 24/7 answering and lead capture.
 
@@ -299,8 +299,8 @@ Includes:
 - Basic FAQ answering
 - Simple call routing
 
-APPOINTMENT PLAN — $199/month
-Yearly rate: $169/month (save 15%)
+APPOINTMENT PLAN — $549/month
+Yearly rate: $467/month (save 15%)
 Call volume: Up to 250 calls per month
 Best for: Businesses with regular appointment scheduling —
 dental offices, salons, clinics, repair shops.
@@ -311,8 +311,8 @@ Includes everything in Starter, plus:
 - Follow-up messaging
 - Human fallback rules
 
-GROWTH PLAN — $349/month+
-Yearly rate: $297/month+ (save 15%)
+GROWTH PLAN — $849/month+
+Yearly rate: $722/month+ (save 15%)
 Call volume: Higher volume (contact team for specifics)
 Best for: Businesses with higher call volume, multiple service
 types, or more complex routing needs.
@@ -495,10 +495,10 @@ hours calls, and catches calls that come in during lunch or
 busy periods. It's backup coverage, not a replacement."
 
 "It's too expensive."
-Response: "The Starter plan is $149 a month. If NexCall captures
-one extra lead per week that would have gone to voicemail, it
-typically pays for itself. Would it make sense to try the demo
-first and see how it works for your call types?"
+Response: "The Starter plan is $349 a month. If NexCall captures
+even a handful of leads per week that would have gone to voicemail,
+it typically pays for itself quickly. Would it make sense to try
+the demo first and see how it works for your call types?"
 
 "I don't want AI answering my phones."
 Response: "That's a fair concern. NexCall is designed to sound

@@ -13,7 +13,7 @@ NexCall is designed to support appointment tools, customer records, team notific
 
 The public website has a compact preview of common call flows and a real call demo path.
 
-The current plans are Starter at 149 dollars per month for up to 120 calls per month, Appointment at 199 dollars per month for up to 250 calls per month, and Growth at 349 dollars per month for higher call volume. Yearly billing saves about 15 percent. Checkout opens securely when the selected plan is active.
+The current plans are Starter at 349 dollars per month for up to 120 calls per month, Appointment at 549 dollars per month for up to 250 calls per month, and Growth at 849 dollars per month for higher call volume. Yearly billing saves about 15 percent. Checkout opens securely when the selected plan is active.
 
 Starter includes basic answering, lead qualification, simple summaries, basic FAQs, and simple routing.
 Appointment includes everything in Starter plus appointment request support, reschedule and cancellation intake, follow-up messaging, and human fallback rules.

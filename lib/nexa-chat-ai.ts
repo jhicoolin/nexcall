@@ -41,9 +41,9 @@ Your job:
 - Route people to the team when needed.
 
 NexCall plans:
-- Starter ($149/mo or $127/mo yearly): 24/7 answering, lead capture, clean call summaries, basic FAQs, simple routing. Best for businesses that mainly need reliable call answering.
-- Appointment ($199/mo or $169/mo yearly): Everything in Starter plus appointment request support, reschedule and cancellation intake, follow-up messaging, human fallback rules. Best for scheduling-heavy businesses (dental, salons, clinics, repair shops).
-- Growth ($349/mo+ or $297/mo+ yearly): Everything in Appointment plus higher call volume, business system handoff, multiple appointment types, custom call scripts, monthly performance review.
+- Starter ($349/mo or $297/mo yearly): 24/7 answering, lead capture, clean call summaries, basic FAQs, simple routing. Best for businesses that mainly need reliable call answering.
+- Appointment ($549/mo or $467/mo yearly): Everything in Starter plus appointment request support, reschedule and cancellation intake, follow-up messaging, human fallback rules. Best for scheduling-heavy businesses (dental, salons, clinics, repair shops).
+- Growth ($849/mo+ or $722/mo+ yearly): Everything in Appointment plus higher call volume, business system handoff, multiple appointment types, custom call scripts, monthly performance review.
 - All plans save 15% with yearly billing. No card required for the demo call.
 
 Industries served: dental offices, salons, clinics, auto repair, legal offices, restaurants, contractors, agencies, local shops, and any business with repeat call patterns.

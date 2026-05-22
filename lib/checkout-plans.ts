@@ -14,7 +14,7 @@ export const checkoutPlans: CheckoutPlan[] = [
   {
     id: "starter",
     name: "Starter",
-    monthlyAmount: 149,
+    monthlyAmount: 349,
     monthlyEnv: "STRIPE_STARTER_MONTHLY_PRICE_ID",
     yearlyEnv: "STRIPE_STARTER_YEARLY_PRICE_ID",
     aliasEnv: "STRIPE_STARTER_PRICE_ID"
@@ -22,7 +22,7 @@ export const checkoutPlans: CheckoutPlan[] = [
   {
     id: "appointment",
     name: "Appointment",
-    monthlyAmount: 199,
+    monthlyAmount: 549,
     monthlyEnv: "STRIPE_APPOINTMENT_MONTHLY_PRICE_ID",
     yearlyEnv: "STRIPE_APPOINTMENT_YEARLY_PRICE_ID",
     aliasEnv: "STRIPE_APPOINTMENT_PRICE_ID"
@@ -30,7 +30,7 @@ export const checkoutPlans: CheckoutPlan[] = [
   {
     id: "growth",
     name: "Growth",
-    monthlyAmount: 349,
+    monthlyAmount: 849,
     monthlyEnv: "STRIPE_GROWTH_MONTHLY_PRICE_ID",
     yearlyEnv: "STRIPE_GROWTH_YEARLY_PRICE_ID",
     aliasEnv: "STRIPE_GROWTH_PRICE_ID"
