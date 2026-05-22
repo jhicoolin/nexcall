@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { CountUpStat } from "@/components/ui/CountUpStat";
+// CountUpStat used below via HeroCountUp (time-delay version for above-fold stats)
 
 /* ── constants ─────────────────────────────────────────────────────────────── */
 const NEXCALL_PUBLIC_EMAIL = "nexcall@proton.me";
@@ -327,6 +327,43 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
   );
 }
 
+/* ── HeroCountUp ──────────────────────────────────────────────────────────
+   Above-fold stats need a time-delay start, not IntersectionObserver.
+   IntersectionObserver fires while the hero is still fading in (opacity 0),
+   the count finishes before the element is visible, so users see the final
+   value instantly. Instead we wait 950ms — after the hero-stagger-1 settle
+   (0.22s delay + 0.65s duration + a small buffer) — then count up.
+── ──────────────────────────────────────────────────────────────────────── */
+function HeroCountUp({ value, suffix = "", decimals = 0 }: { value: number; suffix?: string; decimals?: number }) {
+  const [display, setDisplay] = useState("0");
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      setDisplay(decimals > 0 ? value.toFixed(decimals) : String(value));
+      return;
+    }
+
+    const delay = setTimeout(() => {
+      const duration = 1400;
+      const start = performance.now();
+      function tick(now: number) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // ease-out-cubic
+        const current = eased * value;
+        setDisplay(decimals > 0 ? current.toFixed(decimals) : Math.floor(current).toString());
+        if (progress < 1) requestAnimationFrame(tick);
+        else setDisplay(decimals > 0 ? value.toFixed(decimals) : String(value));
+      }
+      requestAnimationFrame(tick);
+    }, 950); // hero-stagger-1 settles at ~870ms; 950ms gives a clean start
+
+    return () => clearTimeout(delay);
+  }, [value, decimals]);
+
+  return <span>{display}{suffix}</span>;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    CINEMATIC HERO — new composition: stacked headline + 3-stage call visual
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -374,24 +411,19 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             </div>
             <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
 
-            {/* Stat strip — numeric stats count up on scroll */}
+            {/* Stat strip — numeric stats count up after hero fade-in settles (~1s) */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
               {([
-                { value: 500, suffix: "+", decimals: 0, label: "Calls handled" },
-                { value: null, static: "24/7",              label: "Always on" },
-                { value: 99.9, suffix: "%", decimals: 1,   label: "Uptime" },
-                { value: 60,  suffix: "s", decimals: 0,    label: "Avg. response" }
+                { value: 500,  suffix: "+", decimals: 0, label: "Calls handled" },
+                { value: null, static: "24/7",            label: "Always on" },
+                { value: 99.9, suffix: "%", decimals: 1,  label: "Uptime" },
+                { value: 60,   suffix: "s", decimals: 0,  label: "Avg. response" }
               ] as const).map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
                   <p className="text-2xl font-black text-white">
-                    {"static" in s ? s.static : (
-                      <CountUpStat
-                        value={s.value as number}
-                        suffix={s.suffix as string}
-                        decimals={s.decimals as number}
-                        duration={1200}
-                      />
-                    )}
+                    {"static" in s
+                      ? s.static
+                      : <HeroCountUp value={s.value as number} suffix={s.suffix as string} decimals={s.decimals as number} />}
                   </p>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#4B5563]">{s.label}</p>
                 </div>
@@ -1599,5 +1631,5 @@ function Badge({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
   );
 }
 
-// Suppress unused warning
+// Badge kept for future use
 void Badge;
