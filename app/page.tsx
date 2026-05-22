@@ -1342,134 +1342,292 @@ function Footer() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LIVE CHAT DOCK — unchanged functionality
+   LIVE CHAT DOCK — AI-powered with history, typing indicator, action buttons
 ═══════════════════════════════════════════════════════════════════════════ */
+type NexaAction = { label: string; type: string };
+
 function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<ChatMode>("ai");
   const [question, setQuestion] = useState("");
   const [isAsking, setIsAsking] = useState(false);
-  const [chatError, setChatError] = useState("");
   const [chatTerminated, setChatTerminated] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([{
     role: "assistant",
-    text: "Hi - I am Nexa, NexCall's front desk assistant. I can help you try a demo call, compare plans, or get your info to the team. What would you like to handle better: missed calls, appointment requests, or lead capture?"
+    text: "Hi — I'm Nexa, NexCall's front desk assistant. I can help you understand what NexCall does, find the right plan, or try a demo call. What are you looking to handle better?"
   }]);
+  const [pendingActions, setPendingActions] = useState<NexaAction[]>([]);
   const [humanForm, setHumanForm] = useState({ name: "", email: "", phone: "", businessName: "", businessType: "", message: "" });
   const [humanStatus, setHumanStatus] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  function openDemoFromChat() {
-    setOpen(false);
-    setMessages((c) => [...c, { role: "assistant", text: "Use the Call Demo and keep your phone nearby. No card is required." }]);
-    onCallDemo();
+  // Auto-scroll to latest message
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isAsking]);
+
+  // Build history array for AI context (last 10 exchanges)
+  function buildHistory(): Array<{ role: "user" | "assistant"; content: string }> {
+    return messages
+      .filter((m) => m.role === "visitor" || m.role === "assistant")
+      .slice(-20)
+      .map((m) => ({
+        role: m.role === "visitor" ? ("user" as const) : ("assistant" as const),
+        content: m.text
+      }));
+  }
+
+  function handleAction(action: NexaAction) {
+    setPendingActions([]);
+    if (action.type === "open_demo") { setOpen(false); onCallDemo(); }
+    else if (action.type === "scroll_pricing") { setOpen(false); document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" }); }
+    else if (action.type === "start_lead_capture") { setMode("human"); }
+    else if (action.type === "show_contact") {
+      setMessages((c) => [...c, { role: "assistant", text: `You can reach NexCall at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.` }]);
+    }
   }
 
   async function submitChatQuestion(q: string) {
-    if (!q || chatTerminated) return;
-    setChatError(""); setIsAsking(true); setQuestion("");
-    setMessages((c) => [...c, { role: "visitor", text: q }]);
+    if (!q.trim() || chatTerminated || isAsking) return;
+    const userMsg = q.trim();
+    setChatTerminated(false);
+    setIsAsking(true);
+    setQuestion("");
+    setPendingActions([]);
+    setMessages((c) => [...c, { role: "visitor", text: userMsg }]);
+
     try {
-      const response = await fetch("/api/chat/nexcall", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) });
-      const result = (await response.json()) as { answer?: string; terminated?: boolean; error?: string };
-      if (!response.ok || !result.answer) throw new Error(result.error || "Chat is not ready yet.");
-      setMessages((c) => [...c, { role: "assistant", text: result.answer! }]);
+      const response = await fetch("/api/chat/nexcall", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMsg,
+          history: buildHistory(),
+          source: "live_chat",
+          page: "homepage"
+        })
+      });
+
+      const result = (await response.json()) as {
+        success?: boolean;
+        message?: string;
+        answer?: string;
+        actions?: NexaAction[];
+        needsHuman?: boolean;
+        terminated?: boolean;
+      };
+
+      const answer = result.message || result.answer || `You can reach NexCall at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.`;
+      setMessages((c) => [...c, { role: "assistant", text: answer }]);
+      if (result.actions?.length) setPendingActions(result.actions);
       if (result.terminated) setChatTerminated(true);
+      if (result.needsHuman && !result.actions?.length) {
+        setPendingActions([{ label: "Talk to the team", type: "start_lead_capture" }]);
+      }
     } catch {
-      setChatError("I could not confirm an answer from here.");
-      setMessages((c) => [...c, { role: "assistant", text: `You can still reach NexCall at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.` }]);
-    } finally { setIsAsking(false); }
+      setMessages((c) => [...c, {
+        role: "assistant",
+        text: `I wasn't able to reach the server. You can contact NexCall directly at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.`
+      }]);
+    } finally {
+      setIsAsking(false);
+    }
   }
 
-  async function askQuestion(e: FormEvent<HTMLFormElement>) { e.preventDefault(); await submitChatQuestion(question.trim()); }
+  async function askQuestion(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    await submitChatQuestion(question);
+  }
 
   async function requestHuman(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); setHumanStatus("Sending...");
+    e.preventDefault();
+    setHumanStatus("Sending...");
     const response = await fetch("/api/leads", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: humanForm.name, trucks: humanForm.name || "Chat visitor", service: humanForm.businessName || humanForm.businessType || "Live chat handoff", email: humanForm.email, phone: normalizeOutboundPhoneInput(humanForm.phone), message: [humanForm.message, humanForm.businessName ? `Business: ${humanForm.businessName}` : "", humanForm.businessType ? `Business type: ${humanForm.businessType}` : ""].filter(Boolean).join("\n"), source: "live_chat" })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: humanForm.name,
+        trucks: humanForm.name || "Chat visitor",
+        service: humanForm.businessName || humanForm.businessType || "Live chat handoff",
+        email: humanForm.email,
+        phone: normalizeOutboundPhoneInput(humanForm.phone),
+        message: [humanForm.message, humanForm.businessName ? `Business: ${humanForm.businessName}` : "", humanForm.businessType ? `Type: ${humanForm.businessType}` : ""].filter(Boolean).join("\n"),
+        source: "live_chat"
+      })
     });
-    if (!response.ok) { setHumanStatus(`Could not confirm delivery. Reach us at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.`); return; }
-    setHumanStatus("Thanks - the NexCall team has that.");
+    if (!response.ok) {
+      setHumanStatus(`Could not confirm delivery. Reach us at ${NEXCALL_PUBLIC_EMAIL} or ${NEXCALL_PUBLIC_PHONE_DISPLAY}.`);
+      return;
+    }
+    setHumanStatus("Done — the NexCall team will be in touch.");
     setHumanForm({ name: "", email: "", phone: "", businessName: "", businessType: "", message: "" });
   }
 
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-[60] w-[calc(100vw-2rem)] max-w-[390px] sm:bottom-6 sm:right-6">
       {open ? (
-        <section className="modal-enter pointer-events-auto metal-panel max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl shadow-2xl shadow-black/45" aria-label="NexCall live chat">
-          <div className="flex items-center justify-between gap-3 border-b border-[#baff39]/10 bg-white/[0.035] px-4 py-3">
+        <section
+          className="modal-enter pointer-events-auto metal-panel flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl shadow-black/45"
+          aria-label="NexCall live chat"
+        >
+          {/* ── Header ── */}
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#baff39]/10 bg-white/[0.035] px-4 py-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#baff39]/20 bg-[#baff39]/10 text-[#baff39]"><MessageSquareText size={20} aria-hidden="true" /></span>
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#baff39]/20 bg-[#baff39]/10 text-[#baff39]">
+                <MessageSquareText size={20} aria-hidden="true" />
+              </span>
               <div>
                 <p className="text-sm font-black text-white">Nexa</p>
-                <p className="text-xs font-bold text-slate-400">NexCall front desk assistant</p>
+                <p className="text-xs font-bold text-slate-400">NexCall · AI front desk</p>
               </div>
             </div>
-            <button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#baff39]/12 bg-white/[0.04] text-slate-100 transition hover:border-[#baff39]/30 hover:text-[#baff39]" aria-label="Collapse live chat">
+            <button type="button" onClick={() => setOpen(false)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#baff39]/12 bg-white/[0.04] text-slate-100 transition hover:border-[#baff39]/30 hover:text-[#baff39]"
+              aria-label="Collapse live chat">
               <Minus size={18} aria-hidden="true" />
             </button>
           </div>
-          <div className="grid grid-cols-2 border-b border-[#baff39]/10 bg-black/30 p-2">
-            {[{ key: "ai" as const, label: "Quick answer", icon: Bot }, { key: "human" as const, label: "Human follow-up", icon: UserRound }].map((tab) => (
+
+          {/* ── Mode tabs ── */}
+          <div className="grid shrink-0 grid-cols-2 border-b border-[#baff39]/10 bg-black/30 p-2">
+            {[{ key: "ai" as const, label: "Ask Nexa", icon: Bot }, { key: "human" as const, label: "Talk to team", icon: UserRound }].map((tab) => (
               <button key={tab.key} type="button" onClick={() => setMode(tab.key)}
                 className={`flex min-h-10 items-center justify-center gap-2 rounded-lg text-sm font-black transition ${mode === tab.key ? "bg-[#baff39] text-[#020403]" : "text-slate-300 hover:bg-white/[0.06] hover:text-white"}`}>
                 <tab.icon size={16} aria-hidden="true" /> {tab.label}
               </button>
             ))}
           </div>
+
           {mode === "ai" ? (
-            <div>
-              <div className="border-b border-[#baff39]/10 p-3">
+            <>
+              {/* ── Quick actions strip ── */}
+              <div className="shrink-0 border-b border-[#baff39]/10 p-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={openDemoFromChat} className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">Try demo call</button>
-                  <a href="#pricing" onClick={() => setOpen(false)} className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">View pricing</a>
-                  <button type="button" onClick={() => submitChatQuestion("Which plan fits my business?")} className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">Which plan fits?</button>
-                  <button type="button" onClick={() => setMode("human")} className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">Talk to team</button>
+                  <button type="button" onClick={() => { setOpen(false); onCallDemo(); }}
+                    className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">
+                    Try demo call
+                  </button>
+                  <a href="#pricing" onClick={() => setOpen(false)}
+                    className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">
+                    View pricing
+                  </a>
+                  <button type="button" onClick={() => submitChatQuestion("Which plan fits my business?")}
+                    className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">
+                    Which plan fits?
+                  </button>
+                  <button type="button" onClick={() => setMode("human")}
+                    className="rounded-lg border border-[#baff39]/12 bg-white/[0.045] px-3 py-2 text-left text-xs font-black text-white transition hover:border-[#baff39]/30 hover:text-[#baff39]">
+                    Talk to team
+                  </button>
                 </div>
               </div>
-              <div className="max-h-72 space-y-3 overflow-y-auto p-4">
+
+              {/* ── Message thread ── */}
+              <div className="flex-1 space-y-3 overflow-y-auto p-4" style={{ minHeight: 0 }}>
                 {messages.map((msg, i) => (
                   <div key={`${msg.role}-${i}`} className={`flex ${msg.role === "visitor" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[86%] rounded-lg px-3 py-2 text-sm leading-6 ${msg.role === "visitor" ? "bg-[#baff39] text-[#020403]" : "bg-white/[0.07] text-slate-100"}`}>{msg.text}</div>
+                    <div className={`max-w-[86%] rounded-2xl px-3 py-2 text-sm leading-[1.55] ${
+                      msg.role === "visitor"
+                        ? "rounded-br-sm bg-[#baff39] font-semibold text-[#020403]"
+                        : "rounded-bl-sm bg-white/[0.08] text-slate-100"
+                    }`}>
+                      {msg.text}
+                    </div>
                   </div>
                 ))}
-                {chatError && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs font-bold leading-5 text-amber-900">{chatError}</p>}
+
+                {/* Typing indicator */}
+                {isAsking && (
+                  <div className="flex justify-start">
+                    <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-white/[0.08] px-4 py-3">
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className="h-1.5 w-1.5 rounded-full bg-slate-400"
+                          style={{ animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                          aria-hidden="true" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI-suggested action buttons */}
+                {pendingActions.length > 0 && !isAsking && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {pendingActions.map((action) => (
+                      <button key={action.type} type="button" onClick={() => handleAction(action)}
+                        className="rounded-full border border-[#baff39]/30 bg-[#baff39]/10 px-3 py-1.5 text-xs font-black text-[#baff39] transition hover:bg-[#baff39]/20">
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div ref={bottomRef} />
               </div>
-              <form onSubmit={askQuestion} className="border-t border-[#baff39]/10 p-3">
-                <label className="sr-only" htmlFor="live-chat-question">Ask NexCall a question</label>
+
+              {/* ── Input bar ── */}
+              <form onSubmit={askQuestion} className="shrink-0 border-t border-[#baff39]/10 p-3">
+                <label className="sr-only" htmlFor="live-chat-question">Ask Nexa a question</label>
                 <div className="flex gap-2">
-                  <input id="live-chat-question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={chatTerminated ? "Conversation ended" : "Ask about pricing, demos, appointments..."} disabled={chatTerminated} className="min-h-11 flex-1 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39]" />
-                  <button type="submit" disabled={isAsking || chatTerminated} className="flex min-h-11 w-12 items-center justify-center rounded-lg bg-[#baff39] text-[#020403] transition hover:brightness-110 disabled:opacity-60" aria-label="Send chat question"><Send size={17} aria-hidden="true" /></button>
+                  <input
+                    id="live-chat-question"
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void submitChatQuestion(question); } }}
+                    placeholder={chatTerminated ? "Conversation ended" : "Ask about pricing, demos, appointments…"}
+                    disabled={chatTerminated || isAsking}
+                    maxLength={2000}
+                    className="min-h-11 flex-1 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] disabled:opacity-60"
+                  />
+                  <button type="submit" disabled={isAsking || chatTerminated || !question.trim()}
+                    className="flex min-h-11 w-12 shrink-0 items-center justify-center rounded-lg bg-[#baff39] text-[#020403] transition hover:brightness-110 disabled:opacity-50"
+                    aria-label="Send message">
+                    {isAsking
+                      ? <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                      : <Send size={16} aria-hidden="true" />}
+                  </button>
                 </div>
-                <p className="mt-2 text-[11px] font-bold leading-4 text-slate-400">I&apos;m NexCall&apos;s website assistant. I can help now or route you to the team.</p>
+                <p className="mt-2 text-[11px] font-bold leading-4 text-slate-500">
+                  I&apos;m NexCall&apos;s website assistant. I can help now or route you to the team.
+                </p>
               </form>
-            </div>
+            </>
           ) : (
-            <form onSubmit={requestHuman} className="space-y-3 p-4">
-              <p className="text-sm leading-6 text-slate-300">Send your details to the NexCall team for human follow-up.</p>
+            /* ── Human follow-up form ── */
+            <form onSubmit={requestHuman} className="flex-1 space-y-3 overflow-y-auto p-4">
+              <p className="text-sm leading-6 text-slate-300">Send your details and the NexCall team will follow up directly.</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <input required value={humanForm.name} onChange={(e) => setHumanForm((c) => ({ ...c, name: e.target.value }))} placeholder="Name" className="min-h-11 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
                 <input value={humanForm.businessName} onChange={(e) => setHumanForm((c) => ({ ...c, businessName: e.target.value }))} placeholder="Business name" className="min-h-11 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
               </div>
-              <input value={humanForm.businessType} onChange={(e) => setHumanForm((c) => ({ ...c, businessType: e.target.value }))} placeholder="Business type" className="min-h-11 w-full rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
+              <input value={humanForm.businessType} onChange={(e) => setHumanForm((c) => ({ ...c, businessType: e.target.value }))} placeholder="Business type (e.g. dental, salon, legal)" className="min-h-11 w-full rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
               <div className="grid gap-2 sm:grid-cols-2">
                 <input type="email" required value={humanForm.email} onChange={(e) => setHumanForm((c) => ({ ...c, email: e.target.value }))} placeholder="Email" className="min-h-11 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
-                <input type="tel" required value={humanForm.phone} onChange={(e) => handlePhoneInputFormatting(e, (v) => setHumanForm((c) => ({ ...c, phone: v })))} onBlur={(e) => setHumanForm((c) => ({ ...c, phone: formatPhoneForBlur(e.target.value) }))} placeholder="(###) ###-####" className="min-h-11 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
+                <input type="tel" required value={humanForm.phone}
+                  onChange={(e) => handlePhoneInputFormatting(e, (v) => setHumanForm((c) => ({ ...c, phone: v })))}
+                  onBlur={(e) => setHumanForm((c) => ({ ...c, phone: formatPhoneForBlur(e.target.value) }))}
+                  placeholder="(###) ###-####" className="min-h-11 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 text-sm text-[#172033] outline-none focus:border-[#baff39]" />
               </div>
               <textarea required value={humanForm.message} onChange={(e) => setHumanForm((c) => ({ ...c, message: e.target.value }))} placeholder="What do you want NexCall to handle?" className="min-h-24 w-full rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-3 py-2 text-sm text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39]" />
               <button type="submit" className="system-button-primary inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-black transition hover:-translate-y-0.5">
                 <UserRound size={17} aria-hidden="true" /> Send to the team
               </button>
-              {humanStatus && <p className="rounded-lg border border-[#baff39]/20 bg-[#baff39]/10 p-3 text-xs font-bold text-[#eaffb8]">{humanStatus}</p>}
+              {humanStatus && (
+                <p className="rounded-lg border border-[#baff39]/20 bg-[#baff39]/10 p-3 text-xs font-bold text-[#eaffb8]">{humanStatus}</p>
+              )}
             </form>
           )}
         </section>
       ) : (
-        <button type="button" onClick={() => setOpen(true)} className="pointer-events-auto ml-auto flex min-h-12 items-center gap-3 rounded-2xl border border-[#baff39]/18 bg-[#050807]/92 px-4 py-3 text-left shadow-xl shadow-black/30 backdrop-blur transition hover:-translate-y-0.5 hover:border-[#baff39]/40" aria-label="Open NexCall live chat">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#baff39] text-[#020403]"><MessageSquareText size={18} aria-hidden="true" /></span>
+        /* ── Collapsed toggle button ── */
+        <button type="button" onClick={() => setOpen(true)}
+          className="pointer-events-auto ml-auto flex min-h-12 items-center gap-3 rounded-2xl border border-[#baff39]/18 bg-[#050807]/92 px-4 py-3 text-left shadow-xl shadow-black/30 backdrop-blur transition hover:-translate-y-0.5 hover:border-[#baff39]/40"
+          aria-label="Open NexCall live chat">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#baff39] text-[#020403]">
+            <MessageSquareText size={18} aria-hidden="true" />
+          </span>
           <span className="hidden sm:block">
-            <span className="block text-sm font-black text-white">Ask the front desk</span>
-            <span className="block text-xs font-bold text-slate-400">AI or human follow-up</span>
+            <span className="block text-sm font-black text-white">Ask Nexa</span>
+            <span className="block text-xs font-bold text-slate-400">AI front desk assistant</span>
           </span>
         </button>
       )}
