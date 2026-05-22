@@ -9,8 +9,7 @@ export const maxDuration = 60;
 
 interface FakeRes {
   headersSent: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  json: (data: any) => FakeRes;
+  json: (data: unknown) => FakeRes;
   status: (code: number) => { json: (data: unknown) => void };
 }
 
@@ -36,16 +35,14 @@ export async function POST(req: NextRequest) {
 
   const interaction = JSON.parse(rawBody.toString('utf8'));
 
-  // Discord PING — required for endpoint verification
   if (interaction.type === 1) {
     return NextResponse.json({ type: 1 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let responseData: any;
+  let responseData: unknown;
   const fakeRes: FakeRes = {
     headersSent: false,
-    json(data) {
+    json(data: unknown) {
       if (!this.headersSent) {
         responseData = data;
         this.headersSent = true;
@@ -60,11 +57,9 @@ export async function POST(req: NextRequest) {
   try {
     const handlerPromise: Promise<void> = route(interaction, fakeRes);
 
-    // Yield one microtask so synchronous res.json() calls (e.g. deferred in /setup) run first
     await Promise.resolve();
 
-    if (fakeRes.headersSent && responseData?.type === 5) {
-      // /setup: deferred — return type:5 immediately, keep function alive via after()
+    if (fakeRes.headersSent && (responseData as { type?: number })?.type === 5) {
       after(handlerPromise);
       return NextResponse.json({ type: 5 });
     }
