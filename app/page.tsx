@@ -374,16 +374,25 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             </div>
             <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
 
-            {/* Stat strip */}
+            {/* Stat strip — numeric stats count up on scroll */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
-              {[
-                { num: "500+", label: "Calls handled" },
-                { num: "24/7", label: "Always on" },
-                { num: "99.9%", label: "Uptime" },
-                { num: "60s", label: "Avg. response" }
-              ].map((s) => (
+              {([
+                { value: 500, suffix: "+", decimals: 0, label: "Calls handled" },
+                { value: null, static: "24/7",              label: "Always on" },
+                { value: 99.9, suffix: "%", decimals: 1,   label: "Uptime" },
+                { value: 60,  suffix: "s", decimals: 0,    label: "Avg. response" }
+              ] as const).map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
-                  <p className="text-2xl font-black text-white">{s.num}</p>
+                  <p className="text-2xl font-black text-white">
+                    {"static" in s ? s.static : (
+                      <CountUpStat
+                        value={s.value as number}
+                        suffix={s.suffix as string}
+                        decimals={s.decimals as number}
+                        duration={1200}
+                      />
+                    )}
+                  </p>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#4B5563]">{s.label}</p>
                 </div>
               ))}
@@ -1592,4 +1601,3 @@ function Badge({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
 
 // Suppress unused warning
 void Badge;
-void CountUpStat;
