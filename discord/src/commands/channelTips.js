@@ -1,8 +1,7 @@
 import { isAdmin, noPermission, EPHEMERAL } from '../permissions.js';
-import { getGuildChannels, getChannelMessages, sendMessage, delay } from '../discordApi.js';
+import { getGuildChannels, getChannelMessages, sendMessage, editOriginalResponse, delay } from '../discordApi.js';
 import { buildTipEmbed, getBaseName } from '../channelTipsContent.js';
 import { SERVER_STRUCTURE } from '../serverStructure.js';
-import { editOriginalResponse } from '../discordApi.js';
 
 export function handleChannelTips(interaction, res) {
   const sub = interaction.data.options?.[0]?.name ?? 'refresh';
