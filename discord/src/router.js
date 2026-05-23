@@ -1,27 +1,33 @@
-import { handleSetup }              from './commands/setup.js';
-import { handleRules }              from './commands/rules.js';
-import { handleShop }               from './commands/shop.js';
-import { handleDrop }               from './commands/drop.js';
-import { handleGenie }              from './commands/genie.js';
-import { handleVip }                from './commands/vip.js';
-import { handleSupport }            from './commands/support.js';
-import { handleLevel }              from './commands/level.js';
-import { handleLeaderboard }        from './commands/leaderboard.js';
-import { handleRoutine }            from './commands/routine.js';
+import { handleSetup }             from './commands/setup.js';
+import { handleRules }             from './commands/rules.js';
+import { handleShop }              from './commands/shop.js';
+import { handleDrop }              from './commands/drop.js';
+import { handleGenie }             from './commands/genie.js';
+import { handleVip }               from './commands/vip.js';
+import { handleSupport }           from './commands/support.js';
+import { handleLevel }             from './commands/level.js';
+import { handleLeaderboard }       from './commands/leaderboard.js';
+import { handleRoutine }           from './commands/routine.js';
 import { handleMinigame, handleTriviaComponent } from './commands/minigame.js';
-import { handleMarket }             from './commands/market.js';
-import { handleIdeas }              from './commands/ideas.js';
-import { handleEmail }              from './commands/email.js';
+import { handleMarket }            from './commands/market.js';
+import { handleIdeas }             from './commands/ideas.js';
+import { handleEmail }             from './commands/email.js';
 import { handleRoles, handleRoleSelect } from './commands/roles.js';
-import { handleMusic }              from './commands/music.js';
-import { handleGoogle }             from './commands/google.js';
-import { handleConfig }             from './commands/config.js';
+import { handleMusic }             from './commands/music.js';
+import { handleGoogle }            from './commands/google.js';
+import { handleConfig }            from './commands/config.js';
 import { handleAnalytics, trackCommand } from './commands/analytics.js';
-import { handleMod }                from './commands/mod.js';
-import { EPHEMERAL }                from './permissions.js';
+import { handleMod }               from './commands/mod.js';
+import { handleChannelTips }       from './commands/channelTips.js';
+import { handleRecipe }            from './commands/recipe.js';
+import { handleCrypto }            from './commands/crypto.js';
+import { handleGrailed }           from './commands/grailed.js';
+import { handleRank }              from './commands/rank.js';
+import { EPHEMERAL }               from './permissions.js';
 
 const HANDLERS = {
   setup:       handleSetup,
+  channel:     handleChannelTips,
   roles:       handleRoles,
   rules:       handleRules,
   shop:        handleShop,
@@ -31,9 +37,13 @@ const HANDLERS = {
   support:     handleSupport,
   level:       handleLevel,
   leaderboard: handleLeaderboard,
+  rank:        handleRank,
   routine:     handleRoutine,
+  recipe:      handleRecipe,
   minigame:    handleMinigame,
   market:      handleMarket,
+  crypto:      handleCrypto,
+  grailed:     handleGrailed,
   ideas:       handleIdeas,
   email:       handleEmail,
   music:       handleMusic,
@@ -53,7 +63,7 @@ export async function route(interaction, res) {
     return res.json({ type: 4, data: { content: `Unknown command: \`/${name}\``, flags: EPHEMERAL } });
   }
 
-  // MESSAGE_COMPONENT (type 3)
+  // MESSAGE_COMPONENT (type 3) — buttons and select menus
   if (interaction.type === 3) {
     const id = interaction.data?.custom_id ?? '';
     if (id.startsWith('roles:'))  return handleRoleSelect(interaction, res);

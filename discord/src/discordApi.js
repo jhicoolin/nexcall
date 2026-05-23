@@ -34,6 +34,18 @@ export function createChannel(guildId, data) {
   return apiCall(`${BASE}/guilds/${guildId}/channels`, 'POST', data, botHeaders());
 }
 
+export function modifyChannel(channelId, data) {
+  return apiCall(`${BASE}/channels/${channelId}`, 'PATCH', data, botHeaders());
+}
+
+export function pinMessage(channelId, messageId) {
+  return apiCall(`${BASE}/channels/${channelId}/pins/${messageId}`, 'PUT', null, botHeaders());
+}
+
+export function getChannelMessages(channelId, limit = 20) {
+  return apiCall(`${BASE}/channels/${channelId}/messages?limit=${limit}`, 'GET', null, botHeaders());
+}
+
 // ── Roles ─────────────────────────────────────────────────────────────────────
 
 export function getGuildRoles(guildId) {
