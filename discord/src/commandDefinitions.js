@@ -17,7 +17,7 @@ export const commands = [
     name: 'channel',
     description: 'Manage channel guide embeds. Admin only.',
     options: [{
-      type: 1, name: 'tips', description: 'Manage channel tip embeds.',
+      type: 2, name: 'tips', description: 'Channel tip embed tools.',
       options: [
         { type: 1, name: 'refresh', description: 'Post/update guide embeds in all core channels.' },
       ],
