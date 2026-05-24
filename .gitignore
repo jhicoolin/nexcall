@@ -33,3 +33,6 @@ src-tauri/gen/
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+# Local Vercel CLI pulls
+.vercel.preview.env
