@@ -14,9 +14,9 @@ function logDiscordAiConfigOnce() {
   bootConfigLogged = true;
 
   console.info('[DISCORD_AI_CONFIG]', {
-    openaiApiKeyConfigured: Boolean(process.env.OPENAI_API_KEY),
-    openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    appIdConfigured: Boolean(process.env.DISCORD_APPLICATION_ID),
+    openaiApiKeyConfigured: Boolean(process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY),
+    openaiModel: process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini',
+    appIdConfigured: Boolean(process.env.DISCORD_APPLICATION_ID || process.env.DISCORD_CLIENT_ID),
     publicKeyConfigured: Boolean(process.env.DISCORD_PUBLIC_KEY)
   });
 }
