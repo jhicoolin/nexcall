@@ -4,7 +4,7 @@ import { runMisatoMockCommand } from "@/lib/misato/mock/data";
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
 
 export async function POST(request: Request) {
-  const unauthorized = await assertOwnerJson();
+  const unauthorized = await assertOwnerJson(request);
   if (unauthorized) return unauthorized;
 
   const owner = getOwnerEmail();

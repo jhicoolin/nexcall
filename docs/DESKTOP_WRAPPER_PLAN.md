@@ -58,10 +58,11 @@ Explanation:
 - Exact file names may vary by Tauri config/app name.
 
 ## Runtime model (fixed)
-- Dev mode: `npm run dev` + `npm run desktop:dev` uses `http://localhost:3000/login`.
-- Packaged mode: app loads local `desktop-shell/index.html` (so no missing `index.html`), then redirects to `MISATO_DESKTOP_URL` from runtime env OR build-time embedded value.
-- NexCall target URL: `https://nexcall.one/misato` (fallback target: `https://nexcall.one/login`).
-- If `MISATO_DESKTOP_URL` is not set, packaged app shows a friendly setup screen.
+- Dev mode: run Next backend separately (`npm run dev`) and desktop app with `npm run desktop:dev`.
+- Desktop window loads bundled desktop UI (`desktop-ui/`) in both dev and packaged modes.
+- Desktop UI calls private backend via `MISATO_API_BASE_URL`.
+- If `MISATO_API_BASE_URL` is missing, app shows local "Connect MISATO backend" setup state.
+- No public NexCall website pages are required to render MISATO desktop UI.
 
 ## Desktop rules
 - Web app remains source of truth.

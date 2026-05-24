@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.nexcall.misato",
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:3000/login",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../desktop-shell"
+    "beforeDevCommand": "npm run desktop-ui:dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run desktop-ui:build && npm run build",
+    "frontendDist": "../desktop-ui"
   },
   "app": {
     "withGlobalTauri": false,

@@ -1,5 +1,24 @@
 # MISATO Desktop Build Instructions (Windows)
 
+## Desktop architecture
+- MISATO.exe bundles its own desktop UI (`desktop-ui/`).
+- It does **not** render public NexCall website pages.
+- It connects to private backend APIs via `MISATO_API_BASE_URL` (example: `https://nexcall.one/api/misato`).
+- Owner auth is still enforced by backend (`/api/misato/*`).
+
+## Dev mode
+Run backend and desktop UI separately:
+```bash
+cd C:\Users\pixel\nexcall
+npm run dev
+```
+In a second terminal:
+```bash
+cd C:\Users\pixel\nexcall
+npm run desktop:dev
+```
+Desktop UI is served locally and calls `http://localhost:3000/api/misato` when configured.
+
 ## Required for MISATO.exe build on Windows
 
 1. Rust/Cargo via rustup
@@ -43,19 +62,12 @@ npm run desktop:build
 ```
 
 ## Runtime behavior
-- Dev mode (`npm run desktop:dev`) opens `http://localhost:3000/login` from the local Next.js server.
-- Packaged `.exe` mode does **not** bundle the Next.js server. It loads a safe local shell page, then redirects only when `MISATO_DESKTOP_URL` is set.
-- Use `.env`/system env (not committed) for private hosted URL.
-- NexCall production target:
-  - `MISATO_DESKTOP_URL=https://nexcall.one/misato`
-  - If `/misato` is not deployed yet: `MISATO_DESKTOP_URL=https://nexcall.one/login`
-- Build-time embed (Windows PowerShell):
-  - `$env:MISATO_DESKTOP_URL="https://nexcall.one/misato"`
-  - `npm run desktop:build`
-- Build-time embed (bash/git-bash):
-  - `export MISATO_DESKTOP_URL="https://nexcall.one/misato" && npm run desktop:build`
-- If `MISATO_DESKTOP_URL` is missing, the shell shows setup instructions instead of failing.
-- Owner login and `/misato/*` + `/api/misato/*` protection remain enforced by the web app.
+- Dev mode (`npm run desktop:dev`) loads bundled desktop UI from local dev server (`desktop-ui/`), not NexCall website routes.
+- Packaged `.exe` mode loads bundled desktop UI from `frontendDist`.
+- Desktop client calls `MISATO_API_BASE_URL` (for example `https://nexcall.one/api/misato`).
+- If `MISATO_API_BASE_URL` is missing, UI shows "Connect MISATO backend" setup state.
+- Optional local desktop token: `MISATO_DESKTOP_AUTH_TOKEN` (never commit real value).
+- Owner login and `/api/misato/*` server protections remain enforced.
 
 ## Expected output folders after successful build
 - `src-tauri/target/release/`

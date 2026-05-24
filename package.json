@@ -13,6 +13,8 @@
     "db:studio": "prisma studio",
     "register": "node discord/scripts/register-commands.mjs",
     "discord:register": "node discord/scripts/register-commands.mjs",
+    "desktop-ui:dev": "python -m http.server 1420 --directory desktop-ui",
+    "desktop-ui:build": "node -e \"process.exit(0)\"",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"
   },
