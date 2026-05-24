@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { checkRateLimit } from '../rateLimit.js';
 import { EPHEMERAL } from '../permissions.js';
+import { editOriginalResponse } from '../discordApi.js';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini';
@@ -31,6 +32,7 @@ const FALLBACK_IDEAS = [
 export async function handleIdeas(interaction, res) {
   const topic = interaction.data.options?.find((o) => o.name === 'topic')?.value ?? null;
   const userId = interaction.member?.user?.id ?? interaction.user?.id ?? 'anon';
+  const token = interaction.token;
 
   const limit = checkRateLimit(`ideas:${userId}`, 3, 60_000);
   if (!limit.allowed) {
@@ -56,6 +58,9 @@ export async function handleIdeas(interaction, res) {
     });
   }
 
+  // Defer immediately to avoid Discord interaction timeout.
+  res.json({ type: 5, data: { flags: EPHEMERAL } });
+
   const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
   try {
@@ -74,33 +79,27 @@ export async function handleIdeas(interaction, res) {
 
     const ideas = completion.choices[0]?.message?.content ?? FALLBACK_IDEAS.join('\n');
 
-    return res.json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            title: topic ? `Ideas — ${topic}` : 'Marketing Ideas',
-            description: ideas,
-            color: 0xe63946,
-            footer: { text: 'Bad Genetics HQ • Genie' },
-          },
-        ],
-      },
+    await editOriginalResponse(token, {
+      embeds: [
+        {
+          title: topic ? `Ideas — ${topic}` : 'Marketing Ideas',
+          description: ideas,
+          color: 0xe63946,
+          footer: { text: 'Bad Genetics HQ • Genie' },
+        },
+      ],
     });
   } catch (err) {
     console.error('Ideas OpenAI error:', err);
-    return res.json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            title: 'Marketing Ideas',
-            description: FALLBACK_IDEAS.join('\n'),
-            color: 0xe63946,
-            footer: { text: 'AI unavailable — showing curated ideas.' },
-          },
-        ],
-      },
-    });
+    await editOriginalResponse(token, {
+      embeds: [
+        {
+          title: 'Marketing Ideas',
+          description: FALLBACK_IDEAS.join('\n'),
+          color: 0xe63946,
+          footer: { text: 'AI unavailable — showing curated ideas.' },
+        },
+      ],
+    }).catch(() => {});
   }
 }

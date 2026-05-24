@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { checkAiLimit } from '../rateLimit.js';
 import { EPHEMERAL } from '../permissions.js';
+import { editOriginalResponse } from '../discordApi.js';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini';
@@ -28,6 +29,7 @@ export async function handleGenie(interaction, res) {
 
   const question = sub.options?.find((o) => o.name === 'question')?.value ?? '';
   const userId = interaction.member?.user?.id ?? interaction.user?.id ?? 'anon';
+  const token = interaction.token;
 
   const limit = checkAiLimit(userId);
   if (!limit.allowed) {
@@ -47,6 +49,9 @@ export async function handleGenie(interaction, res) {
     });
   }
 
+  // Defer immediately to avoid Discord interaction timeout.
+  res.json({ type: 5, data: { flags: EPHEMERAL } });
+
   const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
   try {
@@ -61,24 +66,21 @@ export async function handleGenie(interaction, res) {
 
     const answer = completion.choices[0]?.message?.content ?? 'No response.';
 
-    return res.json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            title: 'Genie',
-            description: answer,
-            color: 0xe63946,
-            footer: { text: `Asked by ${interaction.member?.user?.username ?? 'someone'}` },
-          },
-        ],
-      },
+    await editOriginalResponse(token, {
+      embeds: [
+        {
+          title: 'Genie',
+          description: answer,
+          color: 0xe63946,
+          footer: { text: `Asked by ${interaction.member?.user?.username ?? 'someone'}` },
+        },
+      ],
     });
   } catch (err) {
     console.error('OpenAI error:', err);
-    return res.json({
-      type: 4,
-      data: { content: 'Genie is unavailable right now. Try again in a moment.', flags: EPHEMERAL },
-    });
+    await editOriginalResponse(token, {
+      content: 'Genie is unavailable right now. Try again in a moment.',
+      flags: EPHEMERAL,
+    }).catch(() => {});
   }
 }
