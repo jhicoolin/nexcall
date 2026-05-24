@@ -57,6 +57,11 @@ Explanation:
 - `src-tauri/target/release/bundle/nsis/` should contain the Windows installer bundle if NSIS packaging succeeds.
 - Exact file names may vary by Tauri config/app name.
 
+## Runtime model (fixed)
+- Dev mode: `npm run dev` + `npm run desktop:dev` uses `http://localhost:3000/login`.
+- Packaged mode: app loads local `desktop-shell/index.html` (so no missing `index.html`), then redirects to `MISATO_DESKTOP_URL` when set.
+- If `MISATO_DESKTOP_URL` is not set, packaged app shows a friendly setup screen.
+
 ## Desktop rules
 - Web app remains source of truth.
 - Owner login still required.

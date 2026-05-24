@@ -37,9 +37,19 @@ winget install Microsoft.EdgeWebView2Runtime
 5. Retry
 ```bash
 cd C:\Users\pixel\nexcall
+npm run dev
 npm run desktop:dev
 npm run desktop:build
 ```
+
+## Runtime behavior
+- Dev mode (`npm run desktop:dev`) opens `http://localhost:3000/login` from the local Next.js server.
+- Packaged `.exe` mode does **not** bundle the Next.js server. It loads a safe local shell page, then redirects only when `MISATO_DESKTOP_URL` is set.
+- Use `.env`/system env (not committed) for private hosted URL, e.g.:
+  - `MISATO_DESKTOP_URL=https://your-private-vercel-url/login`
+  - `MISATO_DESKTOP_URL=https://your-private-vercel-url/misato`
+- If `MISATO_DESKTOP_URL` is missing, the shell shows setup instructions instead of failing.
+- Owner login and `/misato/*` + `/api/misato/*` protection remain enforced by the web app.
 
 ## Expected output folders after successful build
 - `src-tauri/target/release/`

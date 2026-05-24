@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MISATO Desktop Shell</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #09090b;
+        color: #e4e4e7;
+        font-family: Inter, Segoe UI, Arial, sans-serif;
+      }
+      .card {
+        width: min(760px, 92vw);
+        border: 1px solid #27272a;
+        border-radius: 16px;
+        padding: 24px;
+        background: #111114;
+      }
+      h1 { margin: 0 0 10px; font-size: 24px; }
+      p { margin: 8px 0; line-height: 1.5; color: #d4d4d8; }
+      code {
+        display: inline-block;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 8px;
+        padding: 2px 8px;
+      }
+      .ok { color: #22c55e; }
+      .warn { color: #f59e0b; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>MISATO Desktop Shell</h1>
+      <p class="warn">Packaged mode needs <code>MISATO_DESKTOP_URL</code>.</p>
+      <p>Set <code>MISATO_DESKTOP_URL</code> to your private hosted MISATO URL, for example:</p>
+      <p><code>https://your-private-vercel-url/login</code> or <code>https://your-private-vercel-url/misato</code></p>
+      <p>Owner login and route protection are still enforced by the web app.</p>
+      <p class="ok">No auth bypass. No secrets embedded.</p>
+    </main>
+  </body>
+</html>

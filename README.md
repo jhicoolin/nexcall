@@ -42,6 +42,7 @@ ADMIN_DASHBOARD_TOKEN=replace_me
 OWNER_SESSION_SECRET=replace_me_long_random
 ADMIN_SESSION_SECRET=replace_me_long_random
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+MISATO_DESKTOP_URL=
 ```
 
 Core platform vars are still documented in `.env.example` (Supabase/Postgres, Stripe, Twilio, etc.) for legacy NexCall services.
