@@ -17,6 +17,7 @@
 
 5. Expected result:
    - **Connected**
+   - **HTTP 200**
 
 6. Then run command:
    - `What needs attention today?`

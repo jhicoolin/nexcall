@@ -193,7 +193,8 @@ function setupView() {
     <p class='muted'>Set MISATO_API_BASE_URL (example: https://your-private-vercel-url/api/misato). No secrets embedded. No auth bypass.</p>
     <div class='stack'>
       <input id='base' placeholder='https://nexcall.one/api/misato' value='${state.baseUrl || ""}' />
-      <input id='token' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='${state.token || ""}' />
+      <input id='token' type='password' autocomplete='off' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='' />
+      <p class='small muted'>Token saved locally${state.token ? " (configured)" : " (not configured)"}; value is hidden.</p>
       <div class='row'>
         <button id='save'>Save Config</button>
         <button id='test'>Test Connection</button>
