@@ -1,181 +1,182 @@
-# NexCall
+# MISATO Mission Control
 
-Launch-ready Next.js sales site for the NexCall AI receptionist business.
+Private, owner-only AI Mission Control system built on this NexCall codebase.
 
-## What Is Included
+## What MISATO is
 
-- Warm, diverse homepage with scenario demos and industry sections
-- Multi-scenario voice demo UI with browser speech playback
-- ElevenLabs-ready voice quality section and optional server-side TTS route
-- Collapsed live chat with tenant-aware NexCall quick answers and human follow-up tabs
-- Stripe Checkout API route for monthly/yearly subscriptions
-- Stripe webhook receiver for successful checkout events
-- Checkout success and cancel pages
-- Lead capture webhook route with nexcall@proton.me notification fallback
-- Twilio voice webhook forwarding route
-- Calendar booking webhook route plus `/api/voice/schedule` for ElevenLabs/Twilio tool calls
-- Cal.com booking with valid ICS fallback for appointment requests
-- Per-client phone, voice-agent, lead, and calendar routing through Postgres tenants
-- Database-first tenant routing with Prisma/Postgres
-- Upstash rate limiting middleware for API cost protection
-- Inngest background jobs for calendar, summaries, and SMS retries
-- Protected admin dashboard for tenants, prompts, voice routing, and analytics
-- Protected client lookup endpoint for voice-agent platforms and internal tooling
-- About / mission page
-- Legal and transparency pages for privacy, terms, refunds, AI disclosure, compliance, cookies, and accessibility
-- Full launch checklist in `docs/LAUNCH_SETUP.txt`
+MISATO (Mission Intelligence System for Agent Task Operations) is a private command center for:
+- project operations
+- kanban mission tracking
+- mock specialist agent registry
+- approval-gated risky actions
+- daily command review
+- tactical log visibility
 
-## Run Locally
+V1 is **mock-first**: no live external automation is executed.
+
+---
+
+## Owner-only access model
+
+- No public signup flow is provided.
+- Dashboard routes are protected by middleware.
+- Only `OWNER_EMAIL` can create a valid owner session.
+- Non-owner users are redirected to `/unauthorized`.
+- Protected APIs require owner session.
+
+Current owner default:
+
+```env
+OWNER_EMAIL=nexcall@proton.me
+```
+
+---
+
+## Required environment variables
+
+Minimum for MISATO dashboard auth:
+
+```env
+OWNER_EMAIL=nexcall@proton.me
+ADMIN_DASHBOARD_TOKEN=replace_me
+OWNER_SESSION_SECRET=replace_me_long_random
+ADMIN_SESSION_SECRET=replace_me_long_random
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+Core platform vars are still documented in `.env.example` (Supabase/Postgres, Stripe, Twilio, etc.) for legacy NexCall services.
+
+---
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open:
+Open `http://localhost:3000` then log in at `/login`.
 
-```text
-http://localhost:3000
-```
-
-Before deploying:
+Checks:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the execution policy.
-Stop any running `npm run dev` server before `npm run build`; running both at the same time can overwrite the local `.next` folder during testing.
+---
 
-## Important Setup File
+## Deploy privately
 
-Read:
+Recommended:
+- Vercel for private web app deployment
+- Supabase Postgres/Auth for future v2 backing services
 
-```text
-docs/LAUNCH_SETUP.txt
-```
+Deployment requirements:
+1. Set `OWNER_EMAIL` and secure secrets in environment settings.
+2. Keep project private and avoid public indexing.
+3. Do not enable public signup routes.
+4. Use branch -> preview -> owner approval -> production workflow.
 
-That file tells you exactly what to buy, what accounts to create, what environment variables to paste, and how to deploy the site.
+See:
+- `docs/DEPLOYMENT_PRIVATE_CHECKLIST.md`
+- `docs/DESKTOP_WRAPPER_PLAN.md` (future `.exe` path)
 
-Also read:
+---
 
-```text
-docs/UX_RESEARCH_NOTES.txt
-```
+## Project structure (MISATO additions)
 
-That file explains the page order and conversion/credibility logic behind the layout.
+- `app/` — routes for command center, daily, projects, kanban, agents, missions, approvals, logs, memory, tools, settings, login
+- `app/api/misato/*` — owner login/logout and mock command endpoint
+- `components/misato/*` — tactical shell, HUD panels, command input
+- `lib/misato/*` — brand constants, auth, mock typed data
+- `middleware.ts` — owner route gate + existing API rate limiting
+- `docs/plans/2026-05-24-misato-mission-control-plan.md` — implementation plan
 
-For voice demo setup, read:
+---
 
-```text
-docs/VOICE_LAB_RESEARCH.txt
-```
+## Security rules (v1)
 
-That file is legacy research. The launch-facing site now uses uploaded MP3 clips, browser fallback speech, or the server-side ElevenLabs TTS route.
+- Secrets remain server-side.
+- Session cookie is HTTP-only.
+- Owner session signature uses HMAC.
+- Risky actions are surfaced to Approval Gate (mock flow).
+- No live email/social/deploy execution in MISATO v1.
 
-For live chat setup, read:
+---
 
-```text
-docs/LIVE_CHAT_SETUP.txt
-```
+## Project and agent scoping
 
-That file explains the collapsed chat tab, tenant-aware quick-answer route, safety shutoff, and human handoff flow.
+- Mock data is project-tagged (`projectId`).
+- Agent cards include project scope, risk, and blocked actions.
+- UI emphasizes least-privilege and approval requirements.
 
-For security notes, read:
+---
 
-```text
-docs/SECURITY_NOTES.txt
-```
+## Approvals model
 
-That file explains what has been hardened and what still needs to be handled before public launch.
+`/approvals` shows risky actions requiring explicit owner decision.
 
-For client phone routing and AI receptionist operations, read:
+In v1, decisions are UI-only (mock).
 
-```text
-docs/CLIENT_OPERATIONS_SETUP.txt
-```
+---
 
-That file explains how to add each business, route Twilio numbers, connect a voice agent, forward leads, and automate Google Calendar bookings.
+## What is mocked in v1
 
-For the backend-only multi-tenant engine, read:
+- project/task/agent/approval/log stores
+- MISATO command parser + orchestrator response
+- approval decision buttons
+- memory vault entries
+- tool permission matrix
 
-```text
-docs/BACKEND_MULTI_TENANT_ENGINE.txt
-```
+## What is real in v1
 
-That file covers the strict tenant schema, Twilio switchboard, WebSocket media bridge, legacy native voice pipeline, booking extractor, and Vercel DNS checklist.
+- owner-only route access middleware
+- owner login endpoint and signed session cookie
+- protected dashboard pages
+- reusable tactical dashboard UI components
 
-For the enterprise security/database/voice/jobs/admin upgrade, read:
+---
 
-```text
-docs/ENTERPRISE_OVERHAUL_REPORT.txt
-```
+## How to add a new project
 
-## File Guide
+Edit `lib/misato/mock/data.ts` and append a `projects` entry (and related tasks/agents).
 
-Read:
+## How to add a new agent
 
-```text
-docs/PROJECT_FILE_GUIDE.txt
-```
+Edit `lib/misato/mock/data.ts` in `agents` with:
+- `projectId`
+- `level`
+- `allowedTools`
+- `blockedActions`
+- `requiresApprovalFor`
 
-That file explains what every project file is for. Some files keep framework-required names like `page.tsx` and `route.ts`; renaming those would break Next.js routing.
+## How to add a tool policy
 
-## MarcoPolo Copy
+Edit `/app/tools/page.tsx` matrix now; move to DB table in v2.
 
-A portable source bundle is ready here:
+---
 
-```text
-archives/ai-receptionist-source.zip
-```
+## Connecting real agent runtime later (v2)
 
-Read:
+Planned next steps:
+1. Move mock data to Supabase tables (`projects`, `tasks`, `agents`, `approvals`, `logs`, etc.).
+2. Add real auth provider (Supabase Auth or NextAuth) with owner allowlist check.
+3. Add orchestrator worker/webhook runtime with strict approval gate enforcement.
+4. Add immutable audit logs and redaction controls.
 
-```text
-docs/MARCOPOLO_UPLOAD_INSTRUCTIONS.txt
-```
+---
 
-That file explains what belongs in the MarcoPolo workspace folder and why generated folders like `node_modules` and `.next` are excluded.
+## License notes
 
-## Core Files
+A repository `LICENSE` file was not detected during this migration pass. Before distribution/rehosting/rebranding release, add or confirm the upstream license and preserve all required notices.
 
-- `app/page.tsx` - homepage
-- `app/about/page.tsx` - mission/about page
-- `app/legal/page.tsx` - legal and transparency center
-- `app/privacy/page.tsx` - privacy policy
-- `app/terms/page.tsx` - terms of service
-- `app/refund-policy/page.tsx` - refund policy
-- `app/ai-disclosure/page.tsx` - AI transparency disclosure
-- `app/compliance/page.tsx` - compliance notice with no false certification claims
-- `app/cookie-notice/page.tsx` - cookie notice
-- `app/accessibility/page.tsx` - accessibility statement
-- `app/api/checkout/route.ts` - Stripe Checkout session creation
-- `app/api/stripe/webhook/route.ts` - Stripe webhook receiver
-- `app/api/chat/nexcall/route.ts` - tenant-aware NexCall front-desk chat route
-- `app/api/chat/huggingface/route.ts` - legacy compatibility alias for older deployments
-- `app/api/leads/route.ts` - lead capture forwarding
-- `app/api/twilio/voice/route.ts` - Twilio voice forwarding
-- `app/api/tts/elevenlabs/route.ts` - optional ElevenLabs scenario-only TTS generation
-- `app/api/tts/huggingface/route.ts` - legacy lab route, not used by the launch UI
-- `app/api/calendar-booking/route.ts` - booking webhook forwarding
-- `app/api/voice/schedule/route.ts` - ElevenLabs/Twilio-compatible demo scheduling tool
-- `app/api/ai/respond/route.ts` - tenant-aware AI turn processor for live calls
-- `app/api/inngest/route.ts` - Inngest durable background job endpoint
-- `app/api/admin/*` - protected admin APIs
-- `app/admin/page.tsx` - protected admin dashboard
-- `app/api/clients/lookup/route.ts` - protected client lookup for voice-agent platforms
-- `lib/client-directory.ts` - compatibility exports for the database tenant repository
-- `lib/tenant-repository.ts` - database-first tenant repository
-- `lib/lead-notifications.ts` - lead notification and safe capture fallback for nexcall@proton.me
-- `lib/ics.ts` - iCal/ICS fallback generation
-- `lib/phone.ts` - server-side phone normalization and masking
-- `prisma/schema.prisma` - Supabase/Postgres schema
-- `middleware.ts` - Upstash API rate limiting
-- `lib/huggingface-receptionist-pipeline.ts` - legacy native voice pipeline for lab testing
-- `services/receptionist/*` - master prompt, business knowledge, safety shutoff, and web chat engine
-- `inngest/functions.ts` - retrying background jobs
-- `scripts/twilio-media-server.mjs` - standalone WebSocket bridge for Twilio Media Streams
-- `lib/live-chat-knowledge.ts` - approved context and fallback answers for live chat
-- `lib/nexcall-voice-demos.ts` - NexCall voice scenario scripts and ElevenLabs demo mapping
-- `.env.example` - all required configuration placeholders
+---
+
+## Known risks / TODO
+
+- Replace token-based owner login with provider-backed auth (Supabase Auth) for production hardening.
+- Add route/API integration tests for owner-only enforcement.
+- Implement server-side persistent approval decisions and logs.
+- Add explicit blocked-access log sink (without storing secrets).
+- Add LICENSE file / legal attribution before public distribution.

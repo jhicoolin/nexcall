@@ -83,8 +83,11 @@ function handleGrowth(_interaction, res) {
 }
 
 function buildApiStatus() {
+  const aiKeyConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY);
+  const aiModel = process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini';
   return [
-    `OpenAI: ${process.env.OPENAI_API_KEY ? '✅' : '❌'}`,
+    `OpenAI: ${aiKeyConfigured ? '✅' : '❌'}`,
+    `AI Model: ${aiModel}`,
     `Google CSE: ${process.env.GOOGLE_CSE_API_KEY ? '✅' : '❌'}`,
     `Reddit: ${process.env.REDDIT_CLIENT_ID ? '✅' : '❌'}`,
     `Finnhub: ${process.env.FINNHUB_API_KEY ? '✅' : '❌'}`,

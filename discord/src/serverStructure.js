@@ -75,6 +75,34 @@ export const SERVER_STRUCTURE = [
 ];
 
 // Channels to archive (moved to private 【📦】ARCHIVE, never deleted)
+export const COMPACT_STRUCTURE = [
+  {
+    category: '【🌸】KAWAII CORE',
+    channels: [
+      { name: '💬┃kawaii-chat', type: 0 },
+      { name: '🪙┃phantom-trades', type: 0 },
+    ],
+  },
+  {
+    category: '【🛡️】STEPPIN HQ',
+    staffOnly: true,
+    channels: [
+      { name: '🧠┃internal-strategy', type: 0, staffOnly: true },
+      { name: '⚙️┃admin-commands', type: 0, staffOnly: true },
+    ],
+  },
+];
+
+// Channels/categories that should never be deleted by compact cleanup
+export const PROTECTED_CHANNEL_BASES = [
+  'steppin-hq',
+  'internal-strategy',
+  'admin-commands',
+  'kawaii-chat',
+  'phantom-trades',
+  'archive',
+];
+
 export const BLOAT_CHANNEL_NAMES = [
   'deep-talk','venting','bar','academia','recipes-and-pics','cars-and-bikes',
   'tech-stuff','pets-and-plants','self-promo','customer-wins','lookbook',

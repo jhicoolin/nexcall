@@ -29,11 +29,11 @@ try {
 
 const { commands } = await import('../src/commandDefinitions.js');
 
-const APP_ID = process.env.DISCORD_APPLICATION_ID;
+const APP_ID = process.env.DISCORD_APPLICATION_ID || process.env.DISCORD_CLIENT_ID;
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
 if (!APP_ID || !BOT_TOKEN) {
-  console.error('ERROR: DISCORD_APPLICATION_ID and DISCORD_BOT_TOKEN must be set.');
+  console.error('ERROR: DISCORD_APPLICATION_ID (or DISCORD_CLIENT_ID) and DISCORD_BOT_TOKEN must be set.');
   console.error('Add them to .env in the project root.');
   process.exit(1);
 }

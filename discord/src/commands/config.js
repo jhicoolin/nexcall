@@ -29,6 +29,8 @@ export function handleConfig(interaction, res) {
 }
 
 function handleConfigView(interaction, res) {
+  const aiKeyConfigured = Boolean(process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY);
+  const aiModel = process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini';
   const fields = Object.entries(CONFIG_KEYS).map(([key, meta]) => ({
     name: `\`${key}\``,
     value: `${meta.desc}\nDefault: \`${meta.default}\``,
@@ -44,7 +46,8 @@ function handleConfigView(interaction, res) {
   fields.push({
     name: 'APIs Configured',
     value: [
-      `OpenAI: ${process.env.OPENAI_API_KEY ? '✅' : '❌'}`,
+      `OpenAI: ${aiKeyConfigured ? '✅' : '❌'}`,
+      `AI Model: \`${aiModel}\``,
       `Google CSE: ${process.env.GOOGLE_CSE_API_KEY ? '✅' : '❌'}`,
       `Reddit: ${process.env.REDDIT_CLIENT_ID ? '✅' : '❌'}`,
       `Finnhub: ${process.env.FINNHUB_API_KEY ? '✅' : '❌'}`,
