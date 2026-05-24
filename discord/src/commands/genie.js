@@ -2,6 +2,9 @@ import OpenAI from 'openai';
 import { checkAiLimit } from '../rateLimit.js';
 import { EPHEMERAL } from '../permissions.js';
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini';
+
 const SYSTEM_PROMPT = `You are Genie — the official Discord assistant for BadGenes (@badgenetic).
 
 BadGenes is a streetwear and fitness brand built for people who train hard and carry themselves different.
@@ -37,18 +40,18 @@ export async function handleGenie(interaction, res) {
     });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!OPENAI_API_KEY) {
     return res.json({
       type: 4,
-      data: { content: 'AI assistant is not configured yet. `OPENAI_API_KEY` is missing.', flags: EPHEMERAL },
+      data: { content: 'AI assistant is not configured yet. `OPENAI_API_KEY` (or `AI_CHAT_API_KEY`) is missing.', flags: EPHEMERAL },
     });
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: OPENAI_MODEL,
       max_tokens: 500,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },

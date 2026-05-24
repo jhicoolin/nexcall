@@ -7,6 +7,20 @@ import { route } from '@/discord/src/router.js';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+let bootConfigLogged = false;
+
+function logDiscordAiConfigOnce() {
+  if (bootConfigLogged) return;
+  bootConfigLogged = true;
+
+  console.info('[DISCORD_AI_CONFIG]', {
+    openaiApiKeyConfigured: Boolean(process.env.OPENAI_API_KEY),
+    openaiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    appIdConfigured: Boolean(process.env.DISCORD_APPLICATION_ID),
+    publicKeyConfigured: Boolean(process.env.DISCORD_PUBLIC_KEY)
+  });
+}
+
 interface FakeRes {
   headersSent: boolean;
   json: (data: unknown) => FakeRes;
@@ -14,6 +28,8 @@ interface FakeRes {
 }
 
 export async function POST(req: NextRequest) {
+  logDiscordAiConfigOnce();
+
   const rawBody = Buffer.from(await req.arrayBuffer());
   const signature = req.headers.get('x-signature-ed25519') ?? '';
   const timestamp = req.headers.get('x-signature-timestamp') ?? '';

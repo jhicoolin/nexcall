@@ -43,7 +43,8 @@ export const calendarBookingRequested = inngest.createFunction(
       });
     });
 
-    await step.run("post to client calendar webhook", async () => postJson(tenant.calendarWebhookUrl, event.data));
+    const calendarWebhookUrl = String(tenant.calendarWebhookUrl);
+    await step.run("post to client calendar webhook", async () => postJson(calendarWebhookUrl, event.data));
 
     await step.run("mark booking success", async () => {
       if (!isDatabaseConfigured()) return null;
@@ -148,7 +149,8 @@ export const smsFollowupRequested = inngest.createFunction(
       throw new Error("Tenant SMS webhook is not configured.");
     }
 
-    await step.run("post sms workflow webhook", async () => postJson(tenant.smsWebhookUrl, event.data));
+    const smsWebhookUrl = String(tenant.smsWebhookUrl);
+    await step.run("post sms workflow webhook", async () => postJson(smsWebhookUrl, event.data));
 
     return { ok: true, tenantId: tenant.id };
   }

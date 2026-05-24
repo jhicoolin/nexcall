@@ -2,6 +2,9 @@ import OpenAI from 'openai';
 import { checkRateLimit } from '../rateLimit.js';
 import { EPHEMERAL } from '../permissions.js';
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.AI_CHAT_API_KEY;
+const OPENAI_MODEL = process.env.OPENAI_MODEL || process.env.AI_CHAT_MODEL || 'gpt-4o-mini';
+
 const SYSTEM_PROMPT = `You are a creative strategist for Bad Genetics — a bold fitness and lifestyle brand.
 
 Generate actionable, original ideas across these categories:
@@ -37,7 +40,7 @@ export async function handleIdeas(interaction, res) {
     });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!OPENAI_API_KEY) {
     return res.json({
       type: 4,
       data: {
@@ -46,14 +49,14 @@ export async function handleIdeas(interaction, res) {
             title: 'Marketing Ideas',
             description: FALLBACK_IDEAS.join('\n'),
             color: 0xe63946,
-            footer: { text: 'Add OPENAI_API_KEY for AI-generated custom ideas.' },
+            footer: { text: 'Add OPENAI_API_KEY (or AI_CHAT_API_KEY) for AI-generated custom ideas.' },
           },
         ],
       },
     });
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
   try {
     const userMessage = topic
@@ -61,7 +64,7 @@ export async function handleIdeas(interaction, res) {
       : 'Generate a diverse mix of marketing and community ideas for Bad Genetics.';
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: OPENAI_MODEL,
       max_tokens: 600,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },

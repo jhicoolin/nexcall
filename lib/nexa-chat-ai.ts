@@ -7,6 +7,9 @@
  *   AI_CHAT_BASE_URL  — base URL (default: https://api.openai.com/v1)
  *   AI_CHAT_MODEL     — model name (default: gpt-4o-mini)
  *
+ * Compatibility aliases (also accepted):
+ *   OPENAI_API_KEY, OPENAI_BASE_URL, OPENAI_MODEL
+ *
  * The API key is server-side only. Provider name is never returned to the client.
  * History sent by the client is sanitised and bounded before it reaches the LLM.
  */
@@ -163,15 +166,33 @@ function detectNeedsHuman(aiMessage: string): boolean {
 
 /* ── Provider config ───────────────────────────────────────────────────────── */
 function getProviderConfig() {
-  const apiKey = process.env.AI_CHAT_API_KEY;
-  const rawBase = process.env.AI_CHAT_BASE_URL || "https://api.openai.com/v1";
+  const apiKey = process.env.AI_CHAT_API_KEY || process.env.OPENAI_API_KEY;
+  const rawBase = process.env.AI_CHAT_BASE_URL || process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
   const baseUrl = validateBaseUrl(rawBase);
-  const model = process.env.AI_CHAT_MODEL || "gpt-4o-mini";
+  const model = process.env.AI_CHAT_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+  if (process.env.NODE_ENV === "production") {
+    try {
+      const baseHost = new URL(baseUrl).hostname;
+      console.info("[NEXA_CHAT_CONFIG]", {
+        apiKeyConfigured: Boolean(apiKey),
+        model,
+        baseHost
+      });
+    } catch {
+      console.info("[NEXA_CHAT_CONFIG]", {
+        apiKeyConfigured: Boolean(apiKey),
+        model,
+        baseHost: "invalid"
+      });
+    }
+  }
+
   return { apiKey, baseUrl, model };
 }
 
 export function isAIChatConfigured(): boolean {
-  return Boolean(process.env.AI_CHAT_API_KEY);
+  return Boolean(process.env.AI_CHAT_API_KEY || process.env.OPENAI_API_KEY);
 }
 
 /* ── Main AI call ──────────────────────────────────────────────────────────── */
@@ -183,7 +204,7 @@ export async function callNexaAI(
 ): Promise<NexaAIResult> {
   const { apiKey, baseUrl, model } = getProviderConfig();
 
-  if (!apiKey) throw new Error("AI_CHAT_API_KEY not configured");
+  if (!apiKey) throw new Error("AI_CHAT_API_KEY/OPENAI_API_KEY not configured");
 
   // Cap and sanitize history. Strip system-role messages — only user/assistant allowed.
   const safeHistory = history
