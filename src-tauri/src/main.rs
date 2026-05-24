@@ -13,7 +13,11 @@ fn js_escape(value: &str) -> String {
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
-            if let Ok(url) = std::env::var("MISATO_DESKTOP_URL") {
+            let runtime_url = std::env::var("MISATO_DESKTOP_URL").ok();
+            let buildtime_url = option_env!("MISATO_DESKTOP_URL").map(|s| s.to_string());
+            let selected = runtime_url.or(buildtime_url);
+
+            if let Some(url) = selected {
                 let trimmed = url.trim();
                 let is_safe = trimmed.starts_with("https://") || trimmed.starts_with("http://localhost") || trimmed.starts_with("http://127.0.0.1");
                 if is_safe {

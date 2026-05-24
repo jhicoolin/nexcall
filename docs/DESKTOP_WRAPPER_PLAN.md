@@ -59,7 +59,8 @@ Explanation:
 
 ## Runtime model (fixed)
 - Dev mode: `npm run dev` + `npm run desktop:dev` uses `http://localhost:3000/login`.
-- Packaged mode: app loads local `desktop-shell/index.html` (so no missing `index.html`), then redirects to `MISATO_DESKTOP_URL` when set.
+- Packaged mode: app loads local `desktop-shell/index.html` (so no missing `index.html`), then redirects to `MISATO_DESKTOP_URL` from runtime env OR build-time embedded value.
+- NexCall target URL: `https://nexcall.one/misato` (fallback target: `https://nexcall.one/login`).
 - If `MISATO_DESKTOP_URL` is not set, packaged app shows a friendly setup screen.
 
 ## Desktop rules
