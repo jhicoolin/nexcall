@@ -32,7 +32,7 @@ export function welcomeEmbed() {
       description: `The official community for **Bad Genetics** — built for people who train hard, dress different, and carry themselves like it.\n\nInstagram: **@badgenetic**\nShop: [${url}](${url})`,
       color: BRAND,
       fields: [
-        { name: 'Get Started', value: '1. Read ✅┃rules\n2. Grab roles in 🎭┃get-roles\n3. Introduce yourself in 💬┃general\n4. Check 🔥┃drops for the latest', inline: false },
+        { name: 'Get Started', value: '1. Read ✅┃rules\n2. Grab roles in 🎭┃roles\n3. Introduce yourself in 💬┃general\n4. Check 🔥┃drops for the latest', inline: false },
         { name: 'Need Help?',  value: 'Post in ❓┃support or use `/support`', inline: false },
       ],
       footer: { text: 'Bad Genetics HQ • @badgenetic' },
@@ -49,7 +49,7 @@ export function shopEmbed() {
       description: `The gear that carries the genetics.\n\n[**Shop BadGenes →**](${url})`,
       color: BRAND,
       fields: [
-        { name: 'Drop Alerts',  value: 'Grab the 🔥 Drop Alerts role in 🎭┃get-roles to be first on every drop.', inline: false },
+        { name: 'Drop Alerts',  value: 'Grab the 🔥 Drop Alerts role in 🎭┃roles to be first on every drop.', inline: false },
         { name: 'Follow Us',    value: '[@badgenetic](https://instagram.com/badgenetic) on Instagram', inline: false },
       ],
       footer: { text: 'Bad Genetics HQ' },
