@@ -1,11 +1,4 @@
-# MISATO Desktop Wrapper Plan
-
-## Recommendation
-Use **Tauri** first for a lightweight Windows `.exe`, fallback to Electron only if compatibility blocks delivery.
-
-## Current blocker (as of this branch)
-`npm run desktop:dev` and `npm run desktop:build` fail when Cargo is unavailable:
-- `failed to run command cargo metadata --no-deps --format-version 1: program not found`
+# MISATO Desktop Build Instructions (Windows)
 
 ## Required for MISATO.exe build on Windows
 
@@ -15,7 +8,7 @@ Install:
 ```bash
 winget install Rustlang.Rustup
 ```
-Then close and reopen PowerShell.
+Then close and reopen PowerShell/terminal.
 
 Verify:
 ```bash
@@ -52,14 +45,7 @@ npm run desktop:build
 - `src-tauri/target/release/`
 - `src-tauri/target/release/bundle/nsis/`
 
-Explanation:
+Notes:
 - `src-tauri/target/release/` may contain the built app binary.
 - `src-tauri/target/release/bundle/nsis/` should contain the Windows installer bundle if NSIS packaging succeeds.
 - Exact file names may vary by Tauri config/app name.
-
-## Desktop rules
-- Web app remains source of truth.
-- Owner login still required.
-- No raw secret storage in desktop local files.
-- No auth bypass from desktop.
-- Keep live automations disabled by default.

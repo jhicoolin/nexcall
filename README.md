@@ -80,7 +80,9 @@ Deployment requirements:
 
 See:
 - `docs/DEPLOYMENT_PRIVATE_CHECKLIST.md`
-- `docs/DESKTOP_WRAPPER_PLAN.md` (future `.exe` path)
+- `docs/DESKTOP_WRAPPER_PLAN.md`
+- `docs/DESKTOP_BUILD_INSTRUCTIONS.md`
+- `docs/TAURI_DESKTOP_ROADMAP.md`
 
 ---
 
