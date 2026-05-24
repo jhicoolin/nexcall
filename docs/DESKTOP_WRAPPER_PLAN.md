@@ -61,6 +61,7 @@ Explanation:
 - Dev mode: run Next backend separately (`npm run dev`) and desktop app with `npm run desktop:dev`.
 - Desktop window loads bundled desktop UI (`desktop-ui/`) in both dev and packaged modes.
 - Desktop UI calls private backend via `MISATO_API_BASE_URL`.
+- Includes an in-app **Test Connection** diagnostics panel for `/status` checks.
 - If `MISATO_API_BASE_URL` is missing, app shows local "Connect MISATO backend" setup state.
 - No public NexCall website pages are required to render MISATO desktop UI.
 

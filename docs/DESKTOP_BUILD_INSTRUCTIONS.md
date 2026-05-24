@@ -66,6 +66,8 @@ npm run desktop:build
 - Packaged `.exe` mode loads bundled desktop UI from `frontendDist`.
 - Desktop client calls `MISATO_API_BASE_URL` (for example `https://nexcall.one/api/misato`).
 - If `MISATO_API_BASE_URL` is missing, UI shows "Connect MISATO backend" setup state.
+- Desktop includes a **Test Connection** panel that calls `GET /status` on your configured API base.
+- The diagnostics panel reports: connection state, HTTP status, last-checked timestamp, error text, and suggested next fix.
 - Optional local desktop token: `MISATO_DESKTOP_AUTH_TOKEN` (never commit real value).
 - Owner login and `/api/misato/*` server protections remain enforced.
 
