@@ -1,0 +1,182 @@
+MISATO Parallel Build Pack (for when limits reset)
+Date: 2026-05-24
+Branch Base: misato-hermes-backend
+Primary Contract Doc: docs/agent-handoffs/hermes-codex-runtime-contract.md
+
+==================================================
+HOW TO USE THIS FILE
+==================================================
+1) Give PROMPT A to Codex (runtime lane).
+2) Give PROMPT B to Hermes (orchestration lane).
+3) Keep both lanes on separate branches/worktrees.
+4) Reconcile via a handoff PR into misato-hermes-backend.
+
+Hard constraints for BOTH prompts:
+- Do not merge to main.
+- Do not production deploy.
+- Do not change DNS.
+- Do not expose MISATO publicly.
+- Do not print or commit secrets.
+- Do not bypass Approval Gate.
+- Keep secret findings redacted as [REDACTED].
+
+==================================================
+TRACK A — CODEX RUNTIME LANE (PROMPT A)
+==================================================
+You are Codex in the MISATO runtime lane.
+
+Goal:
+Build the “hands” layer: robust local runtime execution + event publishing into MISATO backend so desktop can update in near real-time.
+
+Reference contract:
+- docs/agent-handoffs/hermes-codex-runtime-contract.md
+
+Worktree/branch:
+- Prefer dedicated worktree (e.g., C:\Users\pixel\nexcall-runtime-audit)
+- Branch: misato-codex-runtime-audit (or equivalent runtime branch)
+- Base: origin/misato-full-build or latest agreed integration point
+
+Required outcomes:
+1) Runtime reliability spine
+   - deterministic command execution status: queued/running/success/failed/blocked
+   - timeout + retry + exit-code handling
+   - clear error taxonomy (network/auth/404/runtime/parse)
+
+2) Desktop client reliability
+   - never overwrite saved API URL/token with empty injected env
+   - preserve connection states:
+     Connected / Unauthorized / 404 / Failed / Vercel Protected / Not configured / Testing
+   - robust response parsing for JSON vs HTML walls
+
+3) Event emitter
+   - publish runtime events with schema from contract doc
+   - include approvalLevel + redacted=true semantics
+   - no raw secret values in payloads
+
+4) Local watchers (safe v1 only)
+   - health checks and non-destructive monitors only
+   - repo-only scope by default
+   - no broad host scans, no auto destructive actions
+
+5) Compatibility
+   - keep API contracts compatible with Hermes orchestration lane
+   - avoid changing policy semantics (Approval Gate levels)
+
+Validation:
+- npm run lint
+- npm run build
+- npm run desktop:build
+
+Deliverables:
+- code changes in runtime lane branch
+- handoff doc: docs/agent-handoffs/codex-runtime-to-hermes.md
+  Include:
+  - changed files
+  - runtime behavior matrix
+  - known blockers
+  - exact test commands/results
+
+Commit guidance:
+- commit message example:
+  feat(runtime): harden MISATO local execution and event publishing
+
+Push:
+- push only your runtime branch (no main merge)
+
+==================================================
+TRACK B — HERMES ORCHESTRATION LANE (PROMPT B)
+==================================================
+You are Hermes in the MISATO orchestration lane.
+
+Goal:
+Build the “brain + guardrails” layer: policy engine, approval-level gating, event ingestion/display contracts, and safe module coordination (Watchtower/Design/Secret Sentinel).
+
+Reference contract:
+- docs/agent-handoffs/hermes-codex-runtime-contract.md
+
+Branch:
+- misato-hermes-backend
+
+Required outcomes:
+1) Approval Gate policy enforcement
+   - enforce L0/L1/L2/L3/L4 semantics from contract
+   - classify commands/actions by risk + side effects
+   - block or require approval accordingly
+
+2) Event ingestion + dashboard contract
+   - standardize event schema in backend responses
+   - ensure desktop/dashboard can render queue + status cleanly
+   - maintain redaction guarantees
+
+3) Module coordination
+   - Watchtower: safe status modeling, planned/connected/mock mode clarity
+   - Design System Library: DESIGN.md governance hooks + guidance
+   - Secret Sentinel: redacted summaries only, no raw secret output
+
+4) Council/agent orchestration
+   - keep specialist agents explicit:
+     Watchtower Agent, Design Librarian Agent, Secret Sentinel Agent
+   - update docs and permission matrix if needed
+
+5) Interop with Codex runtime lane
+   - accept Codex event payloads without breaking
+   - document any schema deltas in a versioned way
+
+Validation:
+- npm run lint
+- npm run build
+- npm run desktop:build
+
+Deliverables:
+- code changes on misato-hermes-backend
+- handoff doc: docs/agent-handoffs/hermes-orchestration-to-codex.md
+  Include:
+  - changed files
+  - policy matrix verification
+  - redaction verification
+  - integration notes for runtime lane
+
+Commit guidance:
+- commit message example:
+  feat(orchestration): enforce MISATO approval policy and event contract
+
+Push:
+- push to misato-hermes-backend only (no main merge)
+
+==================================================
+INTEGRATION CHECKPOINT (BOTH LANES)
+==================================================
+When both prompts complete, run a controlled integration pass:
+
+1) Compare branches against shared contract doc.
+2) Reconcile event schema fields.
+3) Verify approval levels appear in runtime events.
+4) Verify no raw secrets in logs/UI/API/doc artifacts.
+5) Run full validation:
+   - npm run lint
+   - npm run build
+   - npm run desktop:build
+6) Produce merged handoff summary:
+   - docs/agent-handoffs/misato-runtime-orchestration-integration-report.md
+
+PASS criteria:
+- Desktop can show real runtime status safely.
+- Runtime actions obey approval levels.
+- Secret sentinel stays redacted.
+- No forbidden side effects executed.
+
+==================================================
+COPY/PASTE QUICK MESSAGE FOR EACH AGENT
+==================================================
+Message to Codex:
+"Use TRACK A from docs/agent-handoffs/misato-parallel-tracks-prompts.txt and execute fully in your runtime worktree. Follow hermes-codex-runtime-contract.md exactly."
+
+Message to Hermes:
+"Use TRACK B from docs/agent-handoffs/misato-parallel-tracks-prompts.txt and execute fully on misato-hermes-backend. Follow hermes-codex-runtime-contract.md exactly."
+
+==================================================
+NOTES
+==================================================
+- Keep everything private/internal MISATO.
+- Keep automations safe and reversible.
+- Owner approval is mandatory for risky actions.

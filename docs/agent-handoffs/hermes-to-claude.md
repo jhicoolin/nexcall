@@ -1,43 +1,34 @@
-# Hermes → Claude Handoff
-- agent: Hermes (backend lane)
-- branch: misato-hermes-backend
-- timestamp: 2026-05-25T00:44:09Z
-- current task: Harden MISATO backend auth/connection semantics and shared-brain docs.
+# Hermes → Claude Handoff (Connection Repair Coordination)
 
-## Backend response contracts
-- `GET /api/misato/status`
-  - 200 success shape includes: `ok, service, mode, ownerOnly, auth, desktopClient, liveAutomations, availableEndpoints, timestamp`
-  - 401 shape includes: `ok:false, auth:"invalid", error:"unauthorized", hint`
-- `POST /api/misato/command`
-  - 200 shape includes: `ok, mode:"mock-safe", ownerOnly, liveAutomations, result, timestamp`
-  - `result` fields: `missionSummary, projectDetected, agentsAssigned, councilFeedback, subtasksCreated, risksDetected, approvalRequired, approvalReason, logsCreated, nextRecommendedActions, activityFeed`
+Date: 2026-05-24
+Branch: misato-hermes-backend
 
-## Connection states UI must display
-1. Not configured (missing API base URL)
-2. Failed (network/unreachable)
-3. Failed + 404 (wrong deployment)
-4. Unauthorized (token/session invalid)
-5. Vercel protected (preview gate/bypass needed)
-6. Connected (HTTP 200 + `ok:true`)
+## What Codex fixed / expected
+- Runtime-audit lane contains middleware desktop-token allowance for `/api/misato/*` plus expanded command payload contract.
+- `misato-codex-connection-repair` branch was not found on remote at review time.
 
-## Safety boundaries
-- Keep auth owner-only; never bypass.
-- Never render/log token values.
-- Keep live automations disabled in v1.
-- Keep desktop app on bundled UI, not public marketing pages.
+## What Hermes verified
+- Auth preserved at API layer (`assertOwnerJson`) and middleware adjusted for desktop token path.
+- Command contract expanded to include top-level fields and module status payload.
+- MISATO API routes now include narrow CORS helpers + OPTIONS handlers in backend code.
+- Build stack passes locally (`lint`, `build`, `desktop:build`).
 
-## Files Claude should avoid
-- `app/api/misato/**`
-- `lib/misato/**`
-- `lib/auth/**`
-- `middleware.ts` (unless a confirmed auth bug)
+## What Claude must preserve
+- Do NOT overwrite fetch/auth/headers behavior in `desktop-ui/app.js`.
+- UI polish only. Keep connection-state parsing intact.
+- Preserve token masking and no-token logging policy.
 
-## What is mocked vs real
-- Mocked: council execution, automation actions, discord/obsidian runtime actions.
-- Real: desktop-to-backend connection/auth checks, preview API routes, build pipeline.
+## Merge order
+1. Codex connection-repair branch (when pushed) into backend lane after diff review.
+2. Hermes auth/CORS/contract patches.
+3. Claude UI polish lane rebased last.
 
-## What needs visual polish from Claude
-- status chips and diagnostics readability
-- command response stream hierarchy
-- approval/risk callouts styling
-- compact information density for daily operator use
+## Remaining risks
+- Preview token is still empty, so token-present tests cannot pass yet.
+- Preview deployment may still be running old handlers (OPTIONS returned 401 during remote test).
+
+## Owner retest steps
+1. Set non-empty `MISATO_DESKTOP_AUTH_TOKEN` in Vercel Preview.
+2. Redeploy preview.
+3. In MISATO.exe set API URL + desktop token + bypass token and save.
+4. Run Test Connection; expected: Connected / HTTP 200.

@@ -86,6 +86,7 @@ export type ToolPermission = {
 export type CommandResponse = {
   missionSummary: string;
   projectDetected: string;
+  hermesPlan: string[];
   agentsAssigned: string[];
   councilFeedback: Array<{ agent: string; feedback: string }>;
   subtasksCreated: string[];

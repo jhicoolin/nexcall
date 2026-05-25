@@ -105,6 +105,12 @@ export function runMisatoMockCommand(command: string): CommandResponse {
     missionSummary: `MISATO reviewed operational priorities and prepared a mock-safe plan for ${projectDetected}.`,
     projectDetected,
     agentsAssigned,
+    hermesPlan: [
+      "Validate auth context (owner session or desktop token)",
+      "Classify request risk and enforce Approval Gate",
+      "Fan out mock-safe subtasks to council",
+      "Return operator summary + next recommended actions"
+    ],
     councilFeedback: [
       ...projectContext.map((line) => ({ agent: "MISATO Core", feedback: line })),
       ...agentsAssigned.map((a) => ({ agent: a, feedback: feedbackFor(a, command) })),
