@@ -1,9 +1,13 @@
-import { NextResponse } from "next/server";
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
 import { approvals } from "@/lib/misato/mock/data";
+import { misatoJson, misatoOptions } from "@/lib/misato/http/cors";
+
+export function OPTIONS() {
+  return misatoOptions();
+}
 
 export async function GET(request: Request) {
   const unauthorized = await assertOwnerJson(request);
   if (unauthorized) return unauthorized;
-  return NextResponse.json({ ok: true, items: approvals, mode: "approval-gate" });
+  return misatoJson({ ok: true, items: approvals, mode: "approval-gate" });
 }

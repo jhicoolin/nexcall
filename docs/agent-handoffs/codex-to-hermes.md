@@ -22,3 +22,11 @@
 - Verify preview `/api/misato/status`, `/command`, `/watchtower/status`, and `/secrets/status` with valid owner auth or desktop token.
 - Keep live automations disabled until Approval Gate and audit persistence are real.
 - Treat the Hermes shim as v1 contract, not a real external runtime.
+
+## Emergency Connection Repair
+
+- Root cause: MISATO API responses inherited global `Cross-Origin-Resource-Policy: same-origin` and did not consistently provide CORS headers or OPTIONS preflight responses for Tauri/WebView custom headers.
+- URL shape verified: desktop expects full API base ending in `/api/misato`, then calls `/status` and `/command`.
+- Fix applied: `/api/misato/*` now returns `Access-Control-Allow-Origin: *`, allowed methods/headers, `Access-Control-Max-Age: 86400`, and `Cross-Origin-Resource-Policy: cross-origin`.
+- Auth preserved: no token still returns 401 JSON; valid desktop token returns 200 JSON.
+- Preview redeploy required: yes, Vercel preview must deploy this branch before MISATO.exe can benefit from the server header fix.

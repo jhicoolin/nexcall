@@ -119,7 +119,14 @@ async function readJson(res) {
   const contentType = res.headers.get("content-type") || "";
   const text = await res.text();
   if (!text) return {};
-  if (contentType.includes("text/html") && !res.ok) return { ok: false, __vercelProtected: true, error: "Vercel deployment protection is blocking requests." };
+  if ((res.status === 401 || res.status === 403) && !contentType.includes("application/json")) {
+    return {
+      ok: false,
+      __vercelProtected: true,
+      error: "Vercel Protected - preview protection blocked the request. Add bypass token or disable preview protection for this deployment."
+    };
+  }
+  if (contentType.includes("text/html") && !res.ok) return { ok: false, __vercelProtected: true, error: "Vercel Protected - preview protection blocked the request. Add bypass token or disable preview protection for this deployment." };
   if (!contentType.includes("application/json")) return { ok: false, error: text.slice(0, 240) || "Non-JSON response from backend." };
   try {
     return JSON.parse(text);
@@ -150,7 +157,7 @@ async function testConnection() {
       state.connTest = { label: "Connected", httpStatus: res.status, checkedAt, error: "", nextFix: "Connected to MISATO backend. Owner/auth check passed." };
       await loadAll(false);
     } else if (data?.__vercelProtected) {
-      state.connTest = { label: "Vercel Protected", httpStatus: res.status, checkedAt, error: data.error, nextFix: "Add the Vercel bypass token, save config, and retry." };
+      state.connTest = { label: "Vercel Protected", httpStatus: res.status, checkedAt, error: data.error, nextFix: "Add bypass token or disable preview protection for this deployment." };
     } else {
       const label = res.status === 401 || res.status === 403 ? "Unauthorized" : res.status === 404 ? "404 / Wrong URL" : "Failed";
       state.connTest = { label, httpStatus: res.status, checkedAt, error: errorForStatus(res.status, data), nextFix: nextFixForStatus(res.status) };
@@ -161,7 +168,7 @@ async function testConnection() {
       httpStatus: null,
       checkedAt,
       error: String(e?.message || e),
-      nextFix: "Fetch failed. Check the URL, network, CORS, and Vercel preview protection."
+      nextFix: "Failed to fetch - likely CORS/CORP, Vercel protection, network, or wrong URL."
     };
   }
   render();
@@ -212,7 +219,7 @@ async function sendCommand(prefill) {
       body: JSON.stringify({ command })
     });
     const data = await readJson(res);
-    if (data?.__vercelProtected) throw new Error("Vercel deployment protection blocked this request.");
+    if (data?.__vercelProtected) throw new Error("Vercel Protected - preview protection blocked the request. Add bypass token or disable preview protection for this deployment.");
     if (!res.ok || !data?.ok) throw new Error(errorForStatus(res.status, data));
 
     const result = data.result || data;

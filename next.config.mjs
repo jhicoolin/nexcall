@@ -53,6 +53,29 @@ const securityHeaders = [
   }
 ];
 
+const misatoApiHeaders = [
+  {
+    key: "Access-Control-Allow-Origin",
+    value: "*"
+  },
+  {
+    key: "Access-Control-Allow-Methods",
+    value: "GET,POST,OPTIONS"
+  },
+  {
+    key: "Access-Control-Allow-Headers",
+    value: "Content-Type, x-misato-desktop-token, x-vercel-protection-bypass, authorization"
+  },
+  {
+    key: "Access-Control-Max-Age",
+    value: "86400"
+  },
+  {
+    key: "Cross-Origin-Resource-Policy",
+    value: "cross-origin"
+  }
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -72,6 +95,10 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders
+      },
+      {
+        source: "/api/misato/:path*",
+        headers: misatoApiHeaders
       }
     ];
   }

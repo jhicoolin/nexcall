@@ -19,3 +19,10 @@
 - Removing non-JSON/Vercel protection handling.
 - Rendering raw API errors without escaping.
 - Touching public NexCall marketing pages as part of MISATO polish.
+
+## Connection Repair UI Constraints
+
+- Keep the API base hint explicit: paste the full preview URL ending in `/api/misato`.
+- Preserve the “Vercel Protected” error wording for non-JSON 401/403 responses.
+- Preserve the “Failed to fetch” guidance that points to CORS/CORP, Vercel protection, network, or wrong URL.
+- Do not remove the token/bypass password fields or show their saved values.

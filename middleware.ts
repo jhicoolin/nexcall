@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { misatoCorsHeaders } from "@/lib/misato/http/cors";
 
 const OWNER_COOKIE = "misato_owner_session";
 
@@ -135,14 +136,18 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const desktopTokenAuthenticated = isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname) && hasValidDesktopToken(request);
 
+  if (isProtectedMisatoApi(pathname) && request.method === "OPTIONS") {
+    return new NextResponse(null, { status: 204, headers: misatoCorsHeaders });
+  }
+
   if (isProtectedMisatoRoute(pathname) || (isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname))) {
     const session = request.cookies.get(OWNER_COOKIE)?.value || "";
     if (!desktopTokenAuthenticated && !session) {
-      if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
+      if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401, headers: misatoCorsHeaders });
       return NextResponse.redirect(new URL("/login", request.url));
     }
     if (!desktopTokenAuthenticated && !(await hasValidOwnerCookie(session))) {
-      if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 403 });
+      if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 403, headers: misatoCorsHeaders });
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
   }
@@ -175,6 +180,11 @@ export async function middleware(request: NextRequest) {
   response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
   response.headers.set("X-RateLimit-Reset", result.reset.toString());
   response.headers.set("X-RateLimit-Mode", result.configured ? "upstash" : "memory-fallback");
+  if (isProtectedMisatoApi(pathname)) {
+    for (const [key, value] of Object.entries(misatoCorsHeaders)) {
+      response.headers.set(key, value);
+    }
+  }
   return response;
 }
 

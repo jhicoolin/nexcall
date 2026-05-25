@@ -1,14 +1,18 @@
-import { NextResponse } from "next/server";
 import { getOwnerEmail } from "@/lib/misato/auth";
 import { runMisatoMockCommand } from "@/lib/misato/mock/data";
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
 import { misatoDesignTokens } from "@/lib/misato/design/designTokens";
 import { subagentRegistry } from "@/lib/misato/subagents/registry";
+import { misatoJson, misatoOptions } from "@/lib/misato/http/cors";
+
+export function OPTIONS() {
+  return misatoOptions();
+}
 
 export async function POST(request: Request) {
   const unauthorized = await assertOwnerJson(request);
   if (unauthorized) {
-    return NextResponse.json(
+    return misatoJson(
       {
         ok: false,
         auth: "invalid",
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
 
   const owner = getOwnerEmail();
   if (!owner) {
-    return NextResponse.json(
+    return misatoJson(
       {
         ok: false,
         error: "misconfigured",
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { command?: string };
   const command = (body.command || "").trim();
   if (!command) {
-    return NextResponse.json(
+    return misatoJson(
       { ok: false, error: "invalid_request", hint: "Command is required." },
       { status: 400 }
     );
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
     githubHandoffs: { mode: "ready", directMainMerge: false }
   };
 
-  return NextResponse.json({
+  return misatoJson({
     ok: true,
     mode: "mock-safe",
     ownerOnly: true,
