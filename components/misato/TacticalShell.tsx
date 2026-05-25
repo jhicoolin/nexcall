@@ -13,6 +13,9 @@ const nav = [
   ["/misato/logs", "Logs"],
   ["/misato/memory", "Memory"],
   ["/misato/tools", "Tools"],
+  ["/misato/watchtower", "Watchtower"],
+  ["/misato/design", "Design Library"],
+  ["/misato/secrets", "Secret Sentinel"],
   ["/misato/settings", "Settings"]
 ] as const;
 

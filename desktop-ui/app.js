@@ -60,7 +60,10 @@ const INTEGRATIONS = [
   { name:'Claude UI Lane',      mode:'connected', status:'Active',   next:'Tactical HUD v2 in review' },
   { name:'Hermes Backend Lane', mode:'ready',     status:'Active',   next:'Verifying bypass token + redeploy' },
   { name:'MISATO Council',      mode:'mock',      status:'Mock v1',  next:'14 agents active in mock mode, live pending approval' },
-  { name:'Approval Gate',       mode:'ready',     status:'Ready',    next:'No approvals pending. Gate armed.' }
+  { name:'Approval Gate',       mode:'ready',     status:'Ready',    next:'No approvals pending. Gate armed.' },
+  { name:'MISATO Watchtower',   mode:'mock',      status:'Planned',  next:'Service health grid active; Uptime Kuma backend integration planned' },
+  { name:'Design System Library', mode:'ready',   status:'Active',   next:'DESIGN.md + style guides available for Claude/Hermes' },
+  { name:'Secret Sentinel',     mode:'manual',    status:'Manual',   next:'Run npm run secrets:scan for redacted local findings' }
 ];
 
 const AGENT_LANES = [

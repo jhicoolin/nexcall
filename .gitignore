@@ -36,3 +36,6 @@ Thumbs.db
 
 # Local Vercel CLI pulls
 .vercel.preview.env
+.security/
+gitleaks-report*.json
+*.sarif

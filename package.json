@@ -16,7 +16,9 @@
     "desktop-ui:dev": "python -m http.server 1420 --directory desktop-ui",
     "desktop-ui:build": "node -e \"process.exit(0)\"",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "secrets:scan": "gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json",
+    "secrets:scan:staged": "gitleaks protect --staged --redact"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
