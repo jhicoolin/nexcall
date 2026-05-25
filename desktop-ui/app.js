@@ -17,6 +17,7 @@ const injectedBase = (window.__MISATO_API_BASE_URL__ || "").trim();
 const state = {
   baseUrl: storage.get("misato_api_base_url", injectedBase),
   token: storage.get("misato_desktop_auth_token", ""),
+  bypassToken: storage.get("misato_vercel_bypass_token", ""),
   status: null,
   council: [],
   projects: [],
@@ -37,6 +38,7 @@ const state = {
 function headers() {
   const h = { "content-type": "application/json" };
   if (state.token) h["x-misato-desktop-token"] = state.token;
+  if (state.bypassToken) h["x-vercel-protection-bypass"] = state.bypassToken;
   return h;
 }
 
@@ -46,7 +48,9 @@ function endpoint(path) {
 }
 
 function authModeLabel() {
-  return state.token ? "desktop token configured" : "no token configured (session auth or token required)";
+  const ownerAuth = state.token ? "desktop token configured" : "no desktop token (session auth or token required)";
+  const bypass = state.bypassToken ? "Vercel bypass configured" : "no Vercel bypass token";
+  return `${ownerAuth}; ${bypass}`;
 }
 
 function isConnected() {
@@ -174,9 +178,15 @@ async function sendCommand() {
 
 function saveConfig() {
   state.baseUrl = (document.getElementById("base")?.value || "").trim();
-  state.token = (document.getElementById("token")?.value || "").trim();
+  const enteredToken = (document.getElementById("token")?.value || "").trim();
+  const enteredBypass = (document.getElementById("bypass")?.value || "").trim();
+
+  if (enteredToken) state.token = enteredToken;
+  if (enteredBypass) state.bypassToken = enteredBypass;
+
   storage.set("misato_api_base_url", state.baseUrl);
   storage.set("misato_desktop_auth_token", state.token);
+  storage.set("misato_vercel_bypass_token", state.bypassToken);
   state.connTest = {
     label: "Not tested",
     httpStatus: null,
@@ -194,7 +204,8 @@ function setupView() {
     <div class='stack'>
       <input id='base' placeholder='https://nexcall.one/api/misato' value='${state.baseUrl || ""}' />
       <input id='token' type='password' autocomplete='off' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='' />
-      <p class='small muted'>Token saved locally${state.token ? " (configured)" : " (not configured)"}; value is hidden.</p>
+      <input id='bypass' type='password' autocomplete='off' placeholder='VERCEL_PROTECTION_BYPASS (optional local only)' value='' />
+      <p class='small muted'>Desktop token ${state.token ? "configured" : "not configured"}; bypass token ${state.bypassToken ? "configured" : "not configured"}. Values are hidden.</p>
       <div class='row'>
         <button id='save'>Save Config</button>
         <button id='test'>Test Connection</button>
@@ -212,6 +223,12 @@ function connectionPanel() {
     <div class='title'>Connection Diagnostics</div>
     <p class='small muted'>API Base URL: <strong>${state.baseUrl || "Not configured"}</strong></p>
     <p class='small muted'>Auth Mode: <strong>${authModeLabel()}</strong></p>
+    <div class='stack'>
+      <input id='base' placeholder='https://your-preview.vercel.app/api/misato' value='${state.baseUrl || ""}' />
+      <input id='token' type='password' autocomplete='off' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='' />
+      <input id='bypass' type='password' autocomplete='off' placeholder='VERCEL_PROTECTION_BYPASS (optional local only)' value='' />
+      <p class='small muted'>Desktop token ${state.token ? "configured" : "not configured"}; bypass token ${state.bypassToken ? "configured" : "not configured"}.</p>
+    </div>
     <div class='row'>
       <button id='test'>Test Connection</button>
       <button id='save'>Save Config</button>
