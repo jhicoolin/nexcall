@@ -9,7 +9,7 @@ export async function GET(request: Request) {
         ok: false,
         auth: "invalid",
         error: "unauthorized",
-        timestamp: new Date().toISOString()
+        hint: "Missing or invalid owner session or MISATO desktop token."
       },
       { status: 401 }
     );
@@ -21,6 +21,9 @@ export async function GET(request: Request) {
     mode: "mock-safe",
     ownerOnly: true,
     auth: "valid",
+    desktopClient: true,
+    liveAutomations: false,
+    availableEndpoints: ["/api/misato/status", "/api/misato/command"],
     timestamp: new Date().toISOString()
   });
 }

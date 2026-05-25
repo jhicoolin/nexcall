@@ -91,6 +91,7 @@ export type CommandResponse = {
   subtasksCreated: string[];
   risksDetected: string[];
   approvalRequired: boolean;
+  approvalReason: string | null;
   logsCreated: string[];
   nextRecommendedActions: string[];
   activityFeed: string[];

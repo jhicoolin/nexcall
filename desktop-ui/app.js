@@ -8,13 +8,27 @@ const isConnected=()=>state.connTest.label==="Connected";
 const authModeLabel=()=>`${state.token?"desktop token configured":"no desktop token"}; ${state.bypassToken?"Vercel bypass configured":"no Vercel bypass token"}`;
 const statusClass=(label)=>({Connected:"connected",Unauthorized:"unauthorized",Failed:"failed","Not configured":"not-configured","Not tested":"testing"}[label]||"testing");
 
-async function apiGet(path){const res=await fetch(endpoint(path),{headers:headers()}); const data=await res.json().catch(()=>({ok:false,error:"Invalid JSON"})); return {res,data};}
+async function apiGet(path){
+  const res=await fetch(endpoint(path),{headers:headers()});
+  const contentType=(res.headers.get("content-type")||"").toLowerCase();
+  let data={ ok:false, error:"Invalid JSON" };
+  if(contentType.includes("application/json")){
+    data=await res.json().catch(()=>({ ok:false, error:"Invalid JSON" }));
+  } else {
+    const text=await res.text().catch(()=>"");
+    data={ ok:false, error:"Non-JSON response", raw:text.slice(0,200) };
+  }
+  return {res,data,contentType};
+}
 
 async function testConnection(){
   if(!state.baseUrl){state.connTest={label:"Not configured",httpStatus:null,checkedAt:new Date().toISOString(),error:"MISATO_API_BASE_URL is missing.",nextFix:"Set MISATO_API_BASE_URL to your private MISATO backend."}; return render();}
   try{
-    const {res,data}=await apiGet("status"); const checkedAt=new Date().toISOString();
-    if(res.ok&&data?.ok){state.status=data; state.connTest={label:"Connected",httpStatus:res.status,checkedAt,error:"",nextFix:"Connected to MISATO backend. Owner/auth check passed."}; await loadAll(false);}
+    const {res,data,contentType}=await apiGet("status"); const checkedAt=new Date().toISOString();
+    if((res.status===401||res.status===403) && !contentType.includes("application/json")){
+      state.connTest={label:"Failed",httpStatus:res.status,checkedAt,error:"vercel_protection",nextFix:"Preview is protected. Add Vercel bypass token and retry."};
+    }
+    else if(res.ok&&data?.ok){state.status=data; state.connTest={label:"Connected",httpStatus:res.status,checkedAt,error:"",nextFix:"Connected to MISATO backend. Owner/auth check passed."}; await loadAll(false);}
     else if(res.status===401||data?.auth==="invalid"){state.connTest={label:"Unauthorized",httpStatus:res.status,checkedAt,error:data?.error||"unauthorized",nextFix:"Backend reached, but auth failed. Check desktop token/session and bypass token if preview is protected."};}
     else if(res.status===404){state.connTest={label:"Failed",httpStatus:res.status,checkedAt,error:"route not found",nextFix:"Wrong deployment URL. Use misato-full-build preview /api/misato."};}
     else{state.connTest={label:"Failed",httpStatus:res.status,checkedAt,error:data?.error||`HTTP ${res.status}`,nextFix:"Cannot reach usable backend state. Check URL and network."};}

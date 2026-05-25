@@ -5,15 +5,46 @@ import { assertOwnerJson } from "@/lib/misato/owner-guard";
 
 export async function POST(request: Request) {
   const unauthorized = await assertOwnerJson(request);
-  if (unauthorized) return unauthorized;
+  if (unauthorized) {
+    return NextResponse.json(
+      {
+        ok: false,
+        auth: "invalid",
+        error: "unauthorized",
+        hint: "Missing or invalid owner session or MISATO desktop token."
+      },
+      { status: 401 }
+    );
+  }
 
   const owner = getOwnerEmail();
-  if (!owner) return NextResponse.json({ ok: false, error: "OWNER_EMAIL is not configured." }, { status: 500 });
+  if (!owner) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "misconfigured",
+        hint: "OWNER_EMAIL is required for owner-only MISATO APIs."
+      },
+      { status: 500 }
+    );
+  }
 
   const body = (await request.json().catch(() => ({}))) as { command?: string };
   const command = (body.command || "").trim();
-  if (!command) return NextResponse.json({ ok: false, error: "Command is required." }, { status: 400 });
+  if (!command) {
+    return NextResponse.json(
+      { ok: false, error: "invalid_request", hint: "Command is required." },
+      { status: 400 }
+    );
+  }
 
   const result = runMisatoMockCommand(command);
-  return NextResponse.json({ ok: true, mode: "mock", result });
+  return NextResponse.json({
+    ok: true,
+    mode: "mock-safe",
+    ownerOnly: true,
+    liveAutomations: false,
+    result,
+    timestamp: new Date().toISOString()
+  });
 }
