@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasOwnerSession } from "@/lib/misato/auth";
 import { withMisatoCors } from "@/lib/misato/http/cors";
-
-function tokenFromRequest(request?: Request) {
-  if (!request) return "";
-  return (request.headers.get("x-misato-desktop-token") || "").trim();
-}
+import { getDesktopToken, isLocalRequest } from "@/lib/misato/request-context";
 
 function configuredDesktopToken() {
   return (process.env.MISATO_DESKTOP_AUTH_TOKEN || "").trim();
@@ -19,26 +15,10 @@ function isVercelRuntime() {
   return !!process.env.VERCEL;
 }
 
-function localHostOnly(request?: Request) {
-  if (!request) return false;
-  const hostCandidates = [
-    request.headers.get("x-forwarded-host") || "",
-    request.headers.get("host") || "",
-    request.headers.get("origin") || "",
-    request.headers.get("referer") || ""
-  ].map((v) => v.toLowerCase());
-
-  return hostCandidates.some((raw) => {
-    if (!raw) return false;
-    const normalized = raw.replace(/^https?:\/\//, "").replace(/^tauri:\/\//, "");
-    return normalized.startsWith("localhost") || normalized.startsWith("127.0.0.1") || normalized.startsWith("::1") || normalized.startsWith("tauri.localhost");
-  });
-}
-
 export function isLocalSoloMode(request?: Request) {
   if (isVercelRuntime()) return false;
   const envEnabled = (process.env.MISATO_LOCAL_SOLO_MODE || "false").toLowerCase() === "true";
-  return envEnabled || localHostOnly(request);
+  return envEnabled || isLocalRequest(request);
 }
 
 export function isDesktopTokenRequired() {
@@ -59,7 +39,7 @@ export function misatoAuthMode(request?: Request) {
 
 function hasValidDesktopToken(request?: Request) {
   const configured = configuredDesktopToken();
-  const provided = tokenFromRequest(request);
+  const provided = getDesktopToken(request);
   return !!configured && !!provided && configured === provided;
 }
 

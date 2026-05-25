@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDesktopToken, isLocalRequest } from "@/lib/misato/request-context";
 
 const OWNER_COOKIE = "misato_owner_session";
 
@@ -55,12 +56,6 @@ function isProtectedMisatoApi(pathname: string) {
 
 function isMisatoAuthApi(pathname: string) {
   return pathname === "/api/misato/auth/login" || pathname === "/api/misato/auth/logout";
-}
-
-function hasValidDesktopToken(request: NextRequest) {
-  const configured = (process.env.MISATO_DESKTOP_AUTH_TOKEN || "").trim();
-  const provided = (request.headers.get("x-misato-desktop-token") || "").trim();
-  return Boolean(configured && provided && configured === provided);
 }
 
 async function signOwnerEmailForEdge(email: string) {
@@ -147,21 +142,14 @@ function limitRequestInMemory(identity: string, config: LimitConfig) {
 
 function isLocalSoloAllowed(request: NextRequest) {
   if (process.env.VERCEL) return false;
-  const candidates = [
-    request.headers.get("x-forwarded-host") || "",
-    request.headers.get("host") || "",
-    request.headers.get("origin") || "",
-    request.headers.get("referer") || ""
-  ].map((v) => v.toLowerCase());
-
-  const localhost = candidates.some((raw) => {
-    if (!raw) return false;
-    const normalized = raw.replace(/^https?:\/\//, "").replace(/^tauri:\/\//, "");
-    return normalized.startsWith("localhost") || normalized.startsWith("127.0.0.1") || normalized.startsWith("::1") || normalized.startsWith("tauri.localhost");
-  });
-
   const envEnabled = (process.env.MISATO_LOCAL_SOLO_MODE || "false").toLowerCase() === "true";
-  return localhost || envEnabled;
+  return envEnabled || isLocalRequest(request);
+}
+
+function hasValidDesktopToken(request: NextRequest) {
+  const configured = (process.env.MISATO_DESKTOP_AUTH_TOKEN || "").trim();
+  const provided = getDesktopToken(request);
+  return Boolean(configured && provided && configured === provided);
 }
 
 export async function middleware(request: NextRequest) {

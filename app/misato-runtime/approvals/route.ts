@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { assertOwnerJson } from "../../../lib/misato/owner-guard";
 import { getRuntimeSnapshot, resolveApproval } from "../../../lib/misato/runtime/service";
 import { misatoOptionsResponse, withMisatoCors } from "../../../lib/misato/http/cors";
 
@@ -9,11 +10,16 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const unauthorized = await assertOwnerJson(request);
+  if (unauthorized) return withMisatoCors(unauthorized, request);
   const { approvals } = getRuntimeSnapshot();
   return withMisatoCors(NextResponse.json({ ok: true, items: approvals, aliasOf: "/approvals" }), request);
 }
 
 export async function POST(request: Request) {
+  const unauthorized = await assertOwnerJson(request);
+  if (unauthorized) return withMisatoCors(unauthorized, request);
+
   const body = (await request.json().catch(() => ({}))) as {
     approvalId?: string;
     decision?: "approved" | "rejected";

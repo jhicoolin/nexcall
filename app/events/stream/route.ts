@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getRecentEvents, subscribeEvents } from "../../../lib/misato/runtime/event-bus";
 import { publishEvent } from "../../../lib/misato/runtime/event-bus";
 import { assertOwnerJson } from "../../../lib/misato/owner-guard";

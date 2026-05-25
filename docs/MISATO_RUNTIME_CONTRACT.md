@@ -56,11 +56,25 @@ Owner command in MISATO.exe
 ## Compatibility path map (current Next app)
 - Canonical local-first routes are implemented directly for `/health`, `/command`, `/tasks`, `/watchtower`, `/secrets`, `/events/stream`.
 - Route-collision-safe shell aliases are implemented for `/agents`, `/approvals`, `/logs` via middleware rewrite:
-  - `/agents` (JSON/shell requests) → `/_misato/agents`
-  - `/approvals` (JSON/shell requests) → `/_misato/approvals`
-  - `/logs` (JSON/shell requests) → `/_misato/logs`
+  - `/agents` (JSON/shell requests) → `/misato-runtime/agents`
+  - `/approvals` (JSON/shell requests) → `/misato-runtime/approvals`
+  - `/logs` (JSON/shell requests) → `/misato-runtime/logs`
 - Browser HTML navigation still resolves to the existing UI pages at `/agents`, `/approvals`, `/logs`.
 - Auth-protected mirrors remain available under `/api/misato/*` for owner-only desktop/web dashboard usage.
+
+## Status fields returned by `/api/misato/status`
+- `runtimeMode`
+- `localSoloMode`
+- `desktopTokenRequired`
+- `productionLocked`
+- `hermesConnected`
+- `runtimeConnected`
+- `eventStreamAvailable`
+- `persistenceMode`
+- `activeAgents`
+- `activeTasks`
+- `pendingApprovals`
+- `lastEventAt`
 
 ## Mode behavior
 - Local-first default always

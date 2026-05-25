@@ -43,22 +43,22 @@ All endpoints return JSON. All authenticated endpoints require either:
 
 **Purpose:** Full runtime status with mode and agent/task/approval counts. **Authenticated.**
 
-Same shape as `/health` PLUS the following fields that must be added:
+Same shape as `/health` PLUS the following verified fields:
 
 | Field | Type | Expected | Status |
 |-------|------|----------|--------|
-| `runtimeMode` | string | `"mock"` | MISSING (null) |
-| `localSoloMode` | boolean | `true` | MISSING (null) |
-| `desktopTokenRequired` | boolean | `false` | MISSING (null) |
-| `productionLocked` | boolean | `false` | MISSING |
-| `hermesConnected` | boolean | `true` | MISSING |
-| `runtimeConnected` | boolean | `true` | MISSING |
-| `eventStreamAvailable` | boolean | `true` | MISSING |
-| `persistenceMode` | string | `"jsonl"` | MISSING |
-| `activeAgents` | int | 7 | MISSING |
-| `activeTasks` | int | 14 | MISSING |
+| `runtimeMode` | string | `"mock"` | OK |
+| `localSoloMode` | boolean | `true` | OK |
+| `desktopTokenRequired` | boolean | `false` | OK |
+| `productionLocked` | boolean | `false` | OK |
+| `hermesConnected` | boolean | `true` | OK |
+| `runtimeConnected` | boolean | `true` | OK |
+| `eventStreamAvailable` | boolean | `true` | OK |
+| `persistenceMode` | string | `"filesystem"` locally, `"memory"` on Vercel | OK |
+| `activeAgents` | int | 7 | OK |
+| `activeTasks` | int | 14 | OK |
 | `pendingApprovals` | int | 10 | OK |
-| `lastEventAt` | ISO timestamp | - | MISSING |
+| `lastEventAt` | ISO timestamp | - | OK |
 | `version` | string | `"1.0.0-local"` | OK |
 
 ---
