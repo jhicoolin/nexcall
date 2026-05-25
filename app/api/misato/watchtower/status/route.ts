@@ -1,4 +1,5 @@
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
+import { getWatchtowerStatus } from "@/lib/misato/watchtower/uptimeKumaClient";
 import { misatoJson, misatoOptions } from "@/lib/misato/http/cors";
 
 export function OPTIONS() {
@@ -8,5 +9,7 @@ export function OPTIONS() {
 export async function GET(request: Request) {
   const unauthorized = await assertOwnerJson(request);
   if (unauthorized) return unauthorized;
-  return misatoJson({ ok: true, connected: false, mode: "mock", note: "Discord command center not connected in v1." });
+
+  const data = await getWatchtowerStatus();
+  return misatoJson(data);
 }

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { OWNER_COOKIE, createOwnerSession, getOwnerEmail } from "@/lib/misato/auth";
+import { misatoJson, misatoOptions, withMisatoCors } from "@/lib/misato/http/cors";
+
+export function OPTIONS() {
+  return misatoOptions();
+}
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { email?: string; token?: string };
@@ -7,15 +12,15 @@ export async function POST(request: Request) {
   const token = body.token || "";
 
   if (!email || email !== getOwnerEmail()) {
-    return NextResponse.json({ ok: false, error: "Unauthorized owner email." }, { status: 403 });
+    return misatoJson({ ok: false, error: "Unauthorized owner email." }, { status: 403 });
   }
 
   const requiredToken = process.env.ADMIN_DASHBOARD_TOKEN || "";
   if (!requiredToken || token !== requiredToken) {
-    return NextResponse.json({ ok: false, error: "Invalid owner token." }, { status: 401 });
+    return misatoJson({ ok: false, error: "Invalid owner token." }, { status: 401 });
   }
 
-  const response = NextResponse.json({ ok: true });
+  const response = withMisatoCors(NextResponse.json({ ok: true }));
   response.cookies.set(OWNER_COOKIE, createOwnerSession(email), {
     httpOnly: true,
     sameSite: "lax",

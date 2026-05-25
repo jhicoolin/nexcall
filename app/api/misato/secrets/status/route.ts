@@ -1,4 +1,5 @@
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
+import { readRedactedGitleaksSummary } from "@/lib/misato/secrets/gitleaksParser";
 import { misatoJson, misatoOptions } from "@/lib/misato/http/cors";
 
 export function OPTIONS() {
@@ -8,5 +9,6 @@ export function OPTIONS() {
 export async function GET(request: Request) {
   const unauthorized = await assertOwnerJson(request);
   if (unauthorized) return unauthorized;
-  return misatoJson({ ok: true, connected: false, mode: "mock", note: "Discord command center not connected in v1." });
+
+  return misatoJson(readRedactedGitleaksSummary());
 }

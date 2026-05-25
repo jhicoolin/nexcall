@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { hasOwnerSession } from "@/lib/misato/auth";
+import { misatoJson } from "@/lib/misato/http/cors";
 
 function tokenFromRequest(request?: Request) {
   if (!request) return "";
@@ -19,5 +19,5 @@ function hasValidDesktopToken(request?: Request) {
 export async function assertOwnerJson(request?: Request) {
   if (await hasOwnerSession()) return null;
   if (hasValidDesktopToken(request)) return null;
-  return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
+  return misatoJson({ ok: false, error: "Owner authentication required." }, { status: 401 });
 }
