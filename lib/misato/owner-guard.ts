@@ -36,6 +36,16 @@ export function isDesktopTokenRequired() {
   return configured !== "false";
 }
 
+export function misatoRuntimeMode() {
+  return (process.env.MISATO_RUNTIME_MODE || "mock").trim() || "mock";
+}
+
+export function misatoAuthMode(request?: Request) {
+  if (isLocalSoloMode(request)) return "local-solo";
+  if (isProdRuntime()) return "production-locked";
+  return "preview-simple";
+}
+
 function hasValidDesktopToken(request?: Request) {
   const configured = configuredDesktopToken();
   const provided = tokenFromRequest(request);
@@ -43,9 +53,16 @@ function hasValidDesktopToken(request?: Request) {
 }
 
 export async function assertOwnerJson(request?: Request) {
-  if (await hasOwnerSession()) return null;
+  if (isProdRuntime()) {
+    return hasValidDesktopToken(request)
+      ? null
+      : NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
+  }
+
   if (isLocalSoloMode(request)) return null;
+  if (await hasOwnerSession()) return null;
   if (hasValidDesktopToken(request)) return null;
-  if (!isDesktopTokenRequired() && !isProdRuntime()) return null;
+  if (!isDesktopTokenRequired()) return null;
+
   return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
 }

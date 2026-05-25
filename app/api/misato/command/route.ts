@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOwnerEmail } from "@/lib/misato/auth";
 import { runMisatoMockCommand } from "@/lib/misato/mock/data";
-import { assertOwnerJson, isLocalSoloMode } from "@/lib/misato/owner-guard";
-import { misatoDesignTokens } from "@/lib/misato/design/designTokens";
+import { assertOwnerJson, isLocalSoloMode, misatoAuthMode, misatoRuntimeMode } from "@/lib/misato/owner-guard";
 import { subagentRegistry } from "@/lib/misato/subagents/registry";
 import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
 
@@ -57,19 +56,27 @@ export async function POST(request: Request) {
 
   const result = runMisatoMockCommand(command);
   const moduleStatus = {
-    watchtower: { mode: "mock-safe", endpoint: "/api/misato/watchtower/status", liveExternalCalls: false },
-    designSystem: { mode: "ready", tokenCount: Object.keys(misatoDesignTokens.colors).length },
-    secretSentinel: { mode: "manual", redactedReportsOnly: true, endpoint: "/api/misato/secrets/status" },
-    obsidianMirror: { mode: "planned", liveWrites: false },
-    githubHandoffs: { mode: "ready", directMainMerge: false }
+    watchtower: { serviceHealth: "healthy", checkState: "mock", mode: "planned", endpoint: "/api/misato/watchtower/status", liveExternalCalls: false },
+    designLibrary: { designMdActive: true, claudeUiGuideActive: true, checklistStatus: "in-progress" },
+    secretSentinel: { gitleaksStatus: "manual", findingsRedacted: true, repoOnlyScan: true, endpoint: "/api/misato/secrets/status" },
+    obsidianMirror: { mirrorStatus: "planned", liveWrites: false, approvalRequiredForWrites: true },
+    githubVercel: { branch: process.env.VERCEL_GIT_COMMIT_REF || "misato-hermes-backend", previewState: "allowed", productionLocked: true },
+    lanes: {
+      hermesBackend: "active",
+      codexReliability: "active",
+      claudeUi: "active",
+      coordinator: "active",
+      ownerApproval: result.approvalRequired ? "pending" : "ready"
+    }
   };
 
   return withMisatoCors(
     NextResponse.json({
       ok: true,
-      mode: localSolo ? "local-solo" : "mock-safe",
+      mode: misatoAuthMode(request),
       ownerOnly: !localSolo,
       localSoloMode: localSolo,
+      runtimeMode: misatoRuntimeMode(),
       liveAutomations: false,
       commandReceived: command,
       missionSummary: result.missionSummary,

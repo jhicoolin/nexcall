@@ -1,22 +1,29 @@
-# Hermes Orchestration → Codex Runtime Notes
+# Hermes Orchestration → Codex Verification Notes
 
-Date: 2026-05-24
-Branches inspected: `origin/misato-codex-runtime-audit`, `misato-hermes-backend`
+Date: 2026-05-25
+Branch under test: `misato-hermes-backend`
 
-## Verified by Hermes
-- Middleware path should allow desktop token auth for MISATO APIs while preserving owner cookie auth for web routes.
-- Command route contract now returns top-level orchestration fields:
-  `ok, mode, commandReceived, missionSummary, projectDetected, hermesPlan, agentsAssigned, councilFeedback, subtasksCreated, risksDetected, approvalRequired, logsCreated, nextRecommendedActions, moduleStatus`.
-- Watchtower / Secret Sentinel routes remain owner-protected and mock-safe.
-- CORS helper introduced for MISATO API routes only (`lib/misato/http/cors.ts`), with OPTIONS handlers.
+## Endpoints to verify
+1. `OPTIONS /api/misato/status`
+2. `GET /api/misato/status` without token
+3. `GET /api/misato/status` with token
+4. `POST /api/misato/command` with token
 
-## Needed from Codex lane
-1. Push `misato-codex-connection-repair` branch for review (branch missing remotely).
-2. Confirm desktop-side URL normalization + fetch error clarity remains intact after merge.
-3. Re-test preview after redeploy with non-empty token.
+## Auth mode validations
+- Local Solo: localhost/dev can access status + command without desktop token.
+- Preview Simple: one desktop token required; bypass only when edge protection blocks.
+- Production Locked: desktop token required; no public access.
+
+## Approval behavior to verify
+- Normal command (`What needs attention today?`): `approvalRequired=false`.
+- Risky command (`deploy to production now`): `approvalRequired=true`, no live execution/deploy/merge/DNS/env mutation.
+
+## Contract assertions
+`POST /command` should include:
+`ok, mode, commandReceived, missionSummary, projectDetected, hermesPlan, agentsAssigned, councilFeedback, subtasksCreated, risksDetected, approvalRequired, approvalReason, logsCreated, nextRecommendedActions, moduleStatus`.
 
 ## Guardrails
-- No weakening auth.
-- No global CORS changes across public NexCall endpoints.
-- No secret output in logs/responses.
-- No live automation enablement.
+- No auth weakening.
+- No global CORS changes.
+- No secret output.
+- No production deploy.

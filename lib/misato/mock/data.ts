@@ -101,7 +101,9 @@ export function runMisatoMockCommand(command: string): CommandResponse {
     "Research Lab: EXPLORING — runtime experiments remain mock-safe until approval gate matures."
   ];
 
-  return {
+  const isDailyAttention = /what needs attention today\??/i.test(command);
+
+  const baseResponse: CommandResponse = {
     missionSummary: `MISATO reviewed operational priorities and prepared a mock-safe plan for ${projectDetected}.`,
     projectDetected,
     agentsAssigned,
@@ -156,4 +158,26 @@ export function runMisatoMockCommand(command: string): CommandResponse {
       approvalRequired ? "6) Approval required: execution blocked" : "6) Safe planning output generated"
     ]
   };
+
+  if (isDailyAttention) {
+    baseResponse.missionSummary = "Daily attention briefing prepared across NexCall + MISATO control modules.";
+    baseResponse.projectDetected = "NexCall";
+    baseResponse.councilFeedback = [
+      { agent: "MISATO Core", feedback: "NexCall status: active, priority HIGH, command center stable in mock runtime." },
+      { agent: "Hermes Orchestrator", feedback: "MISATO connection status: healthy in local/preview lanes; approval gate enabled." },
+      { agent: "Watchtower Agent", feedback: "Watchtower status: planned/mock checks healthy; no external live automation calls." },
+      { agent: "Secret Sentinel Agent", feedback: "Secret Sentinel status: gitleaks manual mode, redacted findings only, repo-only scan scope." },
+      { agent: "Design Librarian Agent", feedback: "Design Library status: DESIGN.md active, Claude UI guide active, checklist in progress." },
+      { agent: "Council Coordinator", feedback: "Lane status: Claude UI active, Hermes backend active, Codex reliability active." },
+      { agent: "Approval Gate", feedback: "Pending approvals: 2 high-risk items remain queued; no production actions executed." }
+    ];
+    baseResponse.nextRecommendedActions = [
+      "Clear pending approval queue with explicit owner decisions",
+      "Run preview-safe regression after Claude UI handoff",
+      "Keep production locked and continue mock/preview-only orchestration"
+    ];
+    baseResponse.activityFeed.push("7) Daily attention briefing generated with module + lane rollup");
+  }
+
+  return baseResponse;
 }
