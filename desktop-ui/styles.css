@@ -89,6 +89,18 @@ ul { list-style: none; }
   font-size: 11px; font-weight: 700; color: #fff;
 }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+/* Runtime mode badge */
+.mode-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; border: 1px solid transparent;
+}
+.mode-badge.mode-local   { background: var(--accent-teal-bg);   color: var(--accent-teal);   border-color: rgba(0,201,167,0.2); }
+.mode-badge.mode-preview { background: var(--accent-blue-bg);   color: var(--accent-blue);   border-color: rgba(74,140,255,0.2); }
+.mode-badge.mode-offline { background: var(--surface-2);        color: var(--text-tertiary);  border-color: var(--border-default); }
+
 .conn-indicator {
   display: flex; align-items: center; gap: 6px;
   font-size: 11px; color: var(--text-secondary);
@@ -97,11 +109,11 @@ ul { list-style: none; }
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent-slate); flex-shrink: 0;
 }
-.conn-led.connected  { background: var(--accent-teal); }
-.conn-led.failed     { background: var(--accent-red); }
-.conn-led.testing    { background: var(--accent-amber); }
+.conn-led.connected    { background: var(--accent-teal); }
+.conn-led.failed       { background: var(--accent-red); }
+.conn-led.testing      { background: var(--accent-amber); }
 .conn-led.unauthorized { background: var(--accent-amber); }
-.conn-led.protected  { background: var(--accent-amber); }
+.conn-led.protected    { background: var(--accent-amber); }
 
 /* ── Main Layout ───────────────────────────────────────────────── */
 .layout {
@@ -206,6 +218,8 @@ ul { list-style: none; }
 .feed-entry-ts { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
 .feed-entry-src { font-size: 10px; font-weight: 600; color: var(--accent-violet); text-transform: uppercase; }
 .feed-entry-msg { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+.feed-entry-mock { opacity: 0.55; }
+.feed-entry-mock .feed-entry-src { color: var(--text-tertiary) !important; }
 .feed-footer {
   padding: 8px 12px;
   border-top: 1px solid var(--border-subtle);
@@ -348,6 +362,75 @@ ul { list-style: none; }
 .config-panel-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); margin-bottom: 12px; }
 .config-save-row { display: flex; gap: 8px; margin-top: 12px; }
 .config-note { font-size: 10px; color: var(--text-tertiary); margin-top: 8px; line-height: 1.4; }
+.config-section-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-tertiary); margin-bottom: 8px; margin-top: 4px;
+}
+
+/* ── Hermes Status Card ─────────────────────────────────────────── */
+.hermes-status-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border-radius: 6px;
+  border: 1px solid var(--border-default); margin-top: 12px;
+  background: var(--surface-2);
+}
+.hermes-status-card.idle     { border-color: var(--border-default); }
+.hermes-status-card.finding  { border-color: var(--accent-blue);   background: var(--accent-blue-bg); }
+.hermes-status-card.found    { border-color: var(--accent-teal);   background: var(--accent-teal-bg); }
+.hermes-status-card.not-found{ border-color: var(--accent-amber);  background: var(--accent-amber-bg); }
+.hermes-status-icon {
+  font-size: 16px; flex-shrink: 0; margin-top: 1px;
+  color: var(--text-tertiary);
+}
+.hermes-status-card.finding  .hermes-status-icon { color: var(--accent-blue); }
+.hermes-status-card.found    .hermes-status-icon { color: var(--accent-teal); }
+.hermes-status-card.not-found .hermes-status-icon { color: var(--accent-amber); }
+.hermes-status-body { flex: 1; }
+.hermes-status-title {
+  font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px;
+}
+.hermes-status-card.found    .hermes-status-title { color: var(--accent-teal); }
+.hermes-status-card.not-found .hermes-status-title { color: var(--accent-amber); }
+.hermes-status-msg { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+.hermes-start-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.hermes-step {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 11px; color: var(--text-secondary); line-height: 1.5;
+}
+.hermes-step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent-amber-bg); color: var(--accent-amber);
+  font-size: 9px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.hermes-step code {
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--surface-3); border-radius: 3px;
+  padding: 1px 5px; color: var(--text-primary);
+}
+
+/* ── Advanced Collapsible Section ───────────────────────────────── */
+.advanced-details {
+  border: 1px solid var(--border-default); border-radius: 6px;
+  overflow: hidden;
+}
+.advanced-summary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  background: var(--surface-1); user-select: none;
+  list-style: none;
+  transition: color var(--ease-hover), background var(--ease-hover);
+}
+.advanced-summary::-webkit-details-marker { display: none; }
+.advanced-summary:hover { color: var(--text-primary); background: var(--surface-2); }
+.advanced-details[open] .advanced-summary { color: var(--text-primary); border-bottom: 1px solid var(--border-default); }
+.advanced-summary-arrow {
+  font-size: 9px; color: var(--text-tertiary);
+  transition: transform var(--ease-state); display: inline-block;
+}
+.advanced-details[open] .advanced-summary-arrow { transform: rotate(90deg); }
+.advanced-body { padding: 16px; background: var(--surface-1); display: flex; flex-direction: column; gap: 8px; }
 
 /* ── Command Center ────────────────────────────────────────────── */
 .mission-banner {
