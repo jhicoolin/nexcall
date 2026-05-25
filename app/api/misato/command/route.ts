@@ -19,5 +19,6 @@ export async function POST(request: Request) {
     return withMisatoCors(NextResponse.json({ ok: false, error: "invalid_request", hint: "Command is required." }, { status: 400 }), request);
   }
 
-  return withMisatoCors(NextResponse.json(runCommand(command)), request);
+  const result = await runCommand(command);
+  return withMisatoCors(NextResponse.json(result), request);
 }

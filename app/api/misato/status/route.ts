@@ -3,6 +3,7 @@ import { assertOwnerJson } from "@/lib/misato/owner-guard";
 import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
 import { getEvents, getHealth, getRuntimeSnapshot } from "@/lib/misato/runtime/service";
 import { isDesktopTokenRequired, isLocalSoloMode, misatoRuntimeMode } from "@/lib/misato/owner-guard";
+import { getActiveModel, getFallbackModel } from "@/lib/misato/runtime/ai-gateway";
 
 export const runtime = "nodejs";
 
@@ -35,10 +36,13 @@ export async function GET(request: Request) {
       hermesConnected: health.runtimeStatus === "connected",
       runtimeConnected: health.ok === true && health.status === "ok",
       eventStreamAvailable: true,
+      activeModel: getActiveModel(),
+      fallbackModel: getFallbackModel(),
       persistenceMode: health.paths?.persistence || "filesystem",
       activeAgents,
       activeTasks,
       pendingApprovals,
+      queueDepth: activeTasks,
       lastEventAt: latestEvent?.timestamp || health.timestamp || null
     }),
     request

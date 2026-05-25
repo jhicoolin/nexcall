@@ -1,6 +1,8 @@
 import { runMisatoMockCommand } from "../mock/data";
 import { appendEventJsonl, loadStore, readEventLog, runtimePaths, saveStore } from "./store";
 import { getRecentEvents, publishEvent } from "./event-bus";
+import { executeCommand } from "./command-machine";
+import { isAiConfigured, getActiveModel, getFallbackModel } from "./ai-gateway";
 
 const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|billing|payment|secret|rotate|external|automation|merge)/i;
 
@@ -142,7 +144,26 @@ export function getLanes() {
 
 export function assignAgent(payload: any) {
   const store = loadStore();
-  const { agentId, taskId } = payload || {};
+  const { agentId, taskId, title, description, priority, project, scheduledAt } = payload || {};
+
+  // If taskId not provided, auto-create task from title
+  if (!taskId && title) {
+    const taskResult = createTask({
+      title,
+      description: description || "",
+      project: project || "runtime",
+      priority: priority || "Medium",
+      status: "Doing",
+      ownerAgentId: agentId,
+      assignedAgentId: agentId,
+      scheduledAt: scheduledAt || null,
+      dedupeKey: false // allow duplicate assignments
+    });
+    const newTaskId = (taskResult as any)?.task?.id;
+    if (!newTaskId) return { ok: false, error: "task_creation_failed" as const };
+    return assignAgent({ agentId, taskId: newTaskId });
+  }
+
   const agent = store.agents.find((a: any) => a.agentId === agentId);
   const task = store.tasks.find((t: any) => t.id === taskId);
   if (!agent || !task) return { ok: false, error: "agent_or_task_not_found" as const };
@@ -163,15 +184,39 @@ export function assignAgent(payload: any) {
 
 export function createTask(payload: any) {
   const store = loadStore();
+
+  // Deduplication check
+  const title = String(payload?.title || "Untitled task");
+  const project = String(payload?.project || "runtime");
+  const dedupeKey = payload?.dedupeKey || `dedupe:${project}:${title.toLowerCase().trim()}`;
+  const existingTask = store.tasks.find((t: any) =>
+    t.dedupeKey === dedupeKey &&
+    !["Done", "Deleted", "Cancelled"].includes(String(t.status || ""))
+  );
+  if (existingTask && payload?.dedupeKey !== false) {
+    existingTask.updatedAt = nowIso();
+    existingTask.activity = (existingTask.activity as any[]) || [];
+    (existingTask.activity as any[]).push({ at: nowIso(), event: "task.repeated", sourceCommandId: payload?.sourceCommandId });
+    if (payload?.scheduledAt) existingTask.scheduledAt = payload.scheduledAt;
+    emit("task.updated", "misato.tasks", { taskId: existingTask.id, task: existingTask }, "info");
+    logEvent(store, `Task deduplicated (updated): ${title}`, "misato.tasks");
+    saveStore(store);
+    return { ok: true, task: existingTask, deduplicated: true };
+  }
+
   const task = {
     id: rid("task"),
-    title: String(payload?.title || "Untitled task"),
+    dedupeKey,
+    sourceCommandId: payload?.sourceCommandId || null,
+    title,
     description: String(payload?.description || ""),
-    project: String(payload?.project || "runtime"),
+    project,
     priority: String(payload?.priority || "Medium"),
     status: String(payload?.status || "Idea"),
     ownerAgentId: payload?.ownerAgentId || null,
+    assignedAgentId: payload?.assignedAgentId || null,
     assignedBy: payload?.assignedBy || "MISATO",
+    scheduledAt: payload?.scheduledAt || null,
     createdAt: nowIso(),
     updatedAt: nowIso(),
     dueAt: payload?.dueAt || null,
@@ -179,11 +224,11 @@ export function createTask(payload: any) {
     riskLevel: String(payload?.riskLevel || "Low"),
     approvalRequired: Boolean(payload?.approvalRequired),
     linkedApprovalId: payload?.linkedApprovalId || null,
-    activity: []
+    activity: ([{ at: nowIso(), event: "task.created", sourceCommandId: payload?.sourceCommandId }] as any[])
   };
   store.tasks.unshift(task);
   emit("task.created", "misato.tasks", { taskId: task.id, task }, "info");
-  logEvent(store, `Task created: ${task.title}`, "misato.tasks");
+  logEvent(store, `Task created: ${title}`, "misato.tasks");
   saveStore(store);
   return { ok: true, task };
 }
@@ -340,64 +385,8 @@ export function resolveApproval(approvalId: string, decision: "approved" | "reje
   return approvalAction({ approvalId, action: decision, decisionBy: resolvedBy });
 }
 
-export function runCommand(command: string) {
-  const store = loadStore();
-  const base = runMisatoMockCommand(command);
-  const commandId = rid("cmd");
-
-  emit("command.received", "misato.runtime", { commandId, command }, "info");
-  emit("command_received", "misato.runtime", { commandId, command, summary: "Command received" }, "info");
-  emit("command.planned", "misato.orchestrator", { commandId, plan: base.hermesPlan }, "info");
-  base.hermesPlan.forEach((step: string, index: number) => emit("plan_generated", "misato.orchestrator", { commandId, step, index }, "info"));
-
-  const taskResult = createTask({
-    title: `Command: ${command.slice(0, 80)}`,
-    project: base.projectDetected || "runtime",
-    priority: "High",
-    status: "Doing",
-    riskLevel: riskyPattern.test(command) ? "High" : "Low",
-    approvalRequired: riskyPattern.test(command)
-  });
-
-  let approval: any = null;
-  if (riskyPattern.test(command) || base.approvalRequired) {
-    approval = createApprovalForCommand(
-      store,
-      command,
-      base.approvalReason || "Requested command falls into protected action category."
-    );
-    emit("approval_requested", "misato.approvals", { commandId, approvalId: approval.id, approval }, "warn");
-    emit("risk_detected", "misato.approvals", { commandId, command, risks: base.risksDetected }, "warn");
-  }
-
-  store.runtime.lastCommandAt = nowIso();
-  refreshApprovalCount(store);
-  logEvent(store, `Command processed: ${command}`, "misato.runtime", approval ? "warn" : "info", "command.completed", { commandId });
-  emit("status_change", "misato.runtime", { runtimeStatus: "connected", approvalsPending: store.runtime.approvalsPending }, "info");
-  emit(approval ? "command.completed" : "command.completed", "misato.runtime", { commandId, approvalRequired: Boolean(approval) }, "info");
-  saveStore(store);
-
-  return {
-    ok: true,
-    commandId,
-    mode: store.runtime.mode,
-    commandReceived: command,
-    missionSummary: base.missionSummary,
-    projectDetected: base.projectDetected,
-    hermesPlan: base.hermesPlan,
-    agentsAssigned: base.agentsAssigned,
-    councilFeedback: base.councilFeedback,
-    subtasksCreated: base.subtasksCreated,
-    risksDetected: base.risksDetected,
-    approvalRequired: Boolean(approval || base.approvalRequired),
-    approvalReason: approval ? approval.description : base.approvalReason,
-    logsCreated: base.logsCreated,
-    nextRecommendedActions: base.nextRecommendedActions,
-    moduleStatus: {
-      watchtower: getWatchtower(),
-      secretSentinel: getSecretsStatus(),
-      lanes: getLanes().items,
-      githubVercel: { optional: true, productionLocked: true }
-    }
-  };
+export async function runCommand(command: string) {
+  // Use the new 10-stage command state machine
+  // Returns complete timeline with all stages
+  return executeCommand(command);
 }

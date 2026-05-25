@@ -20,9 +20,9 @@
       "approvalRequiredFor": [
         "Needs approval for execution"
       ],
-      "currentTaskId": "t1",
-      "currentTask": "Draft dentist campaign",
-      "lastActivityAt": "2026-05-25T21:04:59.770Z"
+      "currentTaskId": null,
+      "currentTask": "Command: What needs attention today?",
+      "lastActivityAt": "2026-05-25T23:15:33.952Z"
     },
     {
       "agentId": "agent-ui",
@@ -50,7 +50,7 @@
       "agentId": "agent-backend",
       "name": "Backend Agent",
       "role": "API and data flows",
-      "status": "online",
+      "status": "active",
       "riskTier": "L2",
       "permissions": [
         "TypeScript",
@@ -65,13 +65,16 @@
       ],
       "approvalRequiredFor": [
         "Approval for migrations"
-      ]
+      ],
+      "currentTaskId": null,
+      "currentTask": "Command: Assign Codex to verify desktop build",
+      "lastActivityAt": "2026-05-25T23:15:33.977Z"
     },
     {
       "agentId": "agent-security",
       "name": "Security Agent",
       "role": "Risk review",
-      "status": "online",
+      "status": "active",
       "riskTier": "L2",
       "permissions": [
         "Audit",
@@ -86,7 +89,10 @@
       ],
       "approvalRequiredFor": [
         "Approval for any enforcement change"
-      ]
+      ],
+      "currentTaskId": null,
+      "currentTask": "Command: deploy to production now",
+      "lastActivityAt": "2026-05-25T23:15:34.019Z"
     },
     {
       "agentId": "agent-qa",
@@ -108,15 +114,15 @@
       "approvalRequiredFor": [
         "Approval for production test toggles"
       ],
-      "currentTaskId": "task-c335b807-a8db-486a-a397-0ec25c946328",
-      "currentTask": "Codex smoke task",
-      "lastActivityAt": "2026-05-25T19:31:19.174Z"
+      "currentTaskId": "task-01d63dcc-0c21-4f25-b4ad-46052fd8d3fe",
+      "currentTask": "contract-check",
+      "lastActivityAt": "2026-05-25T21:24:08.870Z"
     },
     {
       "agentId": "agent-vercel",
       "name": "Vercel Deploy Agent",
       "role": "Deployment prep",
-      "status": "online",
+      "status": "active",
       "riskTier": "L1",
       "permissions": [
         "Build logs",
@@ -132,7 +138,10 @@
       ],
       "approvalRequiredFor": [
         "Always approval-gated"
-      ]
+      ],
+      "currentTaskId": null,
+      "currentTask": "Command: deploy to production now",
+      "lastActivityAt": "2026-05-25T23:15:34.019Z"
     },
     {
       "agentId": "agent-business",
@@ -201,7 +210,7 @@
       "agentId": "agent-research",
       "name": "Research Agent",
       "role": "Research synthesis",
-      "status": "online",
+      "status": "active",
       "riskTier": "L0",
       "permissions": [
         "Web research",
@@ -216,7 +225,10 @@
       ],
       "approvalRequiredFor": [
         "Approval for outbound publishing"
-      ]
+      ],
+      "currentTaskId": null,
+      "currentTask": "Command: Ask Claude to polish AgentDex",
+      "lastActivityAt": "2026-05-25T23:15:33.998Z"
     },
     {
       "agentId": "agent-claude-ui",
@@ -244,7 +256,7 @@
       "agentId": "agent-hermes-arch",
       "name": "Hermes Architecture Agent",
       "role": "Runtime architecture",
-      "status": "online",
+      "status": "active",
       "riskTier": "L1",
       "permissions": [
         "Architecture docs",
@@ -259,10 +271,229 @@
       ],
       "approvalRequiredFor": [
         "Approval for runtime integration"
-      ]
+      ],
+      "currentTaskId": null,
+      "currentTask": "Command: deploy to production now",
+      "lastActivityAt": "2026-05-25T23:15:34.019Z"
     }
   ],
   "tasks": [
+    {
+      "id": "task-d388674a-e600-4102-b455-827b897fbfed",
+      "dedupeKey": "dedupe:MISATO:command: hi",
+      "sourceCommandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f",
+      "title": "Command: hi",
+      "description": "MISATO is online. Hermes is connected. What do you want to run?",
+      "project": "MISATO",
+      "priority": "Normal",
+      "status": "Done",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:15:33.903Z",
+      "updatedAt": "2026-05-25T23:15:33.903Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "greeting",
+        "MISATO"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:15:33.904Z",
+          "event": "task.created",
+          "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+        }
+      ]
+    },
+    {
+      "id": "task-2829d9c3-3beb-42af-bd87-cae0dd904fdb",
+      "dedupeKey": "dedupe:NexCall:command: deploy to production now",
+      "sourceCommandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49",
+      "title": "Command: deploy to production now",
+      "description": "Deploy commands require explicit owner approval. Creating approval card now.",
+      "project": "NexCall",
+      "priority": "Urgent",
+      "status": "Doing",
+      "ownerAgentId": "agent-vercel",
+      "assignedAgentId": "agent-vercel",
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:13:02.380Z",
+      "updatedAt": "2026-05-25T23:15:34.021Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "deploy",
+        "NexCall"
+      ],
+      "riskLevel": "L4",
+      "approvalRequired": true,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:13:02.380Z",
+          "event": "task.created",
+          "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+        },
+        {
+          "at": "2026-05-25T23:15:34.021Z",
+          "event": "command.repeated",
+          "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+        }
+      ]
+    },
+    {
+      "id": "task-43ee362d-8a00-4b1d-bcca-158a7020d36a",
+      "dedupeKey": "dedupe:Research Lab:command: ask claude to polish agentdex",
+      "sourceCommandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4",
+      "title": "Command: Ask Claude to polish AgentDex",
+      "description": "Command received. Classifying intent...",
+      "project": "Research Lab",
+      "priority": "Normal",
+      "status": "Doing",
+      "ownerAgentId": "agent-research",
+      "assignedAgentId": "agent-research",
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:13:02.364Z",
+      "updatedAt": "2026-05-25T23:15:33.999Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "unknown",
+        "Research Lab"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:13:02.364Z",
+          "event": "task.created",
+          "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+        },
+        {
+          "at": "2026-05-25T23:15:33.999Z",
+          "event": "command.repeated",
+          "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+        }
+      ]
+    },
+    {
+      "id": "task-e7e5f332-feac-4cbb-9a5c-1bd84c6df07d",
+      "dedupeKey": "dedupe:MISATO:command: assign codex to verify desktop build",
+      "sourceCommandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca",
+      "title": "Command: Assign Codex to verify desktop build",
+      "description": "Assigning Backend Agent...",
+      "project": "MISATO",
+      "priority": "High",
+      "status": "Doing",
+      "ownerAgentId": "agent-backend",
+      "assignedAgentId": "agent-backend",
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:13:02.328Z",
+      "updatedAt": "2026-05-25T23:15:33.979Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "assign_agent",
+        "MISATO"
+      ],
+      "riskLevel": "L1",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:13:02.328Z",
+          "event": "task.created",
+          "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+        },
+        {
+          "at": "2026-05-25T23:15:33.979Z",
+          "event": "command.repeated",
+          "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+        }
+      ]
+    },
+    {
+      "id": "task-8064e5e9-e933-41c5-a2df-5facf2b57869",
+      "dedupeKey": "dedupe:NexCall:command: what needs attention today?",
+      "sourceCommandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35",
+      "title": "Command: What needs attention today?",
+      "description": "Compiling daily operations overview...",
+      "project": "NexCall",
+      "priority": "Normal",
+      "status": "Doing",
+      "ownerAgentId": "agent-strategy",
+      "assignedAgentId": "agent-strategy",
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:13:02.294Z",
+      "updatedAt": "2026-05-25T23:15:33.955Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "daily_summary",
+        "NexCall"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:13:02.294Z",
+          "event": "task.created",
+          "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+        },
+        {
+          "at": "2026-05-25T23:13:02.311Z",
+          "event": "command.repeated",
+          "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+        },
+        {
+          "at": "2026-05-25T23:15:33.932Z",
+          "event": "command.repeated",
+          "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+        },
+        {
+          "at": "2026-05-25T23:15:33.955Z",
+          "event": "command.repeated",
+          "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+        }
+      ]
+    },
+    {
+      "id": "task-66a7a950-1c41-4112-9e77-c86ff09a385a",
+      "dedupeKey": "dedupe:MISATO:command: hi",
+      "sourceCommandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8",
+      "title": "Command: hi",
+      "description": "MISATO is online. Hermes is connected. What do you want to run?",
+      "project": "MISATO",
+      "priority": "Normal",
+      "status": "Done",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:13:02.275Z",
+      "updatedAt": "2026-05-25T23:13:02.275Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "greeting",
+        "MISATO"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:13:02.275Z",
+          "event": "task.created",
+          "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+        }
+      ]
+    },
     {
       "id": "task-244698fe-06da-4dfc-9d33-c340616cce5f",
       "title": "safety-check2",
@@ -467,12 +698,12 @@
       "status": "Doing",
       "priority": "High",
       "dueDate": "2026-05-25",
-      "assignedAgentId": "agent-strategy",
+      "assignedAgentId": "agent-research",
       "riskLevel": "Low",
       "approvalRequired": false,
-      "ownerAgentId": "agent-strategy",
-      "agent": "Strategy Agent",
-      "updatedAt": "2026-05-25T21:04:59.770Z"
+      "ownerAgentId": "agent-research",
+      "agent": "Research Agent",
+      "updatedAt": "2026-05-25T21:22:53.837Z"
     },
     {
       "id": "t2",
@@ -520,6 +751,61 @@
     }
   ],
   "approvals": [
+    {
+      "id": "apr-85b15742-5a72-4538-80c5-f23e2d9627fa",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T23:15:34.024Z",
+      "updatedAt": "2026-05-25T23:15:34.024Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-0546671e-41b1-4270-a3b5-7fdb847d05f7",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T23:13:02.382Z",
+      "updatedAt": "2026-05-25T23:13:02.382Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-7753cc26-598d-4617-b440-f1b6c63f6ff9",
+      "title": "Approval required: deploy to production now",
+      "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "riskLevel": "High",
+      "requestedByAgentId": "agent-hermes",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Deferred",
+      "createdAt": "2026-05-25T21:22:53.654Z",
+      "updatedAt": "2026-05-25T21:24:08.922Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-25T21:24:08.922Z",
+      "decisionBy": "owner"
+    },
     {
       "id": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
       "title": "Approval required: deploy to production now",
@@ -690,6 +976,1123 @@
     }
   ],
   "logs": [
+    {
+      "id": "log-3c711191-7adb-4ecb-9156-fcb2cf5774dd",
+      "timestamp": "2026-05-25T23:15:34.023Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-b3b1201f-2eb2-4f83-b21f-d0346ee54a8e",
+      "timestamp": "2026-05-25T23:15:34.021Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-d29800c3-1a79-440c-83c1-b2a7ce0e714b",
+      "timestamp": "2026-05-25T23:15:34.020Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-d486bec5-5141-4776-9fb4-55705fd278c4",
+      "timestamp": "2026-05-25T23:15:34.018Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-328be563-0e47-495a-bd2e-d7027d8fad86",
+      "timestamp": "2026-05-25T23:15:34.017Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-d3111515-4d20-4c8b-8534-5fb9b11aa48d",
+      "timestamp": "2026-05-25T23:15:34.014Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-c3eeaa52-a3c6-4f8d-966b-604230650245",
+      "timestamp": "2026-05-25T23:15:34.013Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+      }
+    },
+    {
+      "id": "log-ae1f2cda-7853-4b59-a813-c3b909346429",
+      "timestamp": "2026-05-25T23:15:34.002Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: Ask Claude to polish AgentDex",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-925eb76d-83fd-4976-b50b-d600553a82c5",
+      "timestamp": "2026-05-25T23:15:34.001Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-51b561cb-dcdc-4d52-9bdb-dba4e856b539",
+      "timestamp": "2026-05-25T23:15:34.000Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: Ask Claude to polish AgentDex",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-fe4c7f11-4390-4b1d-bdcb-fbb873ba1c43",
+      "timestamp": "2026-05-25T23:15:33.999Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 1 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-e3e7f83a-64be-4b53-8345-d82e4becef07",
+      "timestamp": "2026-05-25T23:15:33.998Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 1 agents: Research Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-ed5eb5bb-a66b-4419-bbf2-26c62ab58d76",
+      "timestamp": "2026-05-25T23:15:33.997Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for unknown",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-3f3e7131-7689-486d-b8f5-58df297870c7",
+      "timestamp": "2026-05-25T23:15:33.996Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: unknown (Research Lab, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-e18be85b-0209-4d3d-ad48-645041246a3f",
+      "timestamp": "2026-05-25T23:15:33.995Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: Ask Claude to polish AgentDex",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-dac26a7c-39bc-4611-bc60-1e6a565538a5"
+      }
+    },
+    {
+      "id": "log-987c6a68-7424-487a-8c3a-8fc49c15e45d",
+      "timestamp": "2026-05-25T23:15:33.983Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: Assign Codex to verify desktop build",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-4e7b4e7b-318d-440c-82c0-6ab10ee4ecb1",
+      "timestamp": "2026-05-25T23:15:33.981Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-d8a45469-6894-496b-b33b-fcbb88c67689",
+      "timestamp": "2026-05-25T23:15:33.979Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: Assign Codex to verify desktop build",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-c7a6a40b-e541-4d91-b264-0d031f5a73c9",
+      "timestamp": "2026-05-25T23:15:33.978Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 1 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-1de8e57f-e7c4-4246-89b1-e01f2d609745",
+      "timestamp": "2026-05-25T23:15:33.977Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 1 agents: Backend Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-51335092-1310-444b-b21d-3c68578f1930",
+      "timestamp": "2026-05-25T23:15:33.976Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for assign_agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-f37a85ea-8433-487a-8039-a8f9a567dbb7",
+      "timestamp": "2026-05-25T23:15:33.973Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: assign_agent (MISATO, L1)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-f07d7c18-00cb-475a-856f-5b059460d13f",
+      "timestamp": "2026-05-25T23:15:33.972Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: Assign Codex to verify desktop build",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1648c73a-226e-454d-b79f-f3f8fabd96a8"
+      }
+    },
+    {
+      "id": "log-2f359a40-5367-4c10-838f-8df2a23ea4dc",
+      "timestamp": "2026-05-25T23:15:33.960Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-85e8a423-dc2d-45d0-92d4-87ba838376eb",
+      "timestamp": "2026-05-25T23:15:33.958Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-afc924db-bae0-41e7-a29e-97bac90afaf8",
+      "timestamp": "2026-05-25T23:15:33.956Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-c71526e4-cb73-43a7-84b5-5f5e14b3017d",
+      "timestamp": "2026-05-25T23:15:33.955Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 2 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-8570d137-6a1e-4b3a-a9dd-5298d8409afa",
+      "timestamp": "2026-05-25T23:15:33.952Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 2 agents: Strategy Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-0ca58cb6-ad78-49ac-8d30-095e2c4688bb",
+      "timestamp": "2026-05-25T23:15:33.951Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for daily_summary",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-1b47a4b5-5307-4e87-b88a-3050369728ba",
+      "timestamp": "2026-05-25T23:15:33.949Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: daily_summary (NexCall, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-1d7e0956-5ad5-49bf-a5a4-0b077c7f5362",
+      "timestamp": "2026-05-25T23:15:33.948Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+      }
+    },
+    {
+      "id": "log-92619559-9669-4086-8539-5ec823471f29",
+      "timestamp": "2026-05-25T23:15:33.937Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-6294d3cb-5a99-4fa0-87b8-33d80bd48d44",
+      "timestamp": "2026-05-25T23:15:33.936Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-aa522aae-8ffd-410f-8c64-575265d06cef",
+      "timestamp": "2026-05-25T23:15:33.934Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-f42bdadd-9acc-4b35-bed8-32768afca228",
+      "timestamp": "2026-05-25T23:15:33.931Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 2 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-bd21663c-a198-4b13-bd3f-f949cd436041",
+      "timestamp": "2026-05-25T23:15:33.929Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 2 agents: Strategy Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-c232448c-9dd6-4889-ab54-36a778f857db",
+      "timestamp": "2026-05-25T23:15:33.928Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for daily_summary",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-a5f71c1c-ab05-4a06-b482-7d87d5b058e4",
+      "timestamp": "2026-05-25T23:15:33.926Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: daily_summary (NexCall, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-f208d7b1-ea98-470c-beb1-8c06109e58e5",
+      "timestamp": "2026-05-25T23:15:33.923Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8354d24a-db80-4594-b69b-8ba12b406cc6"
+      }
+    },
+    {
+      "id": "log-33656fc7-f122-4d63-b1eb-3ead5f2ebc93",
+      "timestamp": "2026-05-25T23:15:33.908Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+      }
+    },
+    {
+      "id": "log-cbd4a419-7856-43e2-84f1-1c438d3bab13",
+      "timestamp": "2026-05-25T23:15:33.906Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+      }
+    },
+    {
+      "id": "log-e5448512-450b-47c8-9130-cdafd8aebd28",
+      "timestamp": "2026-05-25T23:15:33.905Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+      }
+    },
+    {
+      "id": "log-8cc650ce-97a4-4d5d-be4d-a722c2e7eff7",
+      "timestamp": "2026-05-25T23:15:33.902Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for greeting",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+      }
+    },
+    {
+      "id": "log-47cf53af-ff29-4f69-8340-2a1634d36028",
+      "timestamp": "2026-05-25T23:15:33.900Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: greeting (MISATO, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+      }
+    },
+    {
+      "id": "log-8ac7818d-36d8-4fbf-9c28-a3acfff86739",
+      "timestamp": "2026-05-25T23:15:33.899Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-8f81b29b-cbb1-4c11-83a3-140d5437279f"
+      }
+    },
+    {
+      "id": "log-b8b929ac-c61c-4546-8861-ff308f5b59d1",
+      "timestamp": "2026-05-25T23:13:02.382Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-c620cbd1-8280-41bb-8bef-b6e9c91e0582",
+      "timestamp": "2026-05-25T23:13:02.381Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-b101e9bd-5653-4c04-a8d3-5fd0fa52129b",
+      "timestamp": "2026-05-25T23:13:02.380Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-5b442561-76e1-440b-b05b-bbfe8a105752",
+      "timestamp": "2026-05-25T23:13:02.378Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-50bb2f3e-26ec-4808-bcd8-c0c477d4c5b1",
+      "timestamp": "2026-05-25T23:13:02.377Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-2e5c1e28-e979-48fe-868d-0e628fb4bd41",
+      "timestamp": "2026-05-25T23:13:02.375Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-d972f366-ca3e-46dd-ae14-ccaee6b552b0",
+      "timestamp": "2026-05-25T23:13:02.374Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-19dad15e-7d92-4581-a407-432e7f5b5b49"
+      }
+    },
+    {
+      "id": "log-e97444df-7c1c-47f3-8a63-c2d50eb82c5e",
+      "timestamp": "2026-05-25T23:13:02.367Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: Ask Claude to polish AgentDex",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-5a838505-b42d-4b47-a5b8-8116fd3d0136",
+      "timestamp": "2026-05-25T23:13:02.366Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-8461e7a1-81ed-4bb7-bcec-f8fc82d1b32c",
+      "timestamp": "2026-05-25T23:13:02.365Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: Ask Claude to polish AgentDex",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-5aec75ec-3405-4e14-aac5-337636d0e761",
+      "timestamp": "2026-05-25T23:13:02.364Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 1 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-bd6208b2-821a-4605-a2b7-10f1a91809d3",
+      "timestamp": "2026-05-25T23:13:02.363Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 1 agents: Research Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-70ec8e4d-9061-436c-bef5-895dcb6b5bef",
+      "timestamp": "2026-05-25T23:13:02.362Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for unknown",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-c659fb0b-320a-403c-be4d-388d35c73866",
+      "timestamp": "2026-05-25T23:13:02.361Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: unknown (Research Lab, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-b295c0dd-1dce-4f15-9b50-3a0c0ca5ab33",
+      "timestamp": "2026-05-25T23:13:02.360Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: Ask Claude to polish AgentDex",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1e379680-40bf-436f-a84b-fe50861e2ff4"
+      }
+    },
+    {
+      "id": "log-23516cf0-1a4e-4b4a-a226-c596f0637c2e",
+      "timestamp": "2026-05-25T23:13:02.330Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: Assign Codex to verify desktop build",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-3d4f37da-1fcd-4354-b264-ccb0dc4d8d1f",
+      "timestamp": "2026-05-25T23:13:02.329Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-eac3395a-a003-4a40-9549-6aae75dc0c93",
+      "timestamp": "2026-05-25T23:13:02.328Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: Assign Codex to verify desktop build",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-63089162-6b1d-477c-b513-f84e05dec646",
+      "timestamp": "2026-05-25T23:13:02.327Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 1 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-68e8c38f-4cdc-4f6c-a966-1c74515bea31",
+      "timestamp": "2026-05-25T23:13:02.326Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 1 agents: Backend Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-24fda811-2076-4570-b758-389e3e0ee95f",
+      "timestamp": "2026-05-25T23:13:02.326Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for assign_agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-fe87705b-d138-49d2-b0e9-28653ca0a549",
+      "timestamp": "2026-05-25T23:13:02.324Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: assign_agent (MISATO, L1)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-808c2d12-2d19-48ca-9f24-c24cc384bf5b",
+      "timestamp": "2026-05-25T23:13:02.323Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: Assign Codex to verify desktop build",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-a030e07b-99ef-4309-bd1d-8b4d0e71f3ca"
+      }
+    },
+    {
+      "id": "log-c65ec998-7def-460f-a7ad-8495d425c54b",
+      "timestamp": "2026-05-25T23:13:02.314Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-d08ae95e-1a5c-46e2-8a6f-f73e443dc2c0",
+      "timestamp": "2026-05-25T23:13:02.312Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-3b29d4cc-f102-48ce-9eb0-03cb34dfc905",
+      "timestamp": "2026-05-25T23:13:02.311Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-e1bb437b-4912-4cd7-841c-5d25acba1db0",
+      "timestamp": "2026-05-25T23:13:02.310Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 2 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-d6eaacff-7d1c-4882-899a-678f778ce2c3",
+      "timestamp": "2026-05-25T23:13:02.307Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 2 agents: Strategy Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-212c6b99-e0ca-43a2-bb78-82cb81495430",
+      "timestamp": "2026-05-25T23:13:02.307Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for daily_summary",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-4d5b78a4-89af-4132-9bda-59e6a7469277",
+      "timestamp": "2026-05-25T23:13:02.305Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: daily_summary (NexCall, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-9c705d77-f58a-4a61-8b23-5b9a3032f904",
+      "timestamp": "2026-05-25T23:13:02.304Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-59c0e79d-c8d2-4706-a60b-9cac9ce1a080"
+      }
+    },
+    {
+      "id": "log-6b8410ed-5c7e-4e79-94b8-2fc794fbb5e6",
+      "timestamp": "2026-05-25T23:13:02.297Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-6c7af108-51b6-43b3-b520-674054c190d9",
+      "timestamp": "2026-05-25T23:13:02.296Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-37e2068f-ce95-4929-8dd8-2c4bd72cc390",
+      "timestamp": "2026-05-25T23:13:02.295Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-b9ac74ed-afc8-4ec5-8b67-04ccdf14fea1",
+      "timestamp": "2026-05-25T23:13:02.294Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 2 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-35d95d19-c72f-468c-8b0e-1acd068a9f5c",
+      "timestamp": "2026-05-25T23:13:02.292Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 2 agents: Strategy Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-cd5d59f7-1565-4a38-9884-9d13ee315966",
+      "timestamp": "2026-05-25T23:13:02.292Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for daily_summary",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-2474296e-66f4-49ab-bc98-1419b522a6e0",
+      "timestamp": "2026-05-25T23:13:02.289Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: daily_summary (NexCall, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-6dd4e21b-624d-4dc2-8311-28c7b2ac821f",
+      "timestamp": "2026-05-25T23:13:02.288Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3cb18193-b389-4711-b946-5fe5bb034e35"
+      }
+    },
+    {
+      "id": "log-fed1eb7a-da18-4360-a685-038bdf84f4be",
+      "timestamp": "2026-05-25T23:13:02.278Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+      }
+    },
+    {
+      "id": "log-1b076394-0d13-4bf8-8412-d1279978ce14",
+      "timestamp": "2026-05-25T23:13:02.277Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+      }
+    },
+    {
+      "id": "log-fcea3ea1-b8c6-49ff-bb53-de7f6a73bf19",
+      "timestamp": "2026-05-25T23:13:02.276Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+      }
+    },
+    {
+      "id": "log-414a2d90-5526-4dee-b8ba-a272df78f364",
+      "timestamp": "2026-05-25T23:13:02.274Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for greeting",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+      }
+    },
+    {
+      "id": "log-820a6dd6-d9fb-4ba9-8e2b-89271e4c977c",
+      "timestamp": "2026-05-25T23:13:02.271Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: greeting (MISATO, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+      }
+    },
+    {
+      "id": "log-a9794b7b-cc8b-4316-b6b8-4cac524a4bac",
+      "timestamp": "2026-05-25T23:13:02.270Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4478a6e3-788d-45db-a7e6-284e431c50b8"
+      }
+    },
+    {
+      "id": "log-a3670a62-7455-4a43-a980-d9ae987922b9",
+      "timestamp": "2026-05-25T23:02:14.534Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: howdy do",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-53531807-d39a-4db0-80c9-8dc5077191bc"
+      }
+    },
+    {
+      "id": "log-4f70c6ac-9ab6-42a9-97d1-8b620478e10d",
+      "timestamp": "2026-05-25T22:56:23.251Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: hi",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-feef7089-2ea0-43e2-8ec8-40e1c1cabed4"
+      }
+    },
+    {
+      "id": "log-bdd2d07d-ad19-487b-98eb-1df82c6f433e",
+      "timestamp": "2026-05-25T21:25:17.511Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: mission-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-d962201a-52b7-4e64-bd6b-4ede98321484",
+      "timestamp": "2026-05-25T21:24:08.957Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: contract-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-7c83cbab-9be1-4840-afbb-09e5c05db331",
+      "timestamp": "2026-05-25T21:24:08.923Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval deferred: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-0b6bc945-13d2-4e26-a08a-4e55d7bf5c9e",
+      "timestamp": "2026-05-25T21:24:08.871Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned contract-check to QA Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-884d9032-b6d6-4b62-8e66-b720770a555a",
+      "timestamp": "2026-05-25T21:24:08.861Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: contract-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-e61beb10-0f10-4fd3-b62d-b3684748953a",
+      "timestamp": "2026-05-25T21:24:08.722Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: contract-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-3392b138-e064-4f21-99f6-f07fe56f874d",
+      "timestamp": "2026-05-25T21:22:53.838Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Draft dentist campaign to Research Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-61b49b77-2f7b-4529-b011-cacf8da12b40",
+      "timestamp": "2026-05-25T21:22:53.785Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: Verify all endpoints",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-52fa85e2-9806-4b39-a608-7d7c9c9dccff",
+      "timestamp": "2026-05-25T21:22:53.656Z",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "message": "Command processed: deploy to production now",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-bfef2c29-366c-4d36-9e3b-99f1f9d45668"
+      }
+    },
+    {
+      "id": "log-554d69a6-ed91-4470-b258-e3122f83d4fc",
+      "timestamp": "2026-05-25T21:22:53.638Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: What needs attention today?",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-34988920-4dc0-4c71-9333-2a3cf87a0387"
+      }
+    },
+    {
+      "id": "log-ec0c7adf-5d4f-43da-9d76-20fb771e9023",
+      "timestamp": "2026-05-25T21:22:53.621Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: hi bb",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-409cafc1-cbe7-4f68-99a0-fb01d80b9f8b"
+      }
+    },
     {
       "id": "log-bd933282-ffdb-46cb-84e7-5f03b453294a",
       "timestamp": "2026-05-25T21:04:59.771Z",
@@ -1246,8 +2649,8 @@
   "runtime": {
     "mode": "local-first",
     "runtimeStatus": "connected",
-    "lastCommandAt": "2026-05-25T19:20:12.121Z",
-    "approvalsPending": 9
+    "lastCommandAt": "2026-05-25T23:15:34.002Z",
+    "approvalsPending": 11
   },
   "missions": [
     {
@@ -1257,17 +2660,50 @@
       "project": "NexCall",
       "priority": "High",
       "status": "Pending",
-      "assignedAgentId": "agent-backend",
-      "assignedAgentName": "Backend Agent",
+      "assignedAgentId": "agent-qa",
+      "assignedAgentName": "QA Agent",
       "taskIds": [
         "task-449517ed-a956-4ac9-8059-383f8056375a",
-        "task-bf1e21f2-ce6e-46d1-a279-166b0b50b95f"
+        "task-bf1e21f2-ce6e-46d1-a279-166b0b50b95f",
+        "task-62bbd98d-c7c2-4ead-8a34-89106af29d36"
       ],
       "createdBy": "Hermes",
       "createdAt": "2026-05-25T21:04:59.704Z",
-      "updatedAt": "2026-05-25T21:04:59.750Z",
+      "updatedAt": "2026-05-25T21:22:53.823Z",
       "completedAt": null,
-      "handoffNote": "Add assertOwnerJson to SSE. Wrap writeFileSync in try-catch."
+      "handoffNote": "Check every route returns 200 and has auth guard"
+    },
+    {
+      "id": "msn-1ee6e472-f766-4281-a07b-f6c3e292c15c",
+      "title": "Verify all endpoints",
+      "description": "",
+      "project": "NexCall",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "Hermes",
+      "createdAt": "2026-05-25T21:22:53.784Z",
+      "updatedAt": "2026-05-25T21:22:53.784Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-6cfd5382-b647-4608-866b-a71275ba39fd",
+      "title": "mission-check",
+      "description": "",
+      "project": "runtime",
+      "priority": "Low",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T21:25:17.510Z",
+      "updatedAt": "2026-05-25T21:25:17.510Z",
+      "completedAt": null,
+      "handoffNote": null
     }
   ]
 }
