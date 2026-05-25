@@ -52,3 +52,13 @@
 - `npm run build` pass
 - `npm run desktop:build` pass
 - Local host simulation returned `401` JSON for protected routes
+
+## 2026-05-25 Follow-up (Local Runtime 3010)
+- Verified protected-route behavior on:
+  - `/api/misato/status`
+  - `/api/misato/events/stream`
+  - `/misato-runtime/agents`, `/misato-runtime/approvals`, `/misato-runtime/logs`
+  - `/api/misato/tasks/*`, `/api/misato/agents/assign`, `/api/misato/approvals/action`
+  - `/api/misato/missions`, `/api/misato/missions/create`, `/api/misato/missions/dispatch`
+- Non-local host simulation returned `401` for sensitive routes.
+- Local mutation endpoints returned JSON and completed successfully.

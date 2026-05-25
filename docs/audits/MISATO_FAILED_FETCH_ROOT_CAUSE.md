@@ -32,3 +32,9 @@ I fixed both issues by:
 ## Notes
 - Vercel remains optional for daily use.
 - No secrets were exposed in responses or logs.
+
+## 2026-05-25 Follow-up (Safety Verification)
+- Verified against the live local runtime on `http://localhost:3010`.
+- Sensitive MISATO routes returned `401` JSON for non-local host simulation, including `/api/misato/events/stream`.
+- Task CRUD, agent assignment, approval action, and mission create/dispatch passed end-to-end on localhost.
+- A separate local dev runtime on `http://localhost:3000` showed intermittent `500` from missing `.next` vendor chunks; this was a local runtime artifact issue, not an auth/contract regression in MISATO routes.

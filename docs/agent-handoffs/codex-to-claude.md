@@ -30,3 +30,12 @@
 - The shell should show live data when present
 - Mock fallbacks should stay clearly labeled
 - The desktop shell should not render secrets or tokens
+
+## 2026-05-25 Safety Verification Update
+- Backend contract on local runtime `3010` is live for:
+  - task CRUD
+  - agent assignment
+  - approval action
+  - mission create/dispatch
+- Treat intermittent `500` from alternate local dev runtime (`3000`) as runtime-process health, not route contract failure.
+- Keep UI honest: if runtime health probe fails, do not show connected state for action controls.

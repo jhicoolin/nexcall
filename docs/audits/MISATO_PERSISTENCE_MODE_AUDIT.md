@@ -30,3 +30,8 @@
 ## Remaining Constraint
 - Cloud persistence is intentionally memory-backed in this branch
 - If the product later needs durable cloud state, it should move to a managed store
+
+## 2026-05-25 Follow-up
+- Re-verified that route-level status reports persistence mode from runtime paths.
+- Local runtime reports filesystem persistence.
+- Cloud/serverless safety remains protected by in-memory fallback when `VERCEL` is present.

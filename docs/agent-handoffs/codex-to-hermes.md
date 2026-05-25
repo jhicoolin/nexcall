@@ -28,3 +28,9 @@
 - Do not remove the owner gate from the shell aliases
 - Do not reintroduce unprotected `/misato-runtime/*` routes
 - Do not make Vercel the daily path
+
+## 2026-05-25 Safety Verification Update
+- Validated on running local runtime at `http://localhost:3010`.
+- Sensitive endpoints and alias routes reject non-local host with `401` JSON.
+- Verified working JSON mutations: task create/update/delete, agent assign, approval action, mission create/dispatch.
+- Remaining operational blocker is runtime-process hygiene on alternate local dev instance (`3000`) that intermittently served `.next` chunk `500`s; backend auth/contract code path remains correct.
