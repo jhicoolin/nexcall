@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     logsCreated: result.logsCreated,
     nextRecommendedActions: result.nextRecommendedActions,
     moduleStatus,
-    councilRegistry: subagentRegistry.map(({ id, name, lane, status, riskLevel }) => ({ id, name, lane, status, riskLevel })),
+    councilRegistry: subagentRegistry.map(({ id, name, role, capabilities, approvalRequiredFor }) => ({ id, name, role, capabilities, approvalRequiredFor })),
     result: {
       ...result,
       moduleStatus

@@ -86,11 +86,13 @@ export type ToolPermission = {
 export type CommandResponse = {
   missionSummary: string;
   projectDetected: string;
+  hermesPlan: string[];
   agentsAssigned: string[];
   councilFeedback: Array<{ agent: string; feedback: string }>;
   subtasksCreated: string[];
   risksDetected: string[];
   approvalRequired: boolean;
+  approvalReason: string | null;
   logsCreated: string[];
   nextRecommendedActions: string[];
   activityFeed: string[];

@@ -52,7 +52,7 @@ export const toolPermissions: ToolPermission[] = councilAgents.flatMap((agent) =
   agent.allowedTools.map((tool, i) => ({ id: `${agent.id}-${i}`, agentId: agent.id, tool, allowed: true, permissionLevel: agent.permissionLevel, approvalRequired: agent.permissionLevel >= 3, riskLevel: agent.riskLevel }))
 );
 
-const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|email|social|billing|server|automation|merge)/i;
+const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|email|social|billing|payment|export|contacts|discord|obsidian|automation|merge)/i;
 
 function detectProject(command: string) {
   const lower = command.toLowerCase();
@@ -93,37 +93,67 @@ export function runMisatoMockCommand(command: string): CommandResponse {
   const agentsAssigned = selectCouncil(projectDetected);
   const approvalRequired = riskyPattern.test(command);
 
+  const projectContext = [
+    "NexCall: priority HIGH — stabilize MISATO desktop/backend connection before non-critical work.",
+    "Bad Genetics: priority HIGH — supplier outreach currently blocked; queue approval-safe prep only.",
+    "Client Sites: ACTIVE — reduce blocker queue and close SLA-overdue tickets.",
+    "Personal Ops: ACTIVE — protect deep-work blocks and keep approvals cadence tight.",
+    "Research Lab: EXPLORING — runtime experiments remain mock-safe until approval gate matures."
+  ];
+
   return {
-    missionSummary: `MISATO prepared a mission plan for ${projectDetected}: ${command}`,
+    missionSummary: `MISATO reviewed operational priorities and prepared a mock-safe plan for ${projectDetected}.`,
     projectDetected,
     agentsAssigned,
-    councilFeedback: agentsAssigned.map((a) => ({ agent: a, feedback: feedbackFor(a, command) })),
+    hermesPlan: [
+      "Validate auth context (owner session or desktop token)",
+      "Classify request risk and enforce Approval Gate",
+      "Fan out mock-safe subtasks to council",
+      "Return operator summary + next recommended actions"
+    ],
+    councilFeedback: [
+      ...projectContext.map((line) => ({ agent: "MISATO Core", feedback: line })),
+      ...agentsAssigned.map((a) => ({ agent: a, feedback: feedbackFor(a, command) })),
+      { agent: "Security Agent", feedback: "Live automations remain disabled; risky actions are approval-gated and not executed in v1." }
+    ],
     subtasksCreated: [
       "Parse objective and constraints",
-      "Create mission entry",
-      "Create/assign subtasks by council role",
-      approvalRequired ? "Queue Approval Gate item" : "Queue safe draft output"
+      "Generate mission brief with project priorities",
+      "Assign mock-safe analysis tasks to council",
+      approvalRequired ? "Create Approval Gate draft item" : "Queue non-destructive next actions"
     ],
-    risksDetected: approvalRequired ? ["Risky action category detected; execution blocked in v1"] : [],
+    risksDetected: approvalRequired
+      ? ["Risky action category detected (deploy/auth/env/data/external action)", "Execution blocked in v1 mock-safe mode"]
+      : ["No risky execution keywords detected; safe planning mode only"],
     approvalRequired,
+    approvalReason: approvalRequired
+      ? "Requested command falls into a protected action category and requires explicit owner approval before any execution."
+      : null,
     logsCreated: [
       "Command received",
-      "Project detected",
-      "Council selected",
+      "Project intent classified",
+      "Council assignment generated",
       "Risk scan complete",
-      approvalRequired ? "Approval item drafted" : "No approval required"
+      approvalRequired ? "Approval-required marker added" : "Safe-plan marker added"
     ],
     nextRecommendedActions: approvalRequired
-      ? ["Review Approval Gate item", "Approve/Reject/Request revision", "Run post-approval checklist"]
-      : ["Review subtasks", "Set due dates", "Move mission to Doing"],
+      ? [
+          "Review and refine approval request scope",
+          "Explicitly approve or reject protected actions",
+          "Run post-approval checklist in controlled mode"
+        ]
+      : [
+          "Execute top two safe subtasks",
+          "Review blockers and pending approvals",
+          "Re-run status check before next command batch"
+        ],
     activityFeed: [
       "1) Command received",
       `2) Project detected: ${projectDetected}`,
-      `3) Council selected: ${agentsAssigned.join(", ")}`,
-      "4) Agents generated feedback",
-      "5) Risks scanned",
-      "6) Summary generated",
-      approvalRequired ? "7) Approval queued" : "7) Approval not required"
+      "3) Priority context injected (NexCall, Bad Genetics, Client Sites, Personal Ops, Research Lab)",
+      `4) Council selected: ${agentsAssigned.join(", ")}`,
+      "5) Risk scan completed",
+      approvalRequired ? "6) Approval required: execution blocked" : "6) Safe planning output generated"
     ]
   };
 }
