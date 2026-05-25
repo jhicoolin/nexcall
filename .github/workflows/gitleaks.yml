@@ -1,0 +1,31 @@
+name: MISATO Secret Sentinel
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - misato-full-build
+      - misato-codex-qa-final
+      - misato-codex-connection-repair
+      - misato-codex-runtime-audit
+      - misato-hermes-backend
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: Gitleaks redacted repo scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"

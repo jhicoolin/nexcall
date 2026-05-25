@@ -1,0 +1,12 @@
+title = "MISATO Secret Sentinel"
+
+[allowlist]
+description = "Project placeholders and documentation examples"
+paths = [
+  '''\.env\.example$'''
+]
+regexes = [
+  '''<do not print token>''',
+  '''MISATO_DESKTOP_AUTH_TOKEN''',
+  '''VERCEL_PROTECTION_BYPASS'''
+]

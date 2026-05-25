@@ -26,3 +26,12 @@
 - Preserve the “Vercel Protected” error wording for non-JSON 401/403 responses.
 - Preserve the “Failed to fetch” guidance that points to CORS/CORP, Vercel protection, network, or wrong URL.
 - Do not remove the token/bypass password fields or show their saved values.
+
+## Final QA Lane - 2026-05-25
+
+- Preserve the `Testing` state when the user clicks Test Connection; it confirms the app is actively checking the backend.
+- Preserve all connection states: Not configured, Not tested, Testing, Connected, Unauthorized, Vercel Protected, 404 / Wrong URL, Failed.
+- Do not change the API base convention: users paste the full preview API base ending in `/api/misato`; the client appends only `/status` and `/command`.
+- Keep command controls disabled until Test Connection returns Connected.
+- Do not surface raw response bodies that might include edge-provider HTML, tokens, or unexpected sensitive text; keep escaped summaries and clear next-step guidance.
+- Current blocker is not visual UI: preview requests are stopped by Vercel edge protection before app JSON/CORS headers are visible.

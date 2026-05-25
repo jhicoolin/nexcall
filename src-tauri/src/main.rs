@@ -3,7 +3,11 @@
 use tauri::Manager;
 
 fn js_escape(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "").replace('\r', "")
+    value
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "")
+        .replace('\r', "")
 }
 
 fn main() {

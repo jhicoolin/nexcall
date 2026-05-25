@@ -25,6 +25,9 @@ ai-receptionist-source*.zip
 
 # Local test artifacts
 test-results/
+.security/
+gitleaks-report*.json
+*.sarif
 
 # Tauri desktop build artifacts
 src-tauri/target/

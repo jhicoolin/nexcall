@@ -151,6 +151,8 @@ async function testConnection() {
   }
 
   try {
+    state.connTest = { label: "Testing", httpStatus: null, checkedAt, error: "", nextFix: "Checking MISATO backend reachability and auth." };
+    render();
     const { res, data } = await apiGet("status");
     if (res.ok && data?.ok) {
       state.status = data;
