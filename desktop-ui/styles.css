@@ -60,6 +60,9 @@ button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .msg.user{border-color:rgba(6,182,212,.35)}
 .msg.core{border-color:rgba(124,58,237,.35)}
 .msg.council{border-color:rgba(245,158,11,.35)}
+.result{display:grid;gap:6px;margin-top:8px}
+.result p{margin:0}
+.result h4{margin:4px 0 0;font-size:12px;line-height:16px;color:var(--text-strong)}
 .list{margin:0;padding-left:16px;display:grid;gap:4px}
 .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
 .mono{font-family:"JetBrains Mono",monospace}

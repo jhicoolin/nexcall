@@ -1,4 +1,5 @@
 import { CommandResponse, CouncilAgent, LogEntry, MemoryEntry, Project, Task, ToolPermission, Approval } from "@/lib/misato/types";
+import { routeCommandToHermes } from "@/lib/misato/hermes/routeCommandToHermes";
 
 export const projects: Project[] = [
   { id: "p1", name: "NexCall", slug: "nexcall", description: "AI receptionist operations", status: "Launch", priority: "High", currentObjective: "Increase paying clients", nextAction: "Finalize outbound sequence", dueDate: "2026-05-30", notes: "Focus medspa and dental first", riskLevel: "Medium" },
@@ -52,8 +53,6 @@ export const toolPermissions: ToolPermission[] = councilAgents.flatMap((agent) =
   agent.allowedTools.map((tool, i) => ({ id: `${agent.id}-${i}`, agentId: agent.id, tool, allowed: true, permissionLevel: agent.permissionLevel, approvalRequired: agent.permissionLevel >= 3, riskLevel: agent.riskLevel }))
 );
 
-const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|email|social|billing|server|automation|merge)/i;
-
 function detectProject(command: string) {
   const lower = command.toLowerCase();
   if (lower.includes("nexcall")) return "NexCall";
@@ -89,13 +88,20 @@ function feedbackFor(agent: string, command: string) {
 }
 
 export function runMisatoMockCommand(command: string): CommandResponse {
-  const projectDetected = detectProject(command);
-  const agentsAssigned = selectCouncil(projectDetected);
-  const approvalRequired = riskyPattern.test(command);
+  const hermesPlan = routeCommandToHermes({ command });
+  const projectDetected = hermesPlan.projectDetected || detectProject(command);
+  const agentsAssigned = hermesPlan.recommendedAgentPath.length ? hermesPlan.recommendedAgentPath : selectCouncil(projectDetected);
+  const approvalRequired = hermesPlan.approvalRequired;
+  const approvalReason = hermesPlan.approvalReason;
 
   return {
     missionSummary: `MISATO prepared a mission plan for ${projectDetected}: ${command}`,
     projectDetected,
+    hermesPlan: {
+      summary: hermesPlan.summary,
+      executionMode: hermesPlan.executionMode,
+      recommendedAgentPath: hermesPlan.recommendedAgentPath
+    },
     agentsAssigned,
     councilFeedback: agentsAssigned.map((a) => ({ agent: a, feedback: feedbackFor(a, command) })),
     subtasksCreated: [
@@ -106,11 +112,13 @@ export function runMisatoMockCommand(command: string): CommandResponse {
     ],
     risksDetected: approvalRequired ? ["Risky action category detected; execution blocked in v1"] : [],
     approvalRequired,
+    approvalReason,
     logsCreated: [
       "Command received",
       "Project detected",
       "Council selected",
       "Risk scan complete",
+      ...hermesPlan.logs,
       approvalRequired ? "Approval item drafted" : "No approval required"
     ],
     nextRecommendedActions: approvalRequired

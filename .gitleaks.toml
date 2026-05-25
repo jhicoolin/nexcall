@@ -1,0 +1,8 @@
+title = "MISATO Secret Sentinel Config"
+
+[allowlist]
+description = "Allow safe placeholders"
+regexes = [
+  "(?i)replace_me",
+  "(?i)example"
+]

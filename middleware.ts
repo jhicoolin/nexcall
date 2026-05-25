@@ -39,6 +39,16 @@ function isProtectedMisatoApi(pathname: string) {
   return pathname.startsWith("/api/misato/") || pathname === "/api/misato";
 }
 
+function isMisatoAuthApi(pathname: string) {
+  return pathname === "/api/misato/auth/login" || pathname === "/api/misato/auth/logout";
+}
+
+function hasValidDesktopToken(request: NextRequest) {
+  const configured = (process.env.MISATO_DESKTOP_AUTH_TOKEN || "").trim();
+  const provided = (request.headers.get("x-misato-desktop-token") || "").trim();
+  return Boolean(configured && provided && configured === provided);
+}
+
 async function signOwnerEmailForEdge(email: string) {
   const secret = process.env.OWNER_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY || "misato-dev-session-secret";
   const enc = new TextEncoder();
@@ -123,14 +133,15 @@ function limitRequestInMemory(identity: string, config: LimitConfig) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const desktopTokenAuthenticated = isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname) && hasValidDesktopToken(request);
 
-  if (isProtectedMisatoRoute(pathname) || isProtectedMisatoApi(pathname)) {
+  if (isProtectedMisatoRoute(pathname) || (isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname))) {
     const session = request.cookies.get(OWNER_COOKIE)?.value || "";
-    if (!session) {
+    if (!desktopTokenAuthenticated && !session) {
       if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    if (!(await hasValidOwnerCookie(session))) {
+    if (!desktopTokenAuthenticated && !(await hasValidOwnerCookie(session))) {
       if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 403 });
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }

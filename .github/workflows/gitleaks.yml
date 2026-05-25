@@ -1,0 +1,17 @@
+name: gitleaks
+
+on:
+  pull_request:
+  push:
+    branches: ["misato-codex-runtime-audit", "misato-hermes-backend", "misato-full-build", "main"]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+        with:
+          args: detect --redact --no-git --source .

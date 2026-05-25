@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "media-server": "node scripts/twilio-media-server.mjs",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -16,7 +17,9 @@
     "desktop-ui:dev": "python -m http.server 1420 --directory desktop-ui",
     "desktop-ui:build": "node -e \"process.exit(0)\"",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "secrets:scan": "powershell -ExecutionPolicy Bypass -File scripts/security/run-gitleaks.ps1",
+    "secrets:scan:staged": "powershell -ExecutionPolicy Bypass -File scripts/security/run-gitleaks.ps1 -Staged"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
