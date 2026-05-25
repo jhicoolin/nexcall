@@ -718,3 +718,63 @@ code {
 
 /* ── Focus ─────────────────────────────────────────────────────── */
 :focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 2px; border-radius: 3px; }
+
+/* ── v5 additions ───────────────────────────────────────────────── */
+
+/* Runtime mode badge in topbar */
+.runtime-mode-badge { font-size: 9px; letter-spacing: 0.08em; padding: 2px 6px; opacity: 0.85; }
+.topbar-right { gap: 8px; }
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(7,8,12,0.72);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  width: 440px; max-width: calc(100vw - 32px);
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  animation: modal-in 160ms ease-out;
+}
+@keyframes modal-in { from { opacity:0; transform:scale(0.96) translateY(-8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border-subtle);
+}
+.modal-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 12px 16px; border-top: 1px solid var(--border-subtle);
+  background: var(--surface-1);
+}
+
+/* Kanban card inline actions */
+.kanban-card-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+  opacity: 0; transition: opacity 120ms ease;
+}
+.kanban-card:hover .kanban-card-actions { opacity: 1; }
+.kc-action {
+  font-size: 10px; font-weight: 500; padding: 2px 7px;
+  border-radius: 4px; border: 1px solid var(--border-default);
+  background: var(--surface-3); color: var(--text-secondary);
+  cursor: pointer; transition: background var(--ease-hover), color var(--ease-hover);
+  font-family: var(--font-ui);
+}
+.kc-action:hover { background: var(--surface-4); color: var(--text-primary); border-color: var(--border-strong); }
+
+/* Command message error variant */
+.cmd-message-error .cmd-message-body { color: var(--accent-red); font-size: 11px; }
+
+/* Kanban card delete action */
+.kc-delete { color: var(--accent-red) !important; border-color: var(--accent-red-bg) !important; }
+.kc-delete:hover { background: var(--accent-red-bg) !important; }
+
+/* select element (for modal) */
+select.input { appearance: none; cursor: pointer; }
+
+/* styles.css v5 */

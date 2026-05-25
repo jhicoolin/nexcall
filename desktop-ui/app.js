@@ -1,9 +1,18 @@
 /* ================================================================
-   MISATO Mission Control · app.js  v4
+   MISATO Mission Control · app.js  v5
    Branch: misato-claude-ui
    Local Hermes runtime is the primary daily path.
    Cloud preview and API tokens are Advanced / fallback only.
    API contracts unchanged. No secrets logged. No auth modified.
+   v5: hermesMutate, resolveApproval, createTask, updateTask, deleteTask,
+       modal system, runtime status bar, wired approval/kanban actions
+   v5.1: live feed fix (state.logs fallback, no fake MOCK when Hermes up),
+         SSE polling fallback (15s), deleteTask with approval gate,
+         Sentinel Scan Now, refreshTopBarUI full-right update,
+         sendCommand not-connected message, Command Center runtime strip
+   v5.2: quick prompts route through sendCommand (not-connected handled inline),
+         Logs screen severity filter wired (state.logFilter), Refresh on Logs,
+         all static display-only filter buttons now functional
    ================================================================ */
 
 // ── Mock / Fallback data (labeled _MOCK to make origin clear) ──
@@ -193,7 +202,8 @@ const storage = {
 
 function normalizeHermesPort(port) {
   const value = String(port || '').trim();
-  if (!value || value === '3010') return '3000';
+  // 3010 is canonical per Hermes handoff (2026-05-25). 3000 and 3020 are dead.
+  if (!value || value === '3000' || value === '3020') return '3010';
   return value;
 }
 
@@ -202,7 +212,7 @@ const injectedBase = (window.__MISATO_API_BASE_URL__ || '').trim();
 const state = {
   // ── Hermes connection (primary) ──────────────────────────────
   hermesHost:    storage.get('misato_hermes_host', 'localhost'),
-  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', '3000')),
+  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', '3010')),
   // 'unknown' | 'finding' | 'connected' | 'not-running' | 'failed'
   hermesState:   'unknown',
   hermesHealth:  null,   // { status, version, uptime, agents, tasks, events }
@@ -228,6 +238,10 @@ const state = {
   logs:          null,
   watchtower:    null,
   sentinel:      null,
+  projects:      null,  // from /api/misato/projects
+  lanes:         null,  // from /api/misato/lanes
+  council:       null,  // from /api/misato/council
+  runtimeCtx:   null,  // from /api/misato/status (mode, counts, etc.)
 
   // ── Command Center ───────────────────────────────────────────
   messages:      [],
@@ -243,7 +257,9 @@ const state = {
   agentFilter:    'all',
   feedFilter:     'all',
   designLibTab:   'tokens',
-  obsidianFolder: 0
+  obsidianFolder: 0,
+  modal:          null,  // { type, data } — current open modal or null
+  logFilter:      'all'  // 'all' | 'info' | 'warn' | 'error'
 };
 
 // ── Utility Helpers ────────────────────────────────────────────
@@ -456,6 +472,36 @@ function stopSSE() {
   state.sseState = 'idle';
 }
 
+// ── Log polling fallback (when SSE is unavailable) ─────────────
+// Polls /logs every 15 s. Only runs when Hermes is up + SSE is not connected.
+// Converts new log entries into feed events so the feed stays live.
+let _lastPollLogTs = '';
+async function pollLogsFallback() {
+  if (!isHermesConnected()) return;
+  if (state.sseState === 'connected') return; // SSE is working — skip
+  try {
+    const res = await fetch(`${hermesBase()}/logs`, { headers: { accept: 'application/json' } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const logs = normalizeItemsResponse(data);
+    if (!logs.length) return;
+    // Update state.logs
+    state.logs = logs;
+    // Seed feed events from new entries (avoid dupes by eventId / ts)
+    const existingIds = new Set(state.feedEvents.map(e => e.eventId));
+    const newEvents = logs
+      .map(logToFeedEvent)
+      .filter(e => !existingIds.has(e.eventId));
+    if (newEvents.length) {
+      state.feedEvents.unshift(...newEvents);
+      if (state.feedEvents.length > 500) state.feedEvents.length = 500;
+      if (!state.feedPaused) refreshFeedUI();
+      else { state.newWhilePaused += newEvents.length; refreshFeedPauseBadge(); }
+    }
+  } catch {}
+}
+setInterval(pollLogsFallback, 15_000);
+
 // ── Live data incremental updates (no full re-render) ─────────
 function updateLiveTask(task) {
   if (!state.tasks) state.tasks = [];
@@ -522,18 +568,46 @@ function refreshFeedPauseBadge() {
   }
 }
 function refreshTopBarUI() {
-  const el = document.querySelector('.topbar-hermes');
-  if (el) el.outerHTML = buildTopBarHermesHTML();
+  // Replace the full topbar-right so runtime badge + hermes status stay in sync
+  const right = document.querySelector('.topbar-right');
+  if (!right) return;
+  const rs = runtimeStatus();
+  const modeBadgeCls = rs.hermesConnected ? 'badge-teal' : rs.runtimeMode === 'VERCEL PREVIEW' ? 'badge-blue' : 'badge-slate';
+  const sseBadge = rs.sseAvailable ? `<span class="badge badge-teal" style="font-size:9px">SSE LIVE</span>` : '';
+  right.innerHTML = `
+    <span class="badge ${modeBadgeCls} runtime-mode-badge">${esc(rs.runtimeMode)}</span>
+    ${sseBadge}
+    ${buildTopBarHermesHTML()}
+    ${state.connTest.label !== 'Not configured' && !isHermesConnected() ? `
+      <div class="conn-indicator">
+        <div class="conn-led ${connCls(state.connTest.label)}"></div>
+        <span>${esc(state.connTest.label)}</span>
+      </div>` : ''}`;
 }
 
 function sseLiveLabel() {
   if (state.sseState === 'connected')  return { text:'● LIVE',     color:'var(--accent-teal)' };
   if (state.sseState === 'connecting') return { text:'○ SSE…',     color:'var(--accent-amber)' };
+  if (state.sseState === 'error' && isHermesConnected()) return { text:'● POLLING',  color:'var(--accent-amber)' };
   if (state.sseState === 'error')      return { text:'● SSE ERR',  color:'var(--accent-red)' };
+  if (isHermesConnected() && state.logs) return { text:'● HERMES', color:'var(--accent-blue)' };
   return { text:'● MOCK', color:'var(--accent-slate)' };
 }
 
 // ── Feed data ──────────────────────────────────────────────────
+// Convert a log entry (from /logs) to a canonical feed event.
+// NOT marked as mock — these are real Hermes log records.
+function logToFeedEvent(log, i) {
+  const sev = (log.sev || log.level || log.severity || 'info').toLowerCase();
+  return {
+    eventId:   log.id || `log-${i}`,
+    timestamp: log.ts || log.timestamp || '',
+    type:      sev === 'warn' || sev === 'warning' || sev === 'error' ? 'risk_detected' : 'log',
+    source:    log.src || log.source || '',
+    payload:   { message: log.action || log.message || log.msg || '', agent: log.agent, sev, _fromLogs: true }
+  };
+}
+// Convert a MOCK_LOGS entry — always flagged _mock so the UI dims them.
 function toFeedEvent(log, i) {
   return {
     eventId:   `mock-${i}`,
@@ -545,9 +619,19 @@ function toFeedEvent(log, i) {
 }
 
 function getFilteredFeedEvents() {
-  const raw = state.feedEvents.length ? state.feedEvents : MOCK_LOGS.map(toFeedEvent);
+  let raw;
+  if (state.feedEvents.length) {
+    // SSE has delivered events — use them (real live data)
+    raw = state.feedEvents;
+  } else if (isHermesConnected() && state.logs && state.logs.length) {
+    // Hermes is up but SSE hasn't fired yet — show polled logs (not mock)
+    raw = state.logs.map(logToFeedEvent);
+  } else {
+    // Truly disconnected — show mock so the feed isn't empty
+    raw = MOCK_LOGS.map(toFeedEvent);
+  }
   if (state.feedFilter === 'all')      return raw;
-  if (state.feedFilter === 'alerts')   return raw.filter(e => e.type === 'risk_detected' || e.payload?.sev === 'warn' || e.payload?.sev === 'error');
+  if (state.feedFilter === 'alerts')   return raw.filter(e => e.type === 'risk_detected' || e.payload?.sev === 'warn' || e.payload?.sev === 'error' || e.payload?.sev === 'warning');
   if (state.feedFilter === 'agents')   return raw.filter(e => ['agent_assigned','status_change'].includes(e.type));
   if (state.feedFilter === 'commands') return raw.filter(e => ['command_received','plan_generated','approval_requested','approval_resolved'].includes(e.type));
   if (state.feedFilter === 'tasks')    return raw.filter(e => e.type === 'task_updated');
@@ -615,6 +699,134 @@ async function apiGet(path) {
   return res.json();
 }
 
+// ── Hermes mutation layer ──────────────────────────────────────
+// All write ops go through here. Surfaces URL + reason on failure.
+async function hermesMutate(method, path, body) {
+  const url = `${hermesBase()}/${path.replace(/^\/+/, '')}`;
+  const res = await fetch(url, {
+    method,
+    headers: { 'content-type': 'application/json', accept: 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw Object.assign(new Error(`HTTP ${res.status} — ${text.substring(0, 120)}`), { url });
+  }
+  try { return await res.json(); } catch { return {}; }
+}
+
+// ── Approval resolution ────────────────────────────────────────
+async function resolveApproval(id, action) {
+  // action: 'approve' | 'reject' | 'defer'
+  if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+  try {
+    await hermesMutate('POST', `approvals/${id}/${action}`, {});
+    // Optimistic: remove from local list
+    if (action !== 'defer') {
+      state.approvals = (state.approvals || []).filter(a => a.id !== id);
+    }
+    showToast(`Approval ${action}d.`, action === 'approve' ? '◉' : action === 'reject' ? '✕' : '○');
+    render();
+    // Refresh full approval list in background
+    loadAllFromHermes();
+  } catch (e) {
+    const msg = e.url ? `Failed: ${e.message}\nURL: ${e.url}` : e.message;
+    showToast(msg, '⚠');
+  }
+}
+
+// ── Task CRUD ──────────────────────────────────────────────────
+async function createTask(data) {
+  if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+  try {
+    const task = await hermesMutate('POST', 'tasks', data);
+    updateLiveTask(task.id ? task : { ...data, id: `local-${Date.now()}` });
+    showToast('Task created.', '◉');
+    state.modal = null;
+    render();
+  } catch (e) {
+    showToast(e.url ? `${e.message}\n${e.url}` : e.message, '⚠');
+  }
+}
+
+async function updateTask(id, patch) {
+  if (!isHermesConnected()) {
+    // Optimistic update only — label as local edit when offline
+    if (state.tasks) {
+      const idx = state.tasks.findIndex(t => t.id === id);
+      if (idx >= 0) { state.tasks[idx] = { ...state.tasks[idx], ...patch }; render(); }
+    }
+    showToast('Task updated (offline — will sync when Hermes connects).', '◎');
+    return;
+  }
+  try {
+    await hermesMutate('PATCH', `tasks/${id}`, patch);
+    updateLiveTask({ id, ...patch });
+    render();
+  } catch (e) {
+    // Still apply optimistic update for status/priority cycles
+    updateLiveTask({ id, ...patch });
+    render();
+    showToast(e.url ? `Sync failed: ${e.message}` : e.message, '⚠');
+  }
+}
+
+async function deleteTask(id) {
+  const task = (state.tasks || []).find(t => t.id === id);
+  if (!task) return;
+  // High-risk or approvalRequired tasks: create approval record instead of deleting
+  if (task.risk === 'High' || task.approvalRequired) {
+    const apr = {
+      id: `apr-del-${id}-${Date.now()}`,
+      title: `Delete task: ${task.title}`,
+      risk: task.risk || 'Medium',
+      agent: 'Owner',
+      details: `Deletion of "${task.title}" requires owner approval.`,
+      requestedAt: 'just now'
+    };
+    prependLiveApproval(apr);
+    showToast('High-risk delete queued for approval.', '◆');
+    render();
+    return;
+  }
+  if (!isHermesConnected()) {
+    // Optimistic local removal
+    state.tasks = (state.tasks || []).filter(t => t.id !== id);
+    showToast('Task removed locally (offline).', '◎');
+    render();
+    return;
+  }
+  try {
+    await hermesMutate('DELETE', `tasks/${id}`, undefined);
+    state.tasks = (state.tasks || []).filter(t => t.id !== id);
+    showToast('Task deleted.', '✕');
+    render();
+  } catch (e) {
+    // Optimistic remove anyway — Hermes may not have DELETE yet
+    state.tasks = (state.tasks || []).filter(t => t.id !== id);
+    render();
+    showToast(e.url ? `Delete sent — sync pending: ${e.message}` : e.message, '⚠');
+  }
+}
+
+// ── Runtime status ──────────────────────────────────────────────
+function runtimeStatus() {
+  const hermesUp  = isHermesConnected();
+  const sseUp     = state.sseState === 'connected';
+  const previewUp = state.connTest.label === 'Connected';
+  return {
+    runtimeMode:          hermesUp ? 'LOCAL SOLO' : previewUp ? 'VERCEL PREVIEW' : 'DISCONNECTED',
+    hermesConnected:      hermesUp,
+    localSoloMode:        hermesUp,
+    sseAvailable:         sseUp,
+    persistenceMode:      hermesUp ? 'Hermes local' : 'none',
+    authMode:             hermesUp ? 'none required' : state.token ? 'desktop token' : 'no auth',
+    allowedMutationMode:  hermesUp ? 'full CRUD' : 'read-only',
+    desktopTokenRequired: !hermesUp && !!state.baseUrl,
+    productionLocked:     true
+  };
+}
+
 // ── Test Connection (Preview/token path) ───────────────────────
 async function testConnection() {
   if (!state.baseUrl) {
@@ -662,25 +874,31 @@ async function loadAll() {
 
 // ── Send command ───────────────────────────────────────────────
 async function sendCommand(cmd) {
-  if (!cmd.trim() || state.loading || !isConnected()) return;
+  if (!cmd.trim() || state.loading) return;
+  if (!isConnected()) {
+    state.messages.push({ role:'misato', text:`Not connected. Start Hermes (npm run dev) then click Find Hermes, or configure Vercel Preview in Settings.`, ts:now(), error:true });
+    render(); return;
+  }
   state.loading = true;
   state.commandTimeline = [];
   state.activeCommandId = null;
   state.messages.push({ role:'user', text:cmd, ts:now() });
   render();
+  const url = endpoint('command');
   try {
-    const res = await fetch(endpoint('command'), {
+    const res = await fetch(url, {
       method:'POST', headers:headers(),
       body: JSON.stringify({ command:cmd })
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { url });
     const data = await res.json();
     // Canonical: { ok, commandId, mode, missionSummary, hermesPlan, … }
     if (data.commandId) state.activeCommandId = data.commandId;
     const text = data.missionSummary || data.response || data.message || data.output || JSON.stringify(data);
     state.messages.push({ role:'misato', text, ts:now() });
   } catch (e) {
-    state.messages.push({ role:'misato', text:`Error: ${e.message}`, ts:now() });
+    const attempted = e.url || url;
+    state.messages.push({ role:'misato', text:`Error: ${e.message}\nAttempted: ${attempted}`, ts:now(), error:true });
   }
   state.loading = false;
   render();
@@ -742,6 +960,9 @@ function buildTopBarHermesHTML() {
 }
 
 function renderTopBar() {
+  const rs = runtimeStatus();
+  const modeBadgeCls = rs.hermesConnected ? 'badge-teal' : rs.runtimeMode === 'VERCEL PREVIEW' ? 'badge-blue' : 'badge-slate';
+  const sseBadge = rs.sseAvailable ? `<span class="badge badge-teal" style="font-size:9px">SSE LIVE</span>` : '';
   return `
     <header class="topbar">
       <div class="topbar-brand">
@@ -749,6 +970,8 @@ function renderTopBar() {
         MISATO
       </div>
       <div class="topbar-right">
+        <span class="badge ${modeBadgeCls} runtime-mode-badge">${esc(rs.runtimeMode)}</span>
+        ${sseBadge}
         ${buildTopBarHermesHTML()}
         ${state.connTest.label !== 'Not configured' && !isHermesConnected() ? `
           <div class="conn-indicator">
@@ -1039,14 +1262,15 @@ function renderCommand() {
   const hasTimeline = state.commandTimeline.length > 0;
 
   const msgs = state.messages.map(m=>`
-    <div class="cmd-message cmd-message-${m.role==='user'?'user':'resp'}">
+    <div class="cmd-message cmd-message-${m.role==='user'?'user':'resp'}${m.error?' cmd-message-error':''}">
       <div class="cmd-message-header">
         <span class="cmd-message-role">${m.role==='user'?'You':'MISATO'}</span>
         <span class="cmd-message-ts">${fmtTime(m.ts)}</span>
       </div>
-      <div class="cmd-message-body">${esc(m.text)}</div>
+      <div class="cmd-message-body" style="white-space:pre-wrap">${esc(m.text)}</div>
     </div>`).join('');
 
+  const rs = runtimeStatus();
   return `
     ${renderSectionHeader('Command Center','Active control surface',`<button class="btn btn-ghost btn-sm" id="btn-clear-msgs">Clear</button>`)}
     <div class="workspace-body">
@@ -1055,7 +1279,12 @@ function renderCommand() {
           <div class="mission-banner-title">MISATO Active Session</div>
           <div class="mission-banner-meta">${esc(modeLabel)}</div>
         </div>
-        ${!connected ? `<button class="btn btn-secondary btn-sm" data-nav="config">Configure →</button>` : ''}
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${rs.hermesConnected?'badge-teal':rs.runtimeMode==='VERCEL PREVIEW'?'badge-blue':'badge-slate'}">${esc(rs.runtimeMode)}</span>
+          <span class="badge badge-slate" style="font-size:9px">${esc(rs.allowedMutationMode)}</span>
+          ${rs.sseAvailable ? `<span class="badge badge-teal" style="font-size:9px">SSE</span>` : `<span class="badge badge-amber" style="font-size:9px">POLLING</span>`}
+          ${!connected ? `<button class="btn btn-secondary btn-sm" data-nav="config">Configure →</button>` : ''}
+        </div>
       </div>
       <div class="cmd-layout section-gap">
         <div class="card" style="padding:12px">
@@ -1168,7 +1397,7 @@ function renderAgentDex() {
     </div>` : '';
 
   return `
-    ${renderSectionHeader('AgentDex',`${agents.length} agents in council`,`<button class="btn btn-secondary btn-sm">+ Assign Task</button>`)}
+    ${renderSectionHeader('AgentDex',`${agents.length} agents in council`,`<button class="btn btn-secondary btn-sm" id="btn-assign-task">+ Assign Task</button>`)}
     <div class="workspace-body" style="padding-bottom:0">
       ${isMock ? mockBanner() : ''}
       <div class="filter-strip">${pills}</div>
@@ -1211,7 +1440,7 @@ function renderSchedule() {
       <div class="schedule-view-toggle">
         <button class="view-toggle-btn">Day</button><button class="view-toggle-btn active">Agenda</button><button class="view-toggle-btn">Week</button>
       </div>
-      <button class="btn btn-primary btn-sm" style="margin-left:8px">+ New Task</button>`)}
+      <button class="btn btn-primary btn-sm" id="btn-add-task" style="margin-left:8px">+ New Task</button>`)}
     <div class="workspace-body">
       ${isMock ? mockBanner(isHermesConnected() ? 'no scheduledAt fields in tasks — add /schedule endpoint to Hermes' : 'connect Hermes for live schedule') : ''}
       <div class="card">
@@ -1247,6 +1476,10 @@ function renderKanban() {
         </div>
         ${colTasks.map(t=>{
           const left = t.status==='Blocked'?'blocked':t.priority==='High'?'high':t.status==='Done'?'done':'';
+          const statuses = ['Idea','Doing','Blocked','Done'];
+          const priorities = ['Low','Medium','High'];
+          const nextStatus = statuses[(statuses.indexOf(t.status)+1) % statuses.length];
+          const nextPriority = priorities[(priorities.indexOf(t.priority)+1) % priorities.length];
           return `
             <div class="kanban-card ${left}">
               <div class="kanban-card-title">${esc(t.title)}</div>
@@ -1256,12 +1489,17 @@ function renderKanban() {
               </div>
               ${t.status==='Blocked'?`<div class="kanban-card-blocker">⚠ Blocked — requires approval</div>`:''}
               <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px">${esc(t.project)}</div>
+              <div class="kanban-card-actions">
+                <button class="kc-action" data-task-id="${esc(t.id)}" data-task-status="${esc(nextStatus)}" title="Move to ${nextStatus}">→ ${esc(nextStatus)}</button>
+                <button class="kc-action" data-task-id="${esc(t.id)}" data-task-priority="${esc(nextPriority)}" title="Set ${nextPriority}">${esc(nextPriority)} ↑</button>
+                <button class="kc-action kc-delete" data-task-id="${esc(t.id)}" data-task-delete="1" title="Delete task">✕</button>
+              </div>
             </div>`;
         }).join('') || `<div style="padding:12px;font-size:11px;color:var(--text-tertiary);text-align:center">No tasks</div>`}
       </div>`;
   }).join('');
   return `
-    ${renderSectionHeader('Kanban',`${tasks.length} total tasks`,`<button class="btn btn-primary btn-sm">+ Add Task</button>`)}
+    ${renderSectionHeader('Kanban',`${tasks.length} total tasks`,`<button class="btn btn-primary btn-sm" id="btn-add-task">+ Add Task</button>`)}
     <div class="workspace-body" style="padding-bottom:0">
       ${isMock ? mockBanner() : ''}
       <div class="kanban-board">${board}</div>
@@ -1362,7 +1600,7 @@ function renderSentinel() {
   const { findings, remediation, lastScanAt } = data;
   const done   = (remediation||[]).filter(c=>c.done).length;
   return `
-    ${renderSectionHeader('Secret Sentinel','Security scan and remediation',`<button class="btn btn-secondary btn-sm">Scan Now</button>`)}
+    ${renderSectionHeader('Secret Sentinel','Security scan and remediation',`<button class="btn btn-secondary btn-sm" id="btn-scan-now">Scan Now</button>`)}
     <div class="workspace-body">
       ${isMock ? mockBanner('run hermes for live scan results') : ''}
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
@@ -1402,31 +1640,45 @@ function renderSentinel() {
 
 // ── Screen 8: Logs ─────────────────────────────────────────────
 function renderLogs() {
-  const logs   = state.logs || MOCK_LOGS;
-  const isMock = !state.logs;
-  const rows   = logs.map(l=>{
-    // Normalize severity: Hermes may emit level/severity; MOCK_LOGS uses sev
+  const allLogs = state.logs || MOCK_LOGS;
+  const isMock  = !state.logs;
+  const filterDefs = [
+    { id:'all',   label:'ALL',   cls:'badge-slate' },
+    { id:'info',  label:'INFO',  cls:'' },
+    { id:'warn',  label:'WARN',  cls:'badge-amber' },
+    { id:'error', label:'ERROR', cls:'badge-red' }
+  ];
+  const filtered = state.logFilter === 'all' ? allLogs : allLogs.filter(l => {
+    const sev = (l.sev||l.level||l.severity||'info').toLowerCase();
+    if (state.logFilter === 'warn')  return sev === 'warn' || sev === 'warning';
+    if (state.logFilter === 'error') return sev === 'error';
+    if (state.logFilter === 'info')  return sev === 'info';
+    return true;
+  });
+  const rows = filtered.map(l => {
     const sev = (l.sev||l.level||l.severity||'info').toLowerCase();
     return `
     <tr>
       <td class="log-ts">${esc(l.ts||fmtTime(l.timestamp))}</td>
       <td class="log-src">${esc(l.src||l.source||'—')}</td>
-      <td><span class="badge ${sev==='error'?'badge-red':sev==='warn'||sev==='warning'?'badge-amber':'badge-slate'} sev-${esc(sev)}">${sev.toUpperCase()}</span></td>
+      <td><span class="badge ${sev==='error'?'badge-red':sev==='warn'||sev==='warning'?'badge-amber':'badge-slate'}">${sev.toUpperCase()}</span></td>
       <td style="font-size:11px;color:var(--text-secondary)">${esc(l.agent||'—')}</td>
       <td class="log-msg">${esc(l.action||l.message||l.msg||'')}</td>
     </tr>`;
   }).join('');
+  const filterStrip = filterDefs.map(f => `
+    <button class="filter-pill ${state.logFilter===f.id?'active':''} ${f.cls}" data-logfilter="${f.id}" style="padding:2px 8px;font-size:10px">${f.label}</button>`).join('');
   return `
-    ${renderSectionHeader('Logs',`${logs.length} entries`,`<button class="btn btn-secondary btn-sm">Export</button>`)}
+    ${renderSectionHeader('Logs',`${filtered.length} / ${allLogs.length} entries`,`<button class="btn btn-secondary btn-sm" id="btn-refresh">Refresh</button>`)}
     <div class="workspace-body" style="padding:0">
-      ${isMock ? `<div class="mock-banner" style="border-radius:0">${mockBanner()}</div>` : ''}
-      <div style="padding:8px 12px;border-bottom:1px solid var(--border-subtle);display:flex;gap:8px;background:var(--surface-1)">
-        <span class="badge badge-slate">ALL</span><span class="badge">INFO</span><span class="badge badge-amber">WARN</span><span class="badge badge-red">ERROR</span>
+      ${isMock ? `<div style="border-radius:0">${mockBanner()}</div>` : ''}
+      <div style="padding:8px 12px;border-bottom:1px solid var(--border-subtle);display:flex;gap:6px;background:var(--surface-1);align-items:center">
+        ${filterStrip}
       </div>
       <div style="overflow:auto;max-height:calc(100vh - 200px)">
         <table class="log-table">
           <thead><tr><th style="width:80px">Time</th><th style="width:100px">Source</th><th style="width:70px">Sev</th><th style="width:100px">Agent</th><th>Message</th></tr></thead>
-          <tbody>${rows}</tbody>
+          <tbody>${rows || '<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--text-tertiary)">No entries match this filter</td></tr>'}</tbody>
         </table>
       </div>
     </div>`;
@@ -1558,9 +1810,9 @@ function renderApprovals() {
       <div class="approval-agent">Requested by ${esc(a.agent)}</div>
       <div style="font-size:11px;color:var(--text-secondary)">${esc(a.details)}</div>
       <div class="approval-actions">
-        <button class="btn btn-primary btn-sm">Approve</button>
-        <button class="btn btn-danger btn-sm">Reject</button>
-        <button class="btn btn-ghost btn-sm">Defer</button>
+        <button class="btn btn-primary btn-sm" data-approve="${esc(a.id)}">Approve</button>
+        <button class="btn btn-danger btn-sm"  data-reject="${esc(a.id)}">Reject</button>
+        <button class="btn btn-ghost btn-sm"   data-defer="${esc(a.id)}">Defer</button>
       </div>
     </div>`).join('');
   return `
@@ -1655,6 +1907,96 @@ function renderDesignLib() {
     </div>`;
 }
 
+// ── Modal system ───────────────────────────────────────────────
+function renderModal() {
+  if (!state.modal) return '';
+  const { type, data } = state.modal;
+
+  if (type === 'create-task') {
+    return `
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <div class="modal-header">
+            <span class="modal-title">New Task</span>
+            <button class="btn btn-ghost btn-sm" id="btn-modal-close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-10">
+              <label class="input-label" for="m-title">Title</label>
+              <input class="input" id="m-title" type="text" placeholder="Task title" />
+            </div>
+            <div class="row gap-8 mb-10">
+              <div class="input-group" style="flex:1">
+                <label class="input-label" for="m-project">Project</label>
+                <input class="input" id="m-project" type="text" value="NexCall" />
+              </div>
+              <div class="input-group" style="flex:1">
+                <label class="input-label" for="m-agent">Agent</label>
+                <input class="input" id="m-agent" type="text" placeholder="Assigned agent" />
+              </div>
+            </div>
+            <div class="row gap-8">
+              <div class="input-group" style="flex:1">
+                <label class="input-label" for="m-priority">Priority</label>
+                <select class="input" id="m-priority">
+                  <option>High</option><option selected>Medium</option><option>Low</option>
+                </select>
+              </div>
+              <div class="input-group" style="flex:1">
+                <label class="input-label" for="m-status">Status</label>
+                <select class="input" id="m-status">
+                  <option>Idea</option><option>Doing</option><option>Blocked</option><option>Done</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="btn-modal-confirm">Create Task</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  if (type === 'assign-task') {
+    const agent = data?.agent || {};
+    return `
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <div class="modal-header">
+            <span class="modal-title">Assign Task to ${esc(agent.name || 'Agent')}</span>
+            <button class="btn btn-ghost btn-sm" id="btn-modal-close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-10">
+              <label class="input-label" for="m-title">Task Title</label>
+              <input class="input" id="m-title" type="text" placeholder="Task title" />
+            </div>
+            <div class="input-group mb-10">
+              <label class="input-label" for="m-project">Project</label>
+              <input class="input" id="m-project" type="text" value="NexCall" />
+            </div>
+            <div class="input-group" style="display:none">
+              <input id="m-agent" type="hidden" value="${esc(agent.name || '')}" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="m-priority">Priority</label>
+              <select class="input" id="m-priority">
+                <option>High</option><option selected>Medium</option><option>Low</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" id="btn-modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="btn-modal-confirm">Assign Task</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  return '';
+}
+
 // ── Main Render ────────────────────────────────────────────────
 function renderScreen() {
   if (state.configOpen) return renderConfigPanel();
@@ -1686,6 +2028,7 @@ function render() {
       <main class="workspace">${renderScreen()}</main>
       ${renderFeed()}
     </div>
+    ${renderModal()}
     <div class="toast-container" id="toast-container"></div>`;
   bind();
 }
@@ -1723,9 +2066,9 @@ function bind() {
   document.getElementById('btn-save')?.addEventListener('click', saveConfig);
   document.getElementById('btn-test')?.addEventListener('click', testConnection);
 
-  // Refresh
+  // Refresh — use loadAllFromHermes (data fetch) not discoverHermes (health probe)
   document.getElementById('btn-refresh')?.addEventListener('click', () => {
-    if (isHermesConnected()) { discoverHermes(); }
+    if (isHermesConnected()) { loadAllFromHermes(); showToast('Refreshing…', '◎'); }
     else { testConnection(); }
   });
 
@@ -1743,12 +2086,12 @@ function bind() {
     });
   }
 
-  // Quick prompts
+  // Quick prompts — always route to Command Center; sendCommand handles not-connected
   document.querySelectorAll('[data-prompt]').forEach(el => {
     el.addEventListener('click', () => {
-      const cmd = el.dataset.prompt;
-      if (!isConnected()) { state.configOpen = true; render(); showToast('Connect to Hermes first.', '◈'); return; }
-      sendCommand(cmd); state.activeScreen = 'command'; render();
+      state.activeScreen = 'command';
+      render();
+      sendCommand(el.dataset.prompt);
     });
   });
 
@@ -1770,6 +2113,17 @@ function bind() {
   // Close agent drawer
   document.getElementById('btn-close-drawer')?.addEventListener('click', () => { state.selectedAgent = null; render(); });
 
+  // Approval actions — Approve / Reject / Defer
+  document.querySelectorAll('[data-approve]').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); resolveApproval(el.dataset.approve, 'approve'); });
+  });
+  document.querySelectorAll('[data-reject]').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); resolveApproval(el.dataset.reject, 'reject'); });
+  });
+  document.querySelectorAll('[data-defer]').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); resolveApproval(el.dataset.defer, 'defer'); });
+  });
+
   // Feed filter
   document.querySelectorAll('[data-feedfilter]').forEach(el => {
     el.addEventListener('click', () => { state.feedFilter = el.dataset.feedfilter; refreshFeedUI(); });
@@ -1780,6 +2134,88 @@ function bind() {
     state.feedPaused = !state.feedPaused;
     if (!state.feedPaused) { state.newWhilePaused = 0; refreshFeedUI(); }
     else { refreshFeedMeta(); }
+  });
+
+  // Modal — close / cancel / overlay click
+  const closeModal = () => { state.modal = null; render(); };
+  document.getElementById('btn-modal-close')?.addEventListener('click', closeModal);
+  document.getElementById('btn-modal-cancel')?.addEventListener('click', closeModal);
+  document.getElementById('modal-overlay')?.addEventListener('click', e => { if (e.target.id === 'modal-overlay') closeModal(); });
+
+  // Modal — confirm (create task or assign task)
+  document.getElementById('btn-modal-confirm')?.addEventListener('click', () => {
+    const title    = document.getElementById('m-title')?.value?.trim() || '';
+    const project  = document.getElementById('m-project')?.value?.trim() || 'NexCall';
+    const agent    = document.getElementById('m-agent')?.value?.trim() || '';
+    const priority = document.getElementById('m-priority')?.value || 'Medium';
+    const status   = document.getElementById('m-status')?.value || 'Idea';
+    if (!title) { showToast('Title is required.', '⚠'); return; }
+    createTask({ title, project, agent, priority, status, risk:'Low', approvalRequired:false });
+  });
+
+  // + Add Task button (Kanban / Schedule)
+  document.getElementById('btn-add-task')?.addEventListener('click', () => {
+    state.modal = { type:'create-task', data:{} };
+    render();
+  });
+
+  // AgentDex — Assign Task button
+  document.getElementById('btn-assign-task')?.addEventListener('click', () => {
+    const agent = state.selectedAgent || null;
+    state.modal = { type:'assign-task', data:{ agent } };
+    render();
+  });
+
+  // Kanban inline status cycle
+  document.querySelectorAll('[data-task-status]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const id   = el.dataset.taskId;
+      const next = el.dataset.taskStatus;
+      updateTask(id, { status: next });
+    });
+  });
+
+  // Kanban inline priority cycle
+  document.querySelectorAll('[data-task-priority]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const id   = el.dataset.taskId;
+      const next = el.dataset.taskPriority;
+      updateTask(id, { priority: next });
+    });
+  });
+
+  // Kanban card delete
+  document.querySelectorAll('[data-task-delete]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteTask(el.dataset.taskId);
+    });
+  });
+
+  // Sentinel — Scan Now
+  document.getElementById('btn-scan-now')?.addEventListener('click', async () => {
+    if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+    showToast('Scan requested…', '◆');
+    try {
+      const result = await hermesMutate('POST', 'sentinel/scan', {});
+      if (result?.findings !== undefined) { state.sentinel = result; render(); showToast('Scan complete.', '◉'); }
+      else { loadAllFromHermes(); }
+    } catch (e) {
+      showToast(e.url ? `Scan failed — ${e.message}` : e.message, '⚠');
+      loadAllFromHermes(); // refresh anyway
+    }
+  });
+
+  // Watchtower / Sentinel refresh via a shared "Refresh data" flow
+  document.getElementById('btn-refresh-data')?.addEventListener('click', () => {
+    if (isHermesConnected()) { loadAllFromHermes(); showToast('Refreshing data…', '◎'); }
+  });
+
+  // Log severity filter
+  document.querySelectorAll('[data-logfilter]').forEach(el => {
+    el.addEventListener('click', () => { state.logFilter = el.dataset.logfilter; render(); });
   });
 
   // Design lib tabs

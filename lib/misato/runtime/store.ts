@@ -33,6 +33,7 @@ function defaultStore(): RuntimeStore {
     tasks: seedTasks,
     approvals: seedApprovals,
     logs: seedLogs,
+    missions: [],
     runtime: {
       mode: "local-first",
       runtimeStatus: "connected",

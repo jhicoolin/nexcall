@@ -20,9 +20,9 @@
       "approvalRequiredFor": [
         "Needs approval for execution"
       ],
-      "currentTaskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
-      "currentTask": "Task A",
-      "lastActivityAt": "2026-05-25T16:31:55.100Z"
+      "currentTaskId": "t1",
+      "currentTask": "Draft dentist campaign",
+      "lastActivityAt": "2026-05-25T21:04:59.770Z"
     },
     {
       "agentId": "agent-ui",
@@ -92,7 +92,7 @@
       "agentId": "agent-qa",
       "name": "QA Agent",
       "role": "Validation",
-      "status": "idle",
+      "status": "active",
       "riskTier": "L1",
       "permissions": [
         "Test runner",
@@ -107,7 +107,10 @@
       ],
       "approvalRequiredFor": [
         "Approval for production test toggles"
-      ]
+      ],
+      "currentTaskId": "task-c335b807-a8db-486a-a397-0ec25c946328",
+      "currentTask": "Codex smoke task",
+      "lastActivityAt": "2026-05-25T19:31:19.174Z"
     },
     {
       "agentId": "agent-vercel",
@@ -261,6 +264,60 @@
   ],
   "tasks": [
     {
+      "id": "task-244698fe-06da-4dfc-9d33-c340616cce5f",
+      "title": "safety-check2",
+      "description": "",
+      "project": "runtime",
+      "priority": "Low",
+      "status": "Idea",
+      "ownerAgentId": null,
+      "assignedBy": "MISATO",
+      "createdAt": "2026-05-25T20:34:54.856Z",
+      "updatedAt": "2026-05-25T20:34:54.856Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": []
+    },
+    {
+      "id": "task-5f37ab08-a663-484e-a6a9-d522c4c3508a",
+      "title": "safety-check",
+      "description": "",
+      "project": "runtime",
+      "priority": "Low",
+      "status": "Idea",
+      "ownerAgentId": null,
+      "assignedBy": "MISATO",
+      "createdAt": "2026-05-25T20:34:54.754Z",
+      "updatedAt": "2026-05-25T20:34:54.754Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": []
+    },
+    {
+      "id": "task-14d2665d-a336-438c-a4c1-6f8e46045dcc",
+      "title": "safety-check",
+      "description": "",
+      "project": "runtime",
+      "priority": "Low",
+      "status": "Idea",
+      "ownerAgentId": null,
+      "assignedBy": "MISATO",
+      "createdAt": "2026-05-25T20:34:36.095Z",
+      "updatedAt": "2026-05-25T20:34:36.095Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": []
+    },
+    {
       "id": "rt-1779726280754",
       "projectId": "runtime",
       "title": "Command: deploy to production now",
@@ -410,9 +467,12 @@
       "status": "Doing",
       "priority": "High",
       "dueDate": "2026-05-25",
-      "assignedAgentId": "agent-backend",
+      "assignedAgentId": "agent-strategy",
       "riskLevel": "Low",
-      "approvalRequired": false
+      "approvalRequired": false,
+      "ownerAgentId": "agent-strategy",
+      "agent": "Strategy Agent",
+      "updatedAt": "2026-05-25T21:04:59.770Z"
     },
     {
       "id": "t2",
@@ -469,13 +529,15 @@
       "affects": [
         "runtime"
       ],
-      "status": "Pending",
+      "status": "Deferred",
       "createdAt": "2026-05-25T19:20:12.120Z",
-      "updatedAt": "2026-05-25T19:20:12.120Z",
+      "updatedAt": "2026-05-25T19:31:19.130Z",
       "actionType": "Protected action",
       "safeExecutionMode": "manual",
       "notes": "doesNotAutoExecuteProduction=true",
-      "doesNotAutoExecuteProduction": true
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-25T19:31:19.130Z",
+      "decisionBy": "owner"
     },
     {
       "id": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
@@ -628,6 +690,168 @@
     }
   ],
   "logs": [
+    {
+      "id": "log-bd933282-ffdb-46cb-84e7-5f03b453294a",
+      "timestamp": "2026-05-25T21:04:59.771Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Draft dentist campaign to Strategy Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-c18bbb8d-6a59-4c76-8ae0-a87fa596ab87",
+      "timestamp": "2026-05-25T21:04:59.704Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: Stabilize MISATO runtime for production",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-0cf84de3-5701-43de-a8ff-52a2be813116",
+      "timestamp": "2026-05-25T20:34:54.856Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: safety-check2",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-a1d06e8f-cec7-4b1f-b2d7-651435bafaad",
+      "timestamp": "2026-05-25T20:34:54.755Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: safety-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-26644a0b-0f39-4915-aaf6-34019a1fd141",
+      "timestamp": "2026-05-25T20:34:36.098Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: safety-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-df73f0a6-3bd9-4bd3-b8e8-2a5b2faab980",
+      "timestamp": "2026-05-25T19:31:19.284Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-2c4b6cf3-d164-4ea8-98e4-61d6f4812ab9",
+      "timestamp": "2026-05-25T19:31:19.176Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Codex smoke task to QA Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-2de33c9f-17cc-4ff1-b8a5-640b40a9c858",
+      "timestamp": "2026-05-25T19:31:19.131Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval deferred: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-7ca3c5b7-b8b8-4a20-957a-a7baa9522413",
+      "timestamp": "2026-05-25T19:31:19.026Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-daf87adb-7090-4b58-aa63-6d9421279142",
+      "timestamp": "2026-05-25T19:31:18.909Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-f40dc77b-0cff-4cda-8f03-fa006d2891fe",
+      "timestamp": "2026-05-25T19:30:16.310Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-f78456f4-790a-4304-a6b8-d6f17277397f",
+      "timestamp": "2026-05-25T19:30:15.725Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Codex smoke task to QA Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-a8ded914-3042-4311-8838-5713625d4507",
+      "timestamp": "2026-05-25T19:30:15.641Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-a4d01361-427c-42e6-8d8f-abbac264f5a3",
+      "timestamp": "2026-05-25T19:30:15.488Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-7c623682-2719-4b3a-82bb-e60c9dbf07ff",
+      "timestamp": "2026-05-25T19:29:42.818Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-67d0c854-8c14-4c9a-a9b1-a150733ef3c0",
+      "timestamp": "2026-05-25T19:29:40.811Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Codex smoke task to QA Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-64465bf4-78bb-4ba1-b746-7d98d9e73198",
+      "timestamp": "2026-05-25T19:29:39.855Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-0b7e2618-cf2c-4f57-a6c2-9eb025879c70",
+      "timestamp": "2026-05-25T19:29:38.734Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Codex smoke task",
+      "type": "log.created",
+      "payload": {}
+    },
     {
       "id": "log-60dd4309-56fb-4bd0-9f5a-f41480cc355c",
       "timestamp": "2026-05-25T19:20:12.121Z",
@@ -1023,6 +1247,27 @@
     "mode": "local-first",
     "runtimeStatus": "connected",
     "lastCommandAt": "2026-05-25T19:20:12.121Z",
-    "approvalsPending": 10
-  }
+    "approvalsPending": 9
+  },
+  "missions": [
+    {
+      "id": "msn-859aa3da-caad-4855-8827-0e7becf3d0a1",
+      "title": "Stabilize MISATO runtime for production",
+      "description": "Fix SSE auth, filesystem persistence, middleware matcher",
+      "project": "NexCall",
+      "priority": "High",
+      "status": "Pending",
+      "assignedAgentId": "agent-backend",
+      "assignedAgentName": "Backend Agent",
+      "taskIds": [
+        "task-449517ed-a956-4ac9-8059-383f8056375a",
+        "task-bf1e21f2-ce6e-46d1-a279-166b0b50b95f"
+      ],
+      "createdBy": "Hermes",
+      "createdAt": "2026-05-25T21:04:59.704Z",
+      "updatedAt": "2026-05-25T21:04:59.750Z",
+      "completedAt": null,
+      "handoffNote": "Add assertOwnerJson to SSE. Wrap writeFileSync in try-catch."
+    }
+  ]
 }

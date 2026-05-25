@@ -178,6 +178,22 @@ Access-Control-Allow-Headers: Content-Type
 
 ---
 
+## New Hermes endpoints needed (v5 wiring pass)
+
+These endpoints are now called by the UI but not yet confirmed as implemented in Hermes. UI shows toast with URL on failure — it does not crash.
+
+| Method | Path | Body | Used for |
+|--------|------|------|---------|
+| POST | `/approvals/:id/approve` | `{}` | Approval resolution |
+| POST | `/approvals/:id/reject` | `{}` | Approval resolution |
+| POST | `/approvals/:id/defer` | `{}` | Approval deferral |
+| POST | `/tasks` | task object | Task creation |
+| PATCH | `/tasks/:id` | partial task | Task status/priority update |
+
+All return `200` on success. On error, UI shows `HTTP <status> — <body excerpt>` and the attempted URL.
+
+---
+
 ## What the UI does NOT need from Hermes yet
 
 - A `/schedule` endpoint (UI falls back to MOCK_SCHEDULE with a clear label)
@@ -196,12 +212,14 @@ Access-Control-Allow-Headers: Content-Type
 
 ---
 
-## Files Claude UI changed in v4
+## Files Claude UI changed in v5
 
 ```
-desktop-ui/app.js   — stabilization pass (Hermes routes, Schedule, logs, Lanes, Integrations, SSE escalation, health polling)
-desktop-ui/styles.css — no changes in stabilization pass
-docs/agent-handoffs/claude-to-hermes.md — this file
+desktop-ui/app.js   — v5 wiring pass: hermesMutate, resolveApproval, createTask, updateTask,
+                       modal system, runtimeStatus(), runtime badge in topbar,
+                       sendCommand error surfaces URL, btn-refresh fixed to loadAllFromHermes
+desktop-ui/styles.css — v5: modal overlay, kanban-card-actions, runtime-mode-badge, cmd-message-error
+docs/agent-handoffs/claude-to-hermes.md — this file (updated)
 docs/agent-handoffs/claude-to-codex.md  — new
 docs/design/CLAUDE_UI_STYLE_GUIDE.md    — updated
 ```

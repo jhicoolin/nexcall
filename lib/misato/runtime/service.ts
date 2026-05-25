@@ -99,9 +99,9 @@ export function getWatchtower() {
     mode: "local-first",
     liveExternalCalls: false,
     monitors: [
-      { id: "local-runtime", name: "Local Hermes runtime", status: "up", target: "http://127.0.0.1:3000/health" },
-      { id: "command", name: "Command endpoint", status: "up", target: "http://127.0.0.1:3000/api/misato/command" },
-      { id: "events", name: "SSE stream", status: "up", target: "http://127.0.0.1:3000/api/misato/events/stream" }
+      { id: "local-runtime", name: "Local Hermes runtime", status: "up", target: "http://127.0.0.1:3010/health" },
+      { id: "command", name: "Command endpoint", status: "up", target: "http://127.0.0.1:3010/api/misato/command" },
+      { id: "events", name: "SSE stream", status: "up", target: "http://127.0.0.1:3010/api/misato/events/stream" }
     ]
   };
 }
@@ -143,7 +143,7 @@ export function getLanes() {
 export function assignAgent(payload: any) {
   const store = loadStore();
   const { agentId, taskId } = payload || {};
-  const agent = store.agents.find((a: any) => a.id === agentId || a.agentId === agentId);
+  const agent = store.agents.find((a: any) => a.agentId === agentId);
   const task = store.tasks.find((t: any) => t.id === taskId);
   if (!agent || !task) return { ok: false, error: "agent_or_task_not_found" as const };
   task.ownerAgentId = agentId;
@@ -212,6 +212,86 @@ export function deleteTask(taskId: string) {
   logEvent(store, `Task deleted: ${task.title}`, "misato.tasks", "warn");
   saveStore(store);
   return { ok: true, id: taskId };
+}
+
+export function getMissions() {
+  const store = loadStore();
+  return { ok: true, items: (store.missions || []).slice().reverse() };
+}
+
+export function createMission(payload: any) {
+  const store = loadStore();
+  if (!store.missions) store.missions = [];
+  const mission = {
+    id: rid("msn"),
+    title: String(payload?.title || "Untitled mission"),
+    description: String(payload?.description || ""),
+    project: String(payload?.project || "runtime"),
+    priority: String(payload?.priority || "Medium"),
+    status: String(payload?.status || "Pending"),
+    assignedAgentId: payload?.assignedAgentId || null,
+    assignedAgentName: payload?.assignedAgentName || null,
+    taskIds: Array.isArray(payload?.taskIds) ? payload.taskIds : [],
+    createdBy: String(payload?.createdBy || "MISATO"),
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+    completedAt: null,
+    handoffNote: payload?.handoffNote || null
+  };
+  store.missions.push(mission);
+  emit("mission_created", "misato.agents", { missionId: mission.id, mission }, "info");
+  logEvent(store, `Mission created: ${mission.title}`, "misato.agents");
+  saveStore(store);
+  return { ok: true, mission };
+}
+
+export function dispatchAgent(payload: any) {
+  const store = loadStore();
+  if (!store.missions) store.missions = [];
+  const agentId = String(payload?.agentId || "").trim();
+  const missionId = String(payload?.missionId || "").trim();
+  const taskTitle = String(payload?.taskTitle || "Dispatched task").trim();
+  const handoffNote = payload?.handoffNote || null;
+
+  const agent = store.agents.find((a: any) => a.agentId === agentId);
+  if (!agent) return { ok: false, error: "agent_not_found" as const };
+
+  const mission = store.missions.find((m: any) => m.id === missionId);
+  if (mission) {
+    mission.assignedAgentId = agentId;
+    mission.assignedAgentName = (agent.name as string) || agentId;
+    mission.updatedAt = nowIso();
+    mission.handoffNote = handoffNote;
+    emit("mission_updated", "misato.agents", { missionId: mission.id, mission }, "info");
+  }
+
+  const taskResult = createTask({
+    title: taskTitle,
+    project: payload?.project || (mission ? mission.project : "runtime"),
+    priority: payload?.priority || "Medium",
+    status: "Doing",
+    ownerAgentId: agentId
+  });
+
+  const taskId = (taskResult as any)?.task?.id;
+  if (taskId) {
+    const agentResult = assignAgent({ agentId, taskId });
+    if (!agentResult.ok) {
+      logEvent(store, `Dispatch: task created but assign failed for ${agent.name || agentId}`, "misato.agents", "warn");
+    }
+    if (mission && taskId && !mission.taskIds.includes(taskId)) {
+      mission.taskIds.push(taskId);
+    }
+  }
+
+  saveStore(store);
+  return {
+    ok: true,
+    agent: { agentId: agent.agentId, name: agent.name },
+    taskId,
+    missionId: mission?.id || null,
+    handoffNote
+  };
 }
 
 function createApprovalForCommand(store: any, command: string, reason: string) {
