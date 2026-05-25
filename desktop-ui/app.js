@@ -1,313 +1,71 @@
-const storage = {
-  get(k, d = "") {
-    try {
-      return localStorage.getItem(k) || d;
-    } catch {
-      return d;
-    }
-  },
-  set(k, v) {
-    try {
-      localStorage.setItem(k, v);
-    } catch {}
-  }
-};
+const storage={get:(k,d="")=>{try{return localStorage.getItem(k)||d}catch{return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}}};
+const injectedBase=(window.__MISATO_API_BASE_URL__||"").trim();
+const state={baseUrl:storage.get("misato_api_base_url",injectedBase),token:storage.get("misato_desktop_auth_token",""),bypassToken:storage.get("misato_vercel_bypass_token",""),status:null,council:[],projects:[],tasks:[],approvals:[],logs:[],commandResult:null,lastError:"",commandHistory:[],connTest:{label:"Not tested",httpStatus:null,checkedAt:null,error:"",nextFix:"Click Test Connection after configuring MISATO_API_BASE_URL."}};
 
-const injectedBase = (window.__MISATO_API_BASE_URL__ || "").trim();
-const state = {
-  baseUrl: storage.get("misato_api_base_url", injectedBase),
-  token: storage.get("misato_desktop_auth_token", ""),
-  bypassToken: storage.get("misato_vercel_bypass_token", ""),
-  status: null,
-  council: [],
-  projects: [],
-  tasks: [],
-  approvals: [],
-  logs: [],
-  commandResult: null,
-  lastError: "",
-  connTest: {
-    label: "Not tested",
-    httpStatus: null,
-    checkedAt: null,
-    error: "",
-    nextFix: "Click Test Connection after configuring MISATO_API_BASE_URL."
-  }
-};
+const headers=()=>{const h={"content-type":"application/json"}; if(state.token) h["x-misato-desktop-token"]=state.token; if(state.bypassToken) h["x-vercel-protection-bypass"]=state.bypassToken; return h;};
+const endpoint=(path)=>`${state.baseUrl.replace(/\/$/,"")}/${path}`;
+const isConnected=()=>state.connTest.label==="Connected";
+const authModeLabel=()=>`${state.token?"desktop token configured":"no desktop token"}; ${state.bypassToken?"Vercel bypass configured":"no Vercel bypass token"}`;
+const statusClass=(label)=>({Connected:"connected",Unauthorized:"unauthorized",Failed:"failed","Not configured":"not-configured","Not tested":"testing"}[label]||"testing");
 
-function headers() {
-  const h = { "content-type": "application/json" };
-  if (state.token) h["x-misato-desktop-token"] = state.token;
-  if (state.bypassToken) h["x-vercel-protection-bypass"] = state.bypassToken;
-  return h;
-}
+async function apiGet(path){const res=await fetch(endpoint(path),{headers:headers()}); const data=await res.json().catch(()=>({ok:false,error:"Invalid JSON"})); return {res,data};}
 
-function endpoint(path) {
-  const base = state.baseUrl.replace(/\/$/, "");
-  return `${base}/${path}`;
-}
-
-function authModeLabel() {
-  const ownerAuth = state.token ? "desktop token configured" : "no desktop token (session auth or token required)";
-  const bypass = state.bypassToken ? "Vercel bypass configured" : "no Vercel bypass token";
-  return `${ownerAuth}; ${bypass}`;
-}
-
-function isConnected() {
-  return state.connTest.label === "Connected";
-}
-
-async function apiGet(path) {
-  const res = await fetch(endpoint(path), { headers: headers() });
-  const data = await res.json().catch(() => ({ ok: false, error: "Invalid JSON" }));
-  return { res, data };
-}
-
-async function testConnection() {
-  if (!state.baseUrl) {
-    state.connTest = {
-      label: "Not configured",
-      httpStatus: null,
-      checkedAt: new Date().toISOString(),
-      error: "MISATO_API_BASE_URL is missing.",
-      nextFix: "Set MISATO_API_BASE_URL to your private MISATO backend, e.g. https://nexcall.one/api/misato"
-    };
-    render();
-    return;
-  }
-
-  try {
-    const { res, data } = await apiGet("status");
-    const checkedAt = new Date().toISOString();
-
-    if (res.ok && data?.ok) {
-      state.status = data;
-      state.connTest = {
-        label: "Connected",
-        httpStatus: res.status,
-        checkedAt,
-        error: "",
-        nextFix: "Connected to MISATO backend. Owner/auth check passed."
-      };
-      await loadAll(false);
-    } else if (res.status === 401 || data?.auth === "invalid") {
-      state.connTest = {
-        label: "Unauthorized",
-        httpStatus: res.status,
-        checkedAt,
-        error: data?.error || "unauthorized",
-        nextFix: "Backend reached, but auth failed. Check MISATO_DESKTOP_AUTH_TOKEN or owner session."
-      };
-    } else {
-      state.connTest = {
-        label: "Failed",
-        httpStatus: res.status,
-        checkedAt,
-        error: data?.error || `HTTP ${res.status}`,
-        nextFix: "Cannot reach usable backend state. Check MISATO_API_BASE_URL and network."
-      };
-    }
-  } catch (e) {
-    state.connTest = {
-      label: "Failed",
-      httpStatus: null,
-      checkedAt: new Date().toISOString(),
-      error: String(e.message || e),
-      nextFix: "Cannot reach backend. Check MISATO_API_BASE_URL and network."
-    };
-  }
-
+async function testConnection(){
+  if(!state.baseUrl){state.connTest={label:"Not configured",httpStatus:null,checkedAt:new Date().toISOString(),error:"MISATO_API_BASE_URL is missing.",nextFix:"Set MISATO_API_BASE_URL to your private MISATO backend."}; return render();}
+  try{
+    const {res,data}=await apiGet("status"); const checkedAt=new Date().toISOString();
+    if(res.ok&&data?.ok){state.status=data; state.connTest={label:"Connected",httpStatus:res.status,checkedAt,error:"",nextFix:"Connected to MISATO backend. Owner/auth check passed."}; await loadAll(false);}
+    else if(res.status===401||data?.auth==="invalid"){state.connTest={label:"Unauthorized",httpStatus:res.status,checkedAt,error:data?.error||"unauthorized",nextFix:"Backend reached, but auth failed. Check desktop token/session and bypass token if preview is protected."};}
+    else if(res.status===404){state.connTest={label:"Failed",httpStatus:res.status,checkedAt,error:"route not found",nextFix:"Wrong deployment URL. Use misato-full-build preview /api/misato."};}
+    else{state.connTest={label:"Failed",httpStatus:res.status,checkedAt,error:data?.error||`HTTP ${res.status}`,nextFix:"Cannot reach usable backend state. Check URL and network."};}
+  }catch(e){state.connTest={label:"Failed",httpStatus:null,checkedAt:new Date().toISOString(),error:String(e.message||e),nextFix:"Cannot reach backend. Check URL/network."};}
   render();
 }
 
-async function loadAll(triggerRender = true) {
-  if (!state.baseUrl) {
-    if (triggerRender) render();
-    return;
-  }
+async function loadAll(triggerRender=true){if(!state.baseUrl){if(triggerRender)render();return;} state.lastError=""; try{const [c,p,t,a,l]=await Promise.all([apiGet("council"),apiGet("projects"),apiGet("tasks"),apiGet("approvals"),apiGet("logs")]); if(c.res.ok)state.council=c.data.items||[]; if(p.res.ok)state.projects=p.data.items||[]; if(t.res.ok)state.tasks=t.data.items||[]; if(a.res.ok)state.approvals=a.data.items||[]; if(l.res.ok)state.logs=l.data.items||[];}catch(e){state.lastError=String(e.message||e);} if(triggerRender)render();}
 
-  state.lastError = "";
-  try {
-    const council = await apiGet("council");
-    if (council.res.ok) state.council = council.data.items || [];
+async function sendCommand(prefill){const input=document.getElementById("cmd"); if(prefill&&input) input.value=prefill; const command=(input?.value||"").trim(); if(!command) return; if(!state.baseUrl){state.lastError="Set MISATO_API_BASE_URL before sending commands."; return render();}
+  try{const res=await fetch(endpoint("command"),{method:"POST",headers:headers(),body:JSON.stringify({command})}); const data=await res.json().catch(()=>({ok:false,error:"Invalid JSON"})); if(!res.ok) throw new Error(data.error||`${res.status}`); state.commandResult=data.result; state.commandHistory.unshift({role:"user",text:command,ts:new Date().toISOString()},{role:"core",text:data?.result?.missionSummary||"Command completed.",ts:new Date().toISOString()}); state.commandHistory=state.commandHistory.slice(0,12); state.lastError=""; input.value="";}catch(e){state.lastError=String(e.message||e);} render(); const stream=document.getElementById("stream"); if(stream) stream.scrollTop=0;}
 
-    const projects = await apiGet("projects");
-    if (projects.res.ok) state.projects = projects.data.items || [];
+function saveConfig(){state.baseUrl=(document.getElementById("base")?.value||"").trim(); const enteredToken=(document.getElementById("token")?.value||"").trim(); const enteredBypass=(document.getElementById("bypass")?.value||"").trim(); if(enteredToken) state.token=enteredToken; if(enteredBypass) state.bypassToken=enteredBypass; storage.set("misato_api_base_url",state.baseUrl); storage.set("misato_desktop_auth_token",state.token); storage.set("misato_vercel_bypass_token",state.bypassToken); state.connTest={label:"Not tested",httpStatus:null,checkedAt:null,error:"",nextFix:"Click Test Connection to verify backend/auth."}; render();}
 
-    const tasks = await apiGet("tasks");
-    if (tasks.res.ok) state.tasks = tasks.data.items || [];
+const StatusBar=()=>`<div class='header'><div class='row'><div class='title'>MISATO Mission Control</div><span class='badge'>Preview</span></div><div class='row'><span class='status-chip ${statusClass(state.connTest.label)}'><span class='dot ${isConnected()?"pulse":""}'></span>${state.connTest.label}</span><span class='small mono'>${state.connTest.checkedAt?new Date(state.connTest.checkedAt).toLocaleTimeString():"not checked"}</span></div></div>`;
 
-    const approvals = await apiGet("approvals");
-    if (approvals.res.ok) state.approvals = approvals.data.items || [];
+const ConnectionPanel=()=>`<div class='col'>
+  <div class='card'><h3 class='h2'>Backend Connection</h3><div class='stack'>
+    <input id='base' placeholder='https://your-preview.vercel.app/api/misato' value='${state.baseUrl||""}' />
+    <input id='token' type='password' autocomplete='off' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='' />
+    <input id='bypass' type='password' autocomplete='off' placeholder='VERCEL_PROTECTION_BYPASS (optional local only)' value='' />
+    <div class='row'><button id='save'>Save Config</button><button id='test' class='secondary'>Test Connection</button></div>
+  </div></div>
+  <div class='card'><h3 class='h2'>Connection Result</h3><div class='kv'>
+    <span class='k'>Status</span><span class='v'>${state.connTest.label}</span>
+    <span class='k'>HTTP</span><span class='v'>${state.connTest.httpStatus??"n/a"}</span>
+    <span class='k'>Checked</span><span class='v'>${state.connTest.checkedAt||"never"}</span>
+  </div>${state.connTest.error?`<p class='small bad'>${state.connTest.error}</p>`:""}<p class='small'>${state.connTest.nextFix}</p></div>
+  <div class='card'><h3 class='h2'>Auth Mode</h3><p class='small'>${authModeLabel()}</p><p class='small'>Owner/API auth enforced. Secrets never shown.</p></div>
+</div>`;
 
-    const logs = await apiGet("logs");
-    if (logs.res.ok) state.logs = logs.data.items || [];
-  } catch (e) {
-    state.lastError = String(e.message || e);
-  }
-  if (triggerRender) render();
-}
+const CommandCenter=()=>{const enabled=!!state.baseUrl&&isConnected(); return `<div class='card'><h3 class='h2'>Command Center</h3>
+  <textarea id='cmd' placeholder='What needs attention today?' ${enabled?"":"disabled"}></textarea>
+  <div class='row'><button id='run' ${enabled?"":"disabled"}>Run Command</button><button class='secondary quick' data-q='What needs attention today?'>Today</button><button class='secondary quick' data-q='Ask council what to do next'>Ask Council</button><button class='secondary quick' data-q='Show pending approvals'>Approvals</button></div>
+  ${!state.baseUrl?"<p class='small warn'>Set API Base URL first.</p>":""}
+  ${state.baseUrl&&!isConnected()?"<p class='small warn'>Test Connection until Connected before commands.</p>":""}
+  ${state.lastError?`<p class='small bad'>${state.lastError}</p>`:""}
+  <div id='stream' class='stream'>
+    ${state.commandHistory.map(m=>`<div class='msg ${m.role}'><div class='small mono'>${m.role.toUpperCase()} · ${new Date(m.ts).toLocaleTimeString()}</div><div>${m.text}</div></div>`).join("")}
+  </div>
+</div>`;};
 
-async function sendCommand() {
-  const input = document.getElementById("cmd");
-  const command = (input?.value || "").trim();
-  if (!command) return;
+const CouncilPanel=()=>`<div class='card'><h3 class='h2'>Council Activity</h3><ul class='list'>${state.council.slice(0,8).map(a=>`<li>${a.name} — <span class='small'>${a.status}</span></li>`).join("")||"<li class='small'>No data</li>"}</ul></div>`;
+const ApprovalPanel=()=>`<div class='card'><h3 class='h2'>Approvals Queue</h3><ul class='list'>${state.approvals.slice(0,8).map(a=>`<li>${a.actionType} — <span class='warn'>${a.status}</span></li>`).join("")||"<li class='small'>No approvals</li>"}</ul></div>`;
+const ProjectsPanel=()=>`<div class='card'><h3 class='h2'>Projects / Kanban</h3><ul class='list'>${state.projects.slice(0,6).map(p=>`<li>${p.name} — ${p.status}</li>`).join("")||"<li class='small'>No projects</li>"}</ul></div>`;
+const LogsPanel=()=>`<div class='card'><h3 class='h2'>Logs</h3><ul class='list'>${state.logs.slice(0,8).map(l=>`<li><span class='mono'>${l.timestamp||""}</span> — ${l.action||"event"}</li>`).join("")||"<li class='small'>No logs</li>"}</ul></div>`;
+const IntegrationsPanel=()=>`<div class='card'><h3 class='h2'>Integrations</h3><p class='small'>Discord/Obsidian/GitHub/Vercel status only. Live automations disabled.</p></div>`;
 
-  if (!state.baseUrl) {
-    state.lastError = "Set MISATO_API_BASE_URL before sending commands.";
-    render();
-    return;
-  }
+const MisatoShell=()=>`<div class='shell'>${StatusBar()}<div class='layout'>${ConnectionPanel()}<div class='col'>${CommandCenter()}${CouncilPanel()}${ProjectsPanel()}</div><div class='col'>${ApprovalPanel()}${LogsPanel()}${IntegrationsPanel()}</div></div></div>`;
 
-  try {
-    const res = await fetch(endpoint("command"), {
-      method: "POST",
-      headers: headers(),
-      body: JSON.stringify({ command })
-    });
-    const data = await res.json().catch(() => ({ ok: false, error: "Invalid JSON" }));
-    if (!res.ok) throw new Error(data.error || `${res.status}`);
-    state.commandResult = data.result;
-    state.lastError = "";
-    input.value = "";
-  } catch (e) {
-    state.lastError = String(e.message || e);
-  }
-  render();
-}
-
-function saveConfig() {
-  state.baseUrl = (document.getElementById("base")?.value || "").trim();
-  const enteredToken = (document.getElementById("token")?.value || "").trim();
-  const enteredBypass = (document.getElementById("bypass")?.value || "").trim();
-
-  if (enteredToken) state.token = enteredToken;
-  if (enteredBypass) state.bypassToken = enteredBypass;
-
-  storage.set("misato_api_base_url", state.baseUrl);
-  storage.set("misato_desktop_auth_token", state.token);
-  storage.set("misato_vercel_bypass_token", state.bypassToken);
-  state.connTest = {
-    label: "Not tested",
-    httpStatus: null,
-    checkedAt: null,
-    error: "",
-    nextFix: "Click Test Connection to verify backend/auth."
-  };
-  render();
-}
-
-function setupView() {
-  return `<div class='card'>
-    <div class='title'>MISATO backend not connected</div>
-    <p class='muted'>Set MISATO_API_BASE_URL (example: https://your-private-vercel-url/api/misato). No secrets embedded. No auth bypass.</p>
-    <div class='stack'>
-      <input id='base' placeholder='https://nexcall.one/api/misato' value='${state.baseUrl || ""}' />
-      <input id='token' type='password' autocomplete='off' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='' />
-      <input id='bypass' type='password' autocomplete='off' placeholder='VERCEL_PROTECTION_BYPASS (optional local only)' value='' />
-      <p class='small muted'>Desktop token ${state.token ? "configured" : "not configured"}; bypass token ${state.bypassToken ? "configured" : "not configured"}. Values are hidden.</p>
-      <div class='row'>
-        <button id='save'>Save Config</button>
-        <button id='test'>Test Connection</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function list(items, mapper) {
-  return `<ul>${items.map(mapper).join("")}</ul>`;
-}
-
-function connectionPanel() {
-  return `<div class='card'>
-    <div class='title'>Connection Diagnostics</div>
-    <p class='small muted'>API Base URL: <strong>${state.baseUrl || "Not configured"}</strong></p>
-    <p class='small muted'>Auth Mode: <strong>${authModeLabel()}</strong></p>
-    <div class='stack'>
-      <input id='base' placeholder='https://your-preview.vercel.app/api/misato' value='${state.baseUrl || ""}' />
-      <input id='token' type='password' autocomplete='off' placeholder='MISATO_DESKTOP_AUTH_TOKEN (local only)' value='' />
-      <input id='bypass' type='password' autocomplete='off' placeholder='VERCEL_PROTECTION_BYPASS (optional local only)' value='' />
-      <p class='small muted'>Desktop token ${state.token ? "configured" : "not configured"}; bypass token ${state.bypassToken ? "configured" : "not configured"}.</p>
-    </div>
-    <div class='row'>
-      <button id='test'>Test Connection</button>
-      <button id='save'>Save Config</button>
-    </div>
-    <p class='small ${isConnected() ? "ok" : state.connTest.label === "Unauthorized" ? "warn" : "bad"}'>Connection status: ${state.connTest.label}</p>
-    <p class='small muted'>HTTP status: ${state.connTest.httpStatus ?? "n/a"}</p>
-    <p class='small muted'>Last checked: ${state.connTest.checkedAt || "never"}</p>
-    ${state.connTest.error ? `<p class='small bad'>Error: ${state.connTest.error}</p>` : ""}
-    <p class='small muted'>Next fix: ${state.connTest.nextFix}</p>
-  </div>`;
-}
-
-function appView() {
-  const configured = !!state.baseUrl;
-  const commandEnabled = configured && isConnected();
-
-  return `<div class='wrap'>
-    <div class='card top'>
-      <div class='title'>MISATO Mission Control</div>
-      <span class='small ${isConnected() ? "ok" : "bad"}'>${isConnected() ? "Connected" : "Disconnected"}</span>
-      <span class='small muted'>API: ${state.baseUrl || "not set"}</span>
-      <button id='reload'>Refresh Data</button>
-      <button id='reconfig'>Config</button>
-    </div>
-
-    ${connectionPanel()}
-
-    ${state.lastError ? `<div class='card bad'>Error: ${state.lastError}</div>` : ""}
-
-    <div class='grid'>
-      <div class='stack'>
-        <div class='card'>
-          <div class='title'>MISATO Core command input</div>
-          <textarea id='cmd' placeholder='What needs attention today?' ${commandEnabled ? "" : "disabled"}></textarea>
-          <div class='row'><button id='run' ${commandEnabled ? "" : "disabled"}>Run command</button></div>
-          ${!configured ? `<p class='small warn'>Set MISATO_API_BASE_URL to enable commands.</p>` : ""}
-          ${configured && !isConnected() ? `<p class='small warn'>Run Test Connection first. Retry until Connected.</p>` : ""}
-          ${state.commandResult ? `<p class='small muted'>${state.commandResult.missionSummary || ""}</p>` : ""}
-        </div>
-
-        <div class='card'><div class='title'>Council activity</div>${list(state.council.slice(0, 8), (a) => `<li>${a.name} — <span class='muted'>${a.status}</span></li>`)}</div>
-        <div class='card'><div class='title'>Projects</div>${list(state.projects.slice(0, 6), (p) => `<li>${p.name} — ${p.status} (${p.priority})</li>`)}</div>
-        <div class='card'><div class='title'>Kanban / Tasks</div>${list(state.tasks.slice(0, 8), (t) => `<li>${t.title} — ${t.status}</li>`)}</div>
-      </div>
-      <div class='stack'>
-        <div class='card'><div class='title'>Approvals</div>${list(state.approvals.slice(0, 6), (a) => `<li>${a.actionType} — <span class='warn'>${a.status}</span></li>`)}</div>
-        <div class='card'><div class='title'>Logs</div>${list(state.logs.slice(0, 8), (l) => `<li>${l.timestamp} — ${l.action}</li>`)}</div>
-        <div class='card'><div class='title'>Status</div>
-          <p class='small muted'>Owner/auth required server-side. Live automations disabled in v1.</p>
-          <p class='small muted'>Memory/Obsidian + Discord endpoints available in mock mode.</p>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function bind() {
-  document.getElementById("save")?.addEventListener("click", saveConfig);
-  document.getElementById("test")?.addEventListener("click", testConnection);
-  document.getElementById("reload")?.addEventListener("click", loadAll);
-  document.getElementById("reconfig")?.addEventListener("click", () => {
-    state.status = null;
-    state.connTest = {
-      label: "Not tested",
-      httpStatus: null,
-      checkedAt: null,
-      error: "",
-      nextFix: "Click Test Connection after configuring MISATO_API_BASE_URL."
-    };
-    render();
-  });
-  document.getElementById("run")?.addEventListener("click", sendCommand);
-}
-
-function render() {
-  const root = document.getElementById("app");
-  const showSetup = !state.baseUrl && !state.connTest.checkedAt;
-  root.innerHTML = showSetup ? setupView() : appView();
-  bind();
-}
+function bind(){document.getElementById("save")?.addEventListener("click",saveConfig); document.getElementById("test")?.addEventListener("click",testConnection); document.getElementById("run")?.addEventListener("click",()=>sendCommand()); document.querySelectorAll(".quick").forEach(b=>b.addEventListener("click",()=>sendCommand(b.dataset.q||""))); document.getElementById("cmd")?.addEventListener("keydown",(e)=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();sendCommand();}});}
+function render(){document.getElementById("app").innerHTML=MisatoShell(); bind();}
 
 render();
