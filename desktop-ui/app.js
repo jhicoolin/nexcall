@@ -1,129 +1,94 @@
 /* ================================================================
-   MISATO Mission Control · app.js
+   MISATO Mission Control · app.js  v4
    Branch: misato-claude-ui
-   13-Screen Control Center — all screens, all states, all mock data
+   Local Hermes runtime is the primary daily path.
+   Cloud preview and API tokens are Advanced / fallback only.
    API contracts unchanged. No secrets logged. No auth modified.
-   Local Hermes Bridge discovery + SSE event subscription layer.
    ================================================================ */
 
-// ── Mock / Static data ──────────────────────────────────────────
+// ── Mock / Fallback data (labeled _MOCK to make origin clear) ──
 
-const COUNCIL_AGENTS = [
-  { id:'strategy', name:'Strategy Agent',          role:'Mission Planning',      specialty:'Goal alignment, priority sequencing, OKRs',         perm:'Advisory', risk:'Low',    state:'idle',     feedback:'Awaiting next mission command.' },
-  { id:'ui',       name:'Claude UI Agent',          role:'UI Lane Lead',          specialty:'Desktop polish, UX architecture, component design',  perm:'Build',    risk:'Low',    state:'complete', feedback:'Tactical HUD v3 — 13-screen spec implemented.' },
-  { id:'backend',  name:'Hermes Architecture Agent',role:'Backend Lane Lead',     specialty:'API routes, auth middleware, integrations, safety',   perm:'Build',    risk:'Medium', state:'thinking', feedback:'Verifying CORS + OPTIONS preflight on preview.' },
-  { id:'security', name:'Security Agent',           role:'Threat Analysis',       specialty:'Auth gates, secret safety, injection vectors',        perm:'Audit',    risk:'Low',    state:'idle',     feedback:'No secrets in UI layer. Token masked throughout.' },
-  { id:'qa',       name:'Codex QA Agent',           role:'Client Reliability',    specialty:'Bug patching, connection flow, build validation',     perm:'Audit',    risk:'Low',    state:'thinking', feedback:'Running client reliability audit on misato-codex-client-qa.' },
-  { id:'vercel',   name:'Vercel Deploy Agent',      role:'Deployment Ops',        specialty:'Preview gates, env propagation, production lock',     perm:'Deploy',   risk:'High',   state:'blocked',  feedback:'Awaiting CORS redeploy on misato-full-build.' },
-  { id:'bizops',   name:'Business Ops Agent',       role:'Operations',            specialty:'Revenue tracking, KPIs, client ops',                  perm:'Advisory', risk:'Low',    state:'idle',     feedback:'NexCall pricing live. MISATO internal only.' },
-  { id:'marketing',name:'Marketing Agent',          role:'Growth',                specialty:'Positioning, Discord presence, copy',                 perm:'Advisory', risk:'Low',    state:'idle',     feedback:'No public-facing changes in this build.' },
-  { id:'finance',  name:'Finance Agent',            role:'Financial Analysis',    specialty:'Revenue modeling, cost tracking, Stripe events',      perm:'Advisory', risk:'Low',    state:'idle',     feedback:'Stripe plans stable. No pricing changes.' },
-  { id:'research', name:'Research Agent',           role:'Intelligence',          specialty:'Market intel, tech trends, competitor tracking',      perm:'Advisory', risk:'Low',    state:'idle',     feedback:'Standing by for research requests.' },
-  { id:'obsidian', name:'Obsidian Librarian Agent', role:'Knowledge Base',        specialty:'Vault sync, project brain, daily command notes',      perm:'Read',     risk:'Low',    state:'idle',     feedback:'Mirror planned. No vault writes in v1.' },
-  { id:'github',   name:'GitHub Handoff Agent',     role:'Code Handoffs',         specialty:'Branch management, PR coordination, commit safety',   perm:'Commit',   risk:'Medium', state:'idle',     feedback:'misato-claude-ui branch ready to push.' },
-  { id:'discord',  name:'Discord Integration Agent',role:'Community Ops',         specialty:'#misato channel, bot commands, @misato#6010',         perm:'Mock',     risk:'Low',    state:'idle',     feedback:'Discord integration planned. Mock mode only.' },
-  { id:'approval', name:'Approval Gate Agent',      role:'Owner Authorization',   specialty:'High-risk gates, production deploys, env changes',    perm:'Gate',     risk:'High',   state:'idle',     feedback:'No live approvals pending.' }
-];
-
-const MOCK_PROJECTS = [
-  { name:'NexCall',      status:'Active',      priority:'High',   risk:'Medium', nextAction:'Deploy MISATO backend to production',    agents:['Strategy','Backend','Vercel Deploy'], taskCount:14, slug:'nexcall'  },
-  { name:'Bad Genetics', status:'Active',      priority:'Medium', risk:'Low',    nextAction:'Complete checkout and auth flow',         agents:['UI Builder','Backend','QA'],           taskCount:9,  slug:'genetics' },
-  { name:'Client Sites', status:'Maintenance', priority:'Low',    risk:'Low',    nextAction:'Monthly performance review',             agents:['QA'],                                  taskCount:3,  slug:'clients'  },
-  { name:'Personal Ops', status:'Planning',    priority:'Medium', risk:'Low',    nextAction:'Define Q3 goals and agent assignments',   agents:['Strategy','Finance'],                  taskCount:6,  slug:'personal' },
-  { name:'Research Lab', status:'Active',      priority:'Low',    risk:'Low',    nextAction:'Document AI agent architecture findings', agents:['Research','Obsidian'],                 taskCount:7,  slug:'research' }
+const MOCK_AGENTS = [
+  { id:'strategy', name:'Strategy Agent',          role:'Mission Planning',      specialty:'Goal alignment, priority sequencing, OKRs',        perm:'Advisory', risk:'Low',    state:'idle',     feedback:'Awaiting next mission command.' },
+  { id:'ui',       name:'Claude UI Agent',          role:'UI Lane Lead',          specialty:'Desktop polish, UX architecture, component design', perm:'Build',    risk:'Low',    state:'complete', feedback:'Tactical HUD v4 — Hermes-primary layout implemented.' },
+  { id:'backend',  name:'Hermes Architecture Agent',role:'Backend Lane Lead',     specialty:'API routes, auth middleware, integrations, safety',  perm:'Build',    risk:'Medium', state:'thinking', feedback:'Verifying CORS + OPTIONS preflight on preview.' },
+  { id:'security', name:'Security Agent',           role:'Threat Analysis',       specialty:'Auth gates, secret safety, injection vectors',       perm:'Audit',    risk:'Low',    state:'idle',     feedback:'No secrets in UI layer. Token masked throughout.' },
+  { id:'qa',       name:'Codex QA Agent',           role:'Client Reliability',    specialty:'Bug patching, connection flow, build validation',    perm:'Audit',    risk:'Low',    state:'thinking', feedback:'Running client reliability audit.' },
+  { id:'vercel',   name:'Vercel Deploy Agent',      role:'Deployment Ops',        specialty:'Preview gates, env propagation, production lock',    perm:'Deploy',   risk:'High',   state:'blocked',  feedback:'Awaiting CORS redeploy on misato-full-build.' },
+  { id:'bizops',   name:'Business Ops Agent',       role:'Operations',            specialty:'Revenue tracking, KPIs, client ops',                 perm:'Advisory', risk:'Low',    state:'idle',     feedback:'NexCall pricing live. MISATO internal only.' },
+  { id:'marketing',name:'Marketing Agent',          role:'Growth',                specialty:'Positioning, Discord presence, copy',                perm:'Advisory', risk:'Low',    state:'idle',     feedback:'No public-facing changes in this build.' },
+  { id:'finance',  name:'Finance Agent',            role:'Financial Analysis',    specialty:'Revenue modeling, cost tracking, Stripe events',     perm:'Advisory', risk:'Low',    state:'idle',     feedback:'Stripe plans stable. No pricing changes.' },
+  { id:'research', name:'Research Agent',           role:'Intelligence',          specialty:'Market intel, tech trends, competitor tracking',     perm:'Advisory', risk:'Low',    state:'idle',     feedback:'Standing by for research requests.' },
+  { id:'obsidian', name:'Obsidian Librarian Agent', role:'Knowledge Base',        specialty:'Vault sync, project brain, daily command notes',     perm:'Read',     risk:'Low',    state:'idle',     feedback:'Mirror planned. No vault writes in v1.' },
+  { id:'github',   name:'GitHub Handoff Agent',     role:'Code Handoffs',         specialty:'Branch management, PR coordination, commit safety',  perm:'Commit',   risk:'Medium', state:'idle',     feedback:'misato-claude-ui branch ready.' },
+  { id:'discord',  name:'Discord Integration Agent',role:'Community Ops',         specialty:'#misato channel, bot commands, @misato#6010',        perm:'Mock',     risk:'Low',    state:'idle',     feedback:'Discord integration planned. Mock mode only.' },
+  { id:'approval', name:'Approval Gate Agent',      role:'Owner Authorization',   specialty:'High-risk gates, production deploys, env changes',   perm:'Gate',     risk:'High',   state:'idle',     feedback:'No live approvals pending.' }
 ];
 
 const MOCK_TASKS = [
-  { title:'Set MISATO_DESKTOP_AUTH_TOKEN in Vercel Preview', project:'NexCall',      priority:'High',   risk:'Low',    agent:'Hermes',    status:'Done',    approvalRequired:false },
-  { title:'Add Vercel bypass token to desktop config UI',    project:'NexCall',      priority:'High',   risk:'Low',    agent:'Claude UI', status:'Done',    approvalRequired:false },
-  { title:'Fix CORS / Cross-Origin-Resource-Policy',         project:'NexCall',      priority:'High',   risk:'Low',    agent:'Codex QA',  status:'Doing',   approvalRequired:false },
-  { title:'Implement 13-screen UI spec',                     project:'NexCall',      priority:'High',   risk:'Low',    agent:'Claude UI', status:'Doing',   approvalRequired:false },
-  { title:'Rebuild MISATO.exe with new desktop-ui',          project:'NexCall',      priority:'High',   risk:'Low',    agent:'Owner',     status:'Doing',   approvalRequired:false },
-  { title:'Connect production MISATO routes to nexcall.one', project:'NexCall',      priority:'Medium', risk:'High',   agent:'Hermes',    status:'Blocked', approvalRequired:true  },
-  { title:'Wire live Obsidian vault sync',                   project:'NexCall',      priority:'Low',    risk:'Medium', agent:'Obsidian',  status:'Idea',    approvalRequired:true  },
-  { title:'Bad Genetics Stripe checkout integration',        project:'Bad Genetics', priority:'Medium', risk:'Medium', agent:'Backend',   status:'Idea',    approvalRequired:false },
-  { title:'Bad Genetics UI polish pass',                     project:'Bad Genetics', priority:'Low',    risk:'Low',    agent:'Claude UI', status:'Idea',    approvalRequired:false }
+  { id:'t1', title:'Fix CORS / Cross-Origin-Resource-Policy',         project:'NexCall',      priority:'High',   risk:'Low',    agent:'Codex QA',  status:'Doing',   approvalRequired:false },
+  { id:'t2', title:'Implement Hermes-primary desktop UI (v4)',        project:'NexCall',      priority:'High',   risk:'Low',    agent:'Claude UI', status:'Doing',   approvalRequired:false },
+  { id:'t3', title:'Rebuild MISATO.exe with new desktop-ui',          project:'NexCall',      priority:'High',   risk:'Low',    agent:'Owner',     status:'Doing',   approvalRequired:false },
+  { id:'t4', title:'Set MISATO_DESKTOP_AUTH_TOKEN in Vercel Preview', project:'NexCall',      priority:'High',   risk:'Low',    agent:'Hermes',    status:'Done',    approvalRequired:false },
+  { id:'t5', title:'Add Vercel bypass token to desktop config UI',    project:'NexCall',      priority:'High',   risk:'Low',    agent:'Claude UI', status:'Done',    approvalRequired:false },
+  { id:'t6', title:'Connect production MISATO routes to nexcall.one', project:'NexCall',      priority:'Medium', risk:'High',   agent:'Hermes',    status:'Blocked', approvalRequired:true  },
+  { id:'t7', title:'Wire live Obsidian vault sync',                   project:'NexCall',      priority:'Low',    risk:'Medium', agent:'Obsidian',  status:'Idea',    approvalRequired:true  },
+  { id:'t8', title:'Bad Genetics Stripe checkout integration',        project:'Bad Genetics', priority:'Medium', risk:'Medium', agent:'Backend',   status:'Idea',    approvalRequired:false },
+  { id:'t9', title:'Bad Genetics UI polish pass',                     project:'Bad Genetics', priority:'Low',    risk:'Low',    agent:'Claude UI', status:'Idea',    approvalRequired:false }
 ];
 
 const MOCK_LOGS = [
-  { ts:'09:31:57', src:'CONN-TEST',  sev:'warn',  project:'NexCall', agent:'Claude UI', action:'GET /api/misato/status → Failed to fetch (CORS blocked)' },
-  { ts:'09:27:18', src:'CONN-TEST',  sev:'warn',  project:'NexCall', agent:'Claude UI', action:'GET /api/misato/status → Vercel SSO wall detected' },
-  { ts:'09:05:42', src:'DESKTOP',    sev:'info',  project:'NexCall', agent:'Owner',     action:'Bypass token generated and saved to Vercel Preview' },
-  { ts:'09:03:18', src:'DEPLOY',     sev:'info',  project:'NexCall', agent:'Hermes',    action:'Commit 545faae pushed to misato-full-build, redeploy triggered' },
-  { ts:'09:01:55', src:'BUILD',      sev:'info',  project:'NexCall', agent:'Claude UI', action:'desktop-ui v2 files written to outputs/' },
-  { ts:'08:58:02', src:'AUTH',       sev:'info',  project:'NexCall', agent:'Security',  action:'MISATO_DESKTOP_AUTH_TOKEN set in Vercel Preview env' },
-  { ts:'08:55:00', src:'CODEX',      sev:'info',  project:'NexCall', agent:'Codex QA',  action:'Client reliability lane started on misato-codex-client-qa' }
-];
-
-const INTEGRATIONS = [
-  { name:'Local Hermes Bridge',  icon:'⬡',  mode:'active',   status:'Active',  desc:'localhost:3010 sidecar. Provides /command, /agents, /tasks, /events/stream.', next:'Start Hermes sidecar, then click Find Hermes' },
-  { name:'Vercel Preview',       icon:'☁',  mode:'active',   status:'Active',  desc:'Preview branch connected. Deployment protection bypass enabled.', next:'Redeploy after CORS fix' },
-  { name:'GitHub Handoffs',      icon:'⌥',  mode:'ready',    status:'Ready',   desc:'Branch coordination active. misato-claude-ui ready to push.',    next:'Push + open PR to misato-full-build' },
-  { name:'Obsidian Mirror',      icon:'⬡',  mode:'planned',  status:'Planned', desc:'Vault sync not yet configured. Mirror docs exist in repo.',       next:'Set OBSIDIAN_VAULT_PATH, owner approval required' },
-  { name:'Discord @misato',      icon:'◈',  mode:'mock',     status:'Mock',    desc:'Bot token not connected. #misato channel planned.',              next:'Wire DISCORD_BOT_TOKEN' },
-  { name:'Claude UI Lane',       icon:'◎',  mode:'active',   status:'Active',  desc:'13-screen spec implemented. Files ready for cargo tauri build.', next:'Copy to desktop-ui/, rebuild .exe' },
-  { name:'MISATO Council',       icon:'⬢',  mode:'mock',     status:'Mock v1', desc:'14 agents active in mock mode. Live pending owner approval.',    next:'Owner approval required for live council' },
-  { name:'Approval Gate',        icon:'◆',  mode:'ready',    status:'Ready',   desc:'No approvals pending. Gate armed and ready.',                    next:'No action needed' }
-];
-
-const AGENT_LANES = [
-  { id:'claude', cls:'claude',
-    name:'Claude UI Lane',          branch:'misato-claude-ui',
-    status:'active',                statusCls:'badge-teal',
-    currentTask:'13-screen UI spec + Local Hermes Bridge discovery (v4)',
-    lastHandoff:'desktop-ui v3 → Hermes for build validation',
-    blockers:'None',                next:'Commit + push misato-claude-ui, notify Hermes',
-    owns:['Desktop UI','Visual design','Layout','UX polish','Component system']
-  },
-  { id:'hermes', cls:'hermes',
-    name:'Hermes Backend Lane',     branch:'misato-hermes-backend',
-    status:'active',                statusCls:'badge-amber',
-    currentTask:'CORS fix + OPTIONS preflight + Preview redeploy',
-    lastHandoff:'Token env set, awaiting Claude UI v4',
-    blockers:'MISATO.exe rebuild needed by owner',
-    next:'Verify redeploy, confirm /api/misato/status → 200 JSON',
-    owns:['Backend API','Auth middleware','Integrations','Build safety']
-  },
-  { id:'codex', cls:'codex',
-    name:'Codex QA Lane',           branch:'misato-codex-client-qa',
-    status:'active',                statusCls:'badge-amber',
-    currentTask:'Client reliability audit and bug patching',
-    lastHandoff:'Reviewing CORS, OPTIONS, and desktop connection flow',
-    blockers:'None',                next:'Complete audit, push fixes, trigger Hermes smoke test',
-    owns:['Bug patching','QA','Connection flow','Build validation','Security']
-  },
-  { id:'misato', cls:'misato',
-    name:'MISATO Coordinator',      branch:'misato-full-build',
-    status:'coordinating',          statusCls:'badge-slate',
-    currentTask:'Council report, merge coordination, spec review',
-    lastHandoff:'Hermes ↔ Claude UI ↔ Codex sync',
-    blockers:'None',                next:'Merge all lanes → misato-full-build after review',
-    owns:['Council orchestration','Merge gating','Handoff docs']
-  },
-  { id:'owner', cls:'owner',
-    name:'Owner Approval Lane',     branch:'main (gate)',
-    status:'standing by',           statusCls:'badge-blue',
-    currentTask:'Start Hermes sidecar → confirm LOCAL SOLO mode active',
-    lastHandoff:'Bypass token generated and saved',
-    blockers:'Production deploy requires owner approval',
-    next:'Run Hermes → launch rebuilt MISATO.exe → click Find Hermes',
-    owns:['Production deploys','Env vars','DNS','Risky action approvals']
-  }
-];
-
-const OBSIDIAN_FOLDERS = [
-  { name:'Daily Command',     desc:'Active missions, today\'s priorities, blockers',                  count:3 },
-  { name:'Active Missions',   desc:'Ongoing project briefs and deliverables',                         count:5 },
-  { name:'Agent Status',      desc:'Council agent assignments and feedback',                          count:14 },
-  { name:'Claude↔Hermes',     desc:'Cross-lane handoff notes and decisions',                         count:4 },
-  { name:'Project Decisions', desc:'Architecture choices, trade-off records',                         count:7 },
-  { name:'Council Reports',   desc:'Consensus summaries and risk assessments',                        count:2 }
+  { ts:'09:31:57', src:'CONN-TEST', sev:'warn', project:'NexCall', agent:'Claude UI', action:'GET /api/misato/status → Failed to fetch (CORS blocked)' },
+  { ts:'09:27:18', src:'CONN-TEST', sev:'warn', project:'NexCall', agent:'Claude UI', action:'GET /api/misato/status → Vercel SSO wall detected' },
+  { ts:'09:05:42', src:'DESKTOP',   sev:'info', project:'NexCall', agent:'Owner',     action:'Bypass token generated and saved to Vercel Preview' },
+  { ts:'09:03:18', src:'DEPLOY',    sev:'info', project:'NexCall', agent:'Hermes',    action:'Commit 545faae pushed to misato-full-build, redeploy triggered' },
+  { ts:'09:01:55', src:'BUILD',     sev:'info', project:'NexCall', agent:'Claude UI', action:'desktop-ui v4 written — Hermes-primary layout' },
+  { ts:'08:58:02', src:'AUTH',      sev:'info', project:'NexCall', agent:'Security',  action:'MISATO_DESKTOP_AUTH_TOKEN set in Vercel Preview env' },
+  { ts:'08:55:00', src:'CODEX',     sev:'info', project:'NexCall', agent:'Codex QA',  action:'Client reliability lane started on misato-codex-client-qa' }
 ];
 
 const MOCK_APPROVALS = [
   { id:'apr-1', title:'Connect production MISATO routes to nexcall.one', risk:'High',   agent:'Hermes Architecture Agent', details:'Merges MISATO API routes to production. Affects DNS and public routing.', requestedAt:'5 min ago' },
   { id:'apr-2', title:'Wire live Obsidian vault sync to file system',    risk:'Medium', agent:'Obsidian Librarian Agent',  details:'Grants read access to OBSIDIAN_VAULT_PATH. Requires path config.',       requestedAt:'12 min ago' }
 ];
+
+const MOCK_SCHEDULE = [
+  { time:'09:00 – 09:30', title:'MISATO Status Sync',              agent:'MISATO Coordinator', priority:'Medium', status:'Done',    live:false },
+  { time:'10:00 – 10:45', title:'Review CORS fix deployment',       agent:'Hermes',             priority:'High',   status:'Doing',   live:true  },
+  { time:'11:00 – 12:00', title:'Hermes-primary UI implementation', agent:'Claude UI',          priority:'High',   status:'Doing',   live:true  },
+  { time:'13:00 – 13:30', title:'Codex QA client reliability audit',agent:'Codex QA',           priority:'High',   status:'Idea',    live:false },
+  { time:'14:00 – 14:30', title:'Owner: rebuild MISATO.exe',        agent:'Owner',              priority:'High',   status:'Blocked', live:false },
+  { time:'15:00 – 15:15', title:'Approval review: prod deploy gate',agent:'Owner',              priority:'Medium', status:'Idea',    live:false }
+];
+
+const MOCK_SENTINEL = {
+  lastScanAt: '2025-05-25T09:33:00Z',
+  findings: [
+    { sev:'warn', title:'Token value appeared in chat session', loc:'Browser chat / session transcript', age:'1h ago', status:'Confirmed' },
+    { sev:'info', title:'Bypass token in localStorage (expected)', loc:'desktop-ui/app.js → localStorage', age:'2h ago', status:'Confirmed' },
+    { sev:'info', title:'.env.example contains placeholder values only', loc:'.env.example', age:'—', status:'OK' }
+  ],
+  remediation: [
+    { label:'Rotate all exposed secrets',          done:false },
+    { label:'.env.* is gitignored',                done:true  },
+    { label:'No secret values in client-side JS',  done:true  },
+    { label:'Token fields masked in UI',           done:true  },
+    { label:'No token in console.log / render',    done:true  },
+    { label:'CORS headers do not leak secrets',    done:true  }
+  ]
+};
+
+const MOCK_WATCHTOWER = {
+  services: [
+    { name:'Hermes Local Bridge',  meta:'Not found yet', ok:false },
+    { name:'SSE Event Stream',     meta:'Offline',       ok:false },
+    { name:'Vercel Preview API',   meta:'Not tested',    ok:null  },
+    { name:'Desktop Auth Token',   meta:'Not set',       ok:false },
+    { name:'CORS Headers',         meta:'Fix pending',   ok:false },
+    { name:'Discord Bot',          meta:'Mock only',     ok:null  },
+    { name:'Obsidian Sync',        meta:'Not configured',ok:null  }
+  ]
+};
 
 const QUICK_PROMPTS = [
   { label:'What needs attention today?', icon:'◎' },
@@ -137,12 +102,12 @@ const QUICK_PROMPTS = [
 ];
 
 const DESIGN_TOKENS = [
-  { name:'--bg-void',    hex:'#07080C', usage:'Window chrome, deepest bg' },
-  { name:'--bg-base',    hex:'#0C0E14', usage:'App background' },
-  { name:'--surface-1',  hex:'#111318', usage:'Primary panel backgrounds' },
-  { name:'--surface-2',  hex:'#181B22', usage:'Cards, raised elements' },
-  { name:'--surface-3',  hex:'#1E2129', usage:'Hover states, selected rows' },
-  { name:'--surface-4',  hex:'#252830', usage:'Modals, popovers' },
+  { name:'--bg-void',        hex:'#07080C', usage:'Window chrome, deepest bg' },
+  { name:'--bg-base',        hex:'#0C0E14', usage:'App background' },
+  { name:'--surface-1',      hex:'#111318', usage:'Primary panel backgrounds' },
+  { name:'--surface-2',      hex:'#181B22', usage:'Cards, raised elements' },
+  { name:'--surface-3',      hex:'#1E2129', usage:'Hover states, selected rows' },
+  { name:'--surface-4',      hex:'#252830', usage:'Modals, popovers' },
   { name:'--text-primary',   hex:'#E4E6F0', usage:'Primary labels, titles' },
   { name:'--text-secondary', hex:'#8A8FA0', usage:'Descriptions, metadata' },
   { name:'--text-tertiary',  hex:'#52566A', usage:'Disabled, timestamps, muted' },
@@ -154,13 +119,70 @@ const DESIGN_TOKENS = [
   { name:'--accent-slate',   hex:'#6B7280', usage:'Neutral, idle, scheduled' }
 ];
 
-const MOCK_SCHEDULE = [
-  { time:'09:00 – 09:30', title:'MISATO Status Sync',              agent:'MISATO Coordinator', priority:'Medium', status:'Done' },
-  { time:'10:00 – 10:45', title:'Review CORS fix deployment',       agent:'Hermes',             priority:'High',   status:'Doing' },
-  { time:'11:00 – 12:00', title:'13-screen UI implementation',      agent:'Claude UI',          priority:'High',   status:'Doing' },
-  { time:'13:00 – 13:30', title:'Codex QA client reliability audit',agent:'Codex QA',           priority:'High',   status:'Idea' },
-  { time:'14:00 – 14:30', title:'Owner: rebuild MISATO.exe',        agent:'Owner',              priority:'High',   status:'Blocked' },
-  { time:'15:00 – 15:15', title:'Approval review: prod deploy gate',agent:'Owner',              priority:'Medium', status:'Idea' }
+const INTEGRATIONS = [
+  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'localhost:3010 sidecar. /command /agents /tasks /events/stream.',  next:'Start Hermes sidecar, then click Find Hermes' },
+  { name:'Vercel Preview',      icon:'☁', mode:'active',  desc:'Preview branch connected. Deployment protection bypass enabled.',   next:'Redeploy after CORS fix' },
+  { name:'GitHub Handoffs',     icon:'⌥', mode:'ready',   desc:'Branch coordination active. misato-claude-ui ready to push.',     next:'Push + open PR to misato-full-build' },
+  { name:'Obsidian Mirror',     icon:'⬡', mode:'planned', desc:'Vault sync not yet configured. Mirror docs exist in repo.',        next:'Set OBSIDIAN_VAULT_PATH, owner approval required' },
+  { name:'Discord @misato',     icon:'◈', mode:'mock',    desc:'Bot token not connected. #misato channel planned.',               next:'Wire DISCORD_BOT_TOKEN' },
+  { name:'MISATO Council',      icon:'⬢', mode:'mock',    desc:'14 agents in mock mode. Live pending owner approval.',            next:'Owner approval required for live council' },
+  { name:'Approval Gate',       icon:'◆', mode:'ready',   desc:'No approvals pending. Gate armed and ready.',                    next:'No action needed' }
+];
+
+const AGENT_LANES = [
+  { id:'claude', cls:'claude', name:'Claude UI Lane',       branch:'misato-claude-ui',       status:'active',        statusCls:'badge-teal',
+    currentTask:'Hermes-primary UI rework (v4)', lastHandoff:'desktop-ui v3 → Hermes for validation',
+    blockers:'None', next:'Commit + push, notify Hermes',
+    owns:['Desktop UI','Visual design','Layout','UX polish','Component system'] },
+  { id:'hermes', cls:'hermes', name:'Hermes Backend Lane',  branch:'misato-hermes-backend',  status:'active',        statusCls:'badge-amber',
+    currentTask:'CORS fix + OPTIONS preflight + Preview redeploy', lastHandoff:'Token env set, awaiting Claude UI v4',
+    blockers:'MISATO.exe rebuild needed by owner', next:'Verify redeploy, confirm /api/misato/status → 200 JSON',
+    owns:['Backend API','Auth middleware','Integrations','Build safety'] },
+  { id:'codex',  cls:'codex',  name:'Codex QA Lane',        branch:'misato-codex-client-qa', status:'active',        statusCls:'badge-amber',
+    currentTask:'Client reliability audit and bug patching', lastHandoff:'Reviewing CORS, OPTIONS, and desktop connection flow',
+    blockers:'None', next:'Complete audit, push fixes, trigger Hermes smoke test',
+    owns:['Bug patching','QA','Connection flow','Build validation','Security'] },
+  { id:'misato', cls:'misato', name:'MISATO Coordinator',   branch:'misato-full-build',      status:'coordinating',  statusCls:'badge-slate',
+    currentTask:'Council report, merge coordination, spec review', lastHandoff:'Hermes ↔ Claude UI ↔ Codex sync',
+    blockers:'None', next:'Merge all lanes → misato-full-build after review',
+    owns:['Council orchestration','Merge gating','Handoff docs'] },
+  { id:'owner',  cls:'owner',  name:'Owner Approval Lane',  branch:'main (gate)',            status:'standing by',   statusCls:'badge-blue',
+    currentTask:'Start Hermes sidecar → confirm LOCAL SOLO mode', lastHandoff:'Bypass token generated and saved',
+    blockers:'Production deploy requires owner approval', next:'Run hermes:dev → launch MISATO.exe → click Find Hermes',
+    owns:['Production deploys','Env vars','DNS','Risky action approvals'] }
+];
+
+const OBSIDIAN_FOLDERS = [
+  { name:'Daily Command',     desc:'Active missions, today\'s priorities, blockers',     count:3 },
+  { name:'Active Missions',   desc:'Ongoing project briefs and deliverables',            count:5 },
+  { name:'Agent Status',      desc:'Council agent assignments and feedback',             count:14 },
+  { name:'Claude↔Hermes',     desc:'Cross-lane handoff notes and decisions',            count:4 },
+  { name:'Project Decisions', desc:'Architecture choices, trade-off records',            count:7 },
+  { name:'Council Reports',   desc:'Consensus summaries and risk assessments',           count:2 }
+];
+
+// ── SSE event type → display ───────────────────────────────────
+const EVENT_META = {
+  command_received:   { color:'var(--accent-violet)', label:'Command',  icon:'⊕' },
+  plan_generated:     { color:'var(--accent-blue)',   label:'Plan',     icon:'⬡' },
+  agent_assigned:     { color:'var(--accent-teal)',   label:'Agent',    icon:'⬢' },
+  task_updated:       { color:'var(--accent-teal)',   label:'Task',     icon:'◉' },
+  risk_detected:      { color:'var(--accent-red)',    label:'Risk',     icon:'⚠' },
+  approval_requested: { color:'var(--accent-amber)',  label:'Approval', icon:'◆' },
+  approval_resolved:  { color:'var(--accent-teal)',   label:'Resolved', icon:'✓' },
+  log:                { color:'var(--accent-slate)',  label:'Log',      icon:'≡' },
+  status_change:      { color:'var(--accent-blue)',   label:'Status',   icon:'◎' }
+};
+
+const COMMAND_STAGES = [
+  { type:'command_received',   label:'Command received',   icon:'⊕' },
+  { type:'plan_generated',     label:'Plan generated',     icon:'⬡' },
+  { type:'agent_assigned',     label:'Agent assigned',     icon:'⬢' },
+  { type:'task_updated',       label:'Task started',       icon:'◉' },
+  { type:'risk_detected',      label:'Risk scan',          icon:'⚠' },
+  { type:'approval_requested', label:'Approval queued',    icon:'◆' },
+  { type:'approval_resolved',  label:'Approval resolved',  icon:'✓' },
+  { type:'status_change',      label:'Complete',           icon:'◎' }
 ];
 
 // ── Storage ────────────────────────────────────────────────────
@@ -172,368 +194,479 @@ const storage = {
 // ── State ──────────────────────────────────────────────────────
 const injectedBase = (window.__MISATO_API_BASE_URL__ || '').trim();
 const state = {
-  // Preview / token config (unchanged contract)
-  baseUrl:      storage.get('misato_api_base_url', injectedBase),
-  token:        storage.get('misato_desktop_auth_token', ''),
-  bypassToken:  storage.get('misato_vercel_bypass_token', ''),
+  // ── Hermes connection (primary) ──────────────────────────────
+  hermesHost:    storage.get('misato_hermes_host', 'localhost'),
+  hermesPort:    storage.get('misato_hermes_port', '3010'),
+  // 'unknown' | 'finding' | 'connected' | 'not-running' | 'failed'
+  hermesState:   'unknown',
+  hermesHealth:  null,   // { status, version, uptime, agents, tasks, events }
 
-  // Local Hermes Bridge config
-  hermesHost:   storage.get('misato_hermes_host', 'localhost'),
-  hermesPort:   storage.get('misato_hermes_port', '3010'),
-  hermesMode:   null,          // null | 'local-solo' | 'preview-simple'
-  hermesFind:   'idle',        // 'idle' | 'finding' | 'found' | 'not-found'
+  // ── Preview / token (secondary, collapsed Advanced) ──────────
+  baseUrl:       storage.get('misato_api_base_url', injectedBase),
+  token:         storage.get('misato_desktop_auth_token', ''),
+  bypassToken:   storage.get('misato_vercel_bypass_token', ''),
+  // Not configured | Testing… | Connected | Unauthorized | Vercel Protected | 404 / Wrong URL | Failed
+  connTest: { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'' },
 
-  // SSE
-  sseState:     'idle',        // 'idle' | 'connecting' | 'connected' | 'error'
-  feedEvents:   [],            // live events from /events/stream
+  // ── SSE ──────────────────────────────────────────────────────
+  // 'idle' | 'connecting' | 'connected' | 'error'
+  sseState:      'idle',
+  feedEvents:    [],     // canonical: { eventId, timestamp, type, source, payload }
+  feedPaused:    false,
+  newWhilePaused:0,
 
-  // Live data
-  council:      [],
-  projects:     [],
-  tasks:        [],
-  approvals:    [],
-  logs:         [],
+  // ── Runtime data (null = not yet fetched) ───────────────────
+  agents:        null,
+  tasks:         null,
+  approvals:     null,
+  logs:          null,
+  watchtower:    null,
+  sentinel:      null,
 
-  // UI
-  activeScreen: 'overview',
-  messages:     [],
-  loading:      false,
-  lastError:    '',
-  configOpen:   false,
-  advancedOpen: false,         // Advanced section in Settings
-  agentFilter:  'all',
-  feedFilter:   'all',
-  designLibTab: 'tokens',
-  obsidianFolder: 0,
-  connTest: {
-    label:       'Not configured',
-    cls:         'unconfigured',
-    httpStatus:  null,
-    checkedAt:   null,
-    error:       '',
-    nextFix:     'Click Find Hermes to discover your local sidecar.'
-  }
+  // ── Command Center ───────────────────────────────────────────
+  messages:      [],
+  commandTimeline:[],    // stages populated by SSE events
+  activeCommandId:null,
+  loading:       false,
+
+  // ── UI ───────────────────────────────────────────────────────
+  activeScreen:   'overview',
+  configOpen:     false,
+  advancedOpen:   false,
+  selectedAgent:  null,
+  agentFilter:    'all',
+  feedFilter:     'all',
+  designLibTab:   'tokens',
+  obsidianFolder: 0
 };
 
-// ── Helpers ────────────────────────────────────────────────────
-function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// ── Utility Helpers ────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 function now()  { return new Date().toISOString(); }
 function fmtTime(iso) {
   if (!iso) return '—';
-  try { return new Date(iso).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' }); }
-  catch { return iso; }
+  try {
+    const d = new Date(iso);
+    if (isNaN(d)) return String(iso);
+    return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  } catch { return String(iso); }
 }
-function isConnected() { return state.connTest.label === 'Connected'; }
-
-function connCls(label) {
-  if (label === 'Connected')        return 'connected';
-  if (label === 'Unauthorized')     return 'unauthorized';
-  if (label === 'Vercel Protected') return 'protected';
-  if (label === '404 / Wrong URL')  return 'not-found';
-  if (label === 'Testing…')         return 'testing';
-  if (label === 'Failed')           return 'failed';
-  return 'unconfigured';
+function fmtUptime(s) {
+  if (!s && s !== 0) return '—';
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 }
+function isHermesConnected() { return state.hermesState === 'connected'; }
+function isConnected()       { return isHermesConnected() || state.connTest.label === 'Connected'; }
 
 function priorityBadge(p) {
-  const map = { High:'badge-red', Medium:'badge-amber', Low:'badge-slate', Critical:'badge-red' };
-  return `<span class="badge ${map[p] || 'badge-slate'}">${esc(p)}</span>`;
+  const m = { High:'badge-red', Medium:'badge-amber', Low:'badge-slate', Critical:'badge-red' };
+  return `<span class="badge ${m[p]||'badge-slate'}">${esc(p)}</span>`;
 }
-
 function statusBadge(s) {
-  const map = { Done:'badge-teal', Doing:'badge-blue', Blocked:'badge-red', Idea:'badge-slate', Active:'badge-teal', Planning:'badge-violet', Maintenance:'badge-slate' };
-  return `<span class="badge ${map[s] || 'badge-slate'}">${esc(s)}</span>`;
+  const m = { Done:'badge-teal', Doing:'badge-blue', Blocked:'badge-red', Idea:'badge-slate', Active:'badge-teal', Planning:'badge-violet', Maintenance:'badge-slate' };
+  return `<span class="badge ${m[s]||'badge-slate'}">${esc(s)}</span>`;
 }
-
 function agentStateBadge(s) {
-  const map = { active:'badge-teal', complete:'badge-slate', thinking:'badge-blue', blocked:'badge-red', idle:'badge-slate' };
-  return `<span class="badge ${map[s] || 'badge-slate'}">${esc(s)}</span>`;
+  const m = { active:'badge-teal', complete:'badge-slate', thinking:'badge-blue', blocked:'badge-red', idle:'badge-slate' };
+  return `<span class="badge ${m[s]||'badge-slate'}">${esc(s)}</span>`;
+}
+function normalizeCouncilAgent(agent) {
+  const abilities = Array.isArray(agent?.abilities) ? agent.abilities : [];
+  const blockedActions = Array.isArray(agent?.blockedActions) ? agent.blockedActions : [];
+  const allowedTools = Array.isArray(agent?.allowedTools) ? agent.allowedTools : [];
+  const rawStatus = String(agent?.status || agent?.state || "").toLowerCase();
+  const state =
+    rawStatus.includes("online") || rawStatus.includes("active") ? "active" :
+    rawStatus.includes("think") || rawStatus.includes("pending") ? "thinking" :
+    rawStatus.includes("block") || rawStatus.includes("fail") ? "blocked" :
+    rawStatus.includes("complete") ? "complete" : "idle";
+
+  return {
+    ...agent,
+    state,
+    risk: agent?.risk || agent?.riskLevel || "Low",
+    perm: agent?.perm || (typeof agent?.permissionLevel === "number" ? `L${agent.permissionLevel}` : agent?.permissionLevel || "Advisory"),
+    specialty: agent?.specialty || abilities.join(", ") || agent?.memoryScope || allowedTools.join(", ") || "Council operations",
+    feedback:
+      agent?.feedback ||
+      agent?.summary ||
+      agent?.status ||
+      `${abilities.slice(0, 2).join(" · ") || "Standing by"}${blockedActions.length ? ` · Blocked: ${blockedActions.slice(0, 2).join(", ")}` : ""}`
+  };
 }
 
-// ── Hermes Bridge ──────────────────────────────────────────────
+function normalizeItemsResponse(value) {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.items)) return value.items;
+  return [];
+}
+
+function normalizeWatchtower(value) {
+  if (!value) return null;
+  const services = Array.isArray(value.services)
+    ? value.services
+    : Array.isArray(value.monitors)
+      ? value.monitors.map((monitor) => ({
+          name: monitor?.name || monitor?.id || "Monitor",
+          meta: monitor?.target || monitor?.status || "",
+          ok: monitor?.status === "up" ? true : monitor?.status === "down" ? false : null
+        }))
+      : [];
+  return { ...value, services };
+}
+
+function mockBanner(label='') {
+  return `<div class="mock-banner">◎ MOCK DATA${label ? ' — ' + label : ''} · Connect Hermes for live state</div>`;
+}
+function connCls(label) {
+  const m = { 'Connected':'connected','Unauthorized':'unauthorized','Vercel Protected':'protected','404 / Wrong URL':'not-found','Testing…':'testing','Failed':'failed' };
+  return m[label] || 'unconfigured';
+}
+
+// ── Hermes Base URL ────────────────────────────────────────────
 function hermesBase() {
-  const host = (state.hermesHost || 'localhost').trim();
-  const port = (state.hermesPort || '3010').trim();
-  return `http://${host}:${port}`;
+  return `http://${(state.hermesHost||'localhost').trim()}:${(state.hermesPort||'3010').trim()}`;
 }
 
+// ── Discover Hermes (probes /health) ──────────────────────────
 async function discoverHermes() {
-  state.hermesFind = 'finding';
+  state.hermesState = 'finding';
   render();
   try {
     const ctrl = new AbortController();
-    const tid   = setTimeout(() => ctrl.abort(), 3500);
-    const res   = await fetch(`${hermesBase()}/health`, {
-      method: 'GET',
-      signal: ctrl.signal
-    });
+    const tid  = setTimeout(() => ctrl.abort(), 4000);
+    const res  = await fetch(`${hermesBase()}/health`, { method:'GET', signal:ctrl.signal });
     clearTimeout(tid);
     if (res.ok) {
-      state.hermesFind = 'found';
-      state.hermesMode = 'local-solo';
-      state.connTest   = { label:'Connected', cls:'connected', httpStatus:200, checkedAt:now(), error:'', nextFix:'' };
+      let health = {};
+      try { health = await res.json(); } catch {}
+      state.hermesHealth = health;
+      state.hermesState  = 'connected';
       startSSE();
       loadAllFromHermes();
     } else {
-      state.hermesFind = 'not-found';
+      state.hermesState = 'not-running';
     }
   } catch {
-    state.hermesFind = 'not-found';
+    state.hermesState = state.hermesState === 'finding' ? 'not-running' : state.hermesState;
   }
   render();
 }
 
-function saveHermesConfig() {
-  const host = document.getElementById('cfg-hermes-host')?.value?.trim() || 'localhost';
-  const port = document.getElementById('cfg-hermes-port')?.value?.trim() || '3010';
-  state.hermesHost = host;
-  state.hermesPort = port;
-  storage.set('misato_hermes_host', host);
-  storage.set('misato_hermes_port', port);
+function saveHermesHostPort() {
+  const h = document.getElementById('cfg-hermes-host')?.value?.trim() || 'localhost';
+  const p = document.getElementById('cfg-hermes-port')?.value?.trim() || '3010';
+  state.hermesHost = h; state.hermesPort = p;
+  storage.set('misato_hermes_host', h); storage.set('misato_hermes_port', p);
+}
+
+// ── Load all data from Hermes ──────────────────────────────────
+async function loadAllFromHermes() {
+  const base = hermesBase();
+  const safeGet = (url) =>
+    fetch(url).then(r => r.ok ? r.json() : Promise.reject()).catch(() => null);
+  const [agents, tasks, approvals, logs, watchtower, sentinel] = await Promise.all([
+    safeGet(`${base}/api/misato/agents`),
+    safeGet(`${base}/api/misato/tasks`),
+    safeGet(`${base}/api/misato/approvals`),
+    safeGet(`${base}/api/misato/logs`),
+    safeGet(`${base}/api/misato/watchtower`),
+    safeGet(`${base}/api/misato/secrets`)
+  ]);
+  const normalizedAgents = normalizeItemsResponse(agents).map(normalizeCouncilAgent);
+  const normalizedTasks = normalizeItemsResponse(tasks);
+  const normalizedApprovals = normalizeItemsResponse(approvals);
+  const normalizedLogs = normalizeItemsResponse(logs);
+  if (normalizedAgents.length)    state.agents    = normalizedAgents;
+  if (normalizedTasks.length)     state.tasks     = normalizedTasks;
+  if (normalizedApprovals.length) state.approvals = normalizedApprovals;
+  if (normalizedLogs.length)      state.logs      = normalizedLogs;
+  if (watchtower)                 state.watchtower = normalizeWatchtower(watchtower);
+  if (sentinel)                   state.sentinel   = sentinel;
+  render();
 }
 
 // ── SSE Event Subscription ─────────────────────────────────────
-let sseSource = null;
-
-// Canonical event types from Hermes spec
-const SSE_TYPE_COLOR = {
-  command_received:    'var(--accent-violet)',
-  plan_generated:      'var(--accent-blue)',
-  agent_assigned:      'var(--accent-teal)',
-  task_updated:        'var(--accent-teal)',
-  risk_detected:       'var(--accent-red)',
-  approval_requested:  'var(--accent-amber)',
-  approval_resolved:   'var(--accent-teal)',
-  log:                 'var(--accent-slate)',
-  status_change:       'var(--accent-blue)',
-};
+let _sseSource = null;
 
 function startSSE() {
-  if (sseSource) { sseSource.close(); sseSource = null; }
+  if (_sseSource) { _sseSource.close(); _sseSource = null; }
   state.sseState = 'connecting';
-  const url = `${hermesBase()}/events/stream`;
   try {
-    sseSource = new EventSource(url);
-    sseSource.onopen = () => {
+    _sseSource = new EventSource(`${hermesBase()}/events/stream`);
+    _sseSource.onopen = () => {
       state.sseState = 'connected';
-      updateFeedDisplay();
-      updateTopBarMode();
+      refreshFeedUI();
+      refreshTopBarUI();
     };
-    sseSource.onmessage = (e) => {
+    _sseSource.onmessage = (e) => {
       try {
         const evt = JSON.parse(e.data);
-        // Canonical schema: { eventId, timestamp, type, source, payload }
         state.feedEvents.unshift(evt);
-        if (state.feedEvents.length > 200) state.feedEvents.length = 200;
-        updateFeedDisplay();
+        if (state.feedEvents.length > 500) state.feedEvents.length = 500;
+        // Drive command timeline
+        if (COMMAND_STAGES.find(s => s.type === evt.type)) {
+          processCommandEvent(evt);
+        }
+        // Drive live data updates
+        if (evt.type === 'task_updated'   && evt.payload?.task)       updateLiveTask(evt.payload.task);
+        if (evt.type === 'agent_assigned' && evt.payload?.agent)      updateLiveAgent(evt.payload.agent);
+        if (evt.type === 'approval_requested' && evt.payload?.approval) prependLiveApproval(evt.payload.approval);
+        if (!state.feedPaused) {
+          refreshFeedUI();
+        } else {
+          state.newWhilePaused++;
+          refreshFeedPauseBadge();
+        }
       } catch {}
     };
-    sseSource.onerror = () => {
+    _sseSource.onerror = () => {
       state.sseState = 'error';
-      if (sseSource) { sseSource.close(); sseSource = null; }
-      updateFeedDisplay();
-      updateTopBarMode();
-      // Retry in 8s if still in local-solo
-      setTimeout(() => { if (state.hermesMode === 'local-solo') startSSE(); }, 8000);
+      if (_sseSource) { _sseSource.close(); _sseSource = null; }
+      refreshFeedUI(); refreshTopBarUI();
+      setTimeout(() => { if (state.hermesState === 'connected') startSSE(); }, 8000);
     };
   } catch {
     state.sseState = 'error';
-    setTimeout(() => { if (state.hermesMode === 'local-solo') startSSE(); }, 8000);
+    setTimeout(() => { if (state.hermesState === 'connected') startSSE(); }, 8000);
   }
 }
 
 function stopSSE() {
-  if (sseSource) { sseSource.close(); sseSource = null; }
+  if (_sseSource) { _sseSource.close(); _sseSource = null; }
   state.sseState = 'idle';
 }
 
-// Partial DOM update — only touches feed-entries, no full re-render
-function updateFeedDisplay() {
+// ── Live data incremental updates (no full re-render) ─────────
+function updateLiveTask(task) {
+  if (!state.tasks) state.tasks = [];
+  const idx = state.tasks.findIndex(t => t.id === task.id);
+  if (idx >= 0) state.tasks[idx] = { ...state.tasks[idx], ...task };
+  else state.tasks.unshift(task);
+}
+function updateLiveAgent(agent) {
+  if (!state.agents) state.agents = [];
+  const idx = state.agents.findIndex(a => a.id === agent.id);
+  if (idx >= 0) state.agents[idx] = { ...state.agents[idx], ...agent };
+}
+function prependLiveApproval(approval) {
+  if (!state.approvals) state.approvals = [];
+  if (!state.approvals.find(a => a.id === approval.id)) state.approvals.unshift(approval);
+}
+
+// ── Command timeline from SSE events ──────────────────────────
+function processCommandEvent(evt) {
+  if (state.activeCommandId && evt.payload?.commandId && evt.payload.commandId !== state.activeCommandId) return;
+  const existing = state.commandTimeline.find(e => e.type === evt.type);
+  if (!existing) {
+    state.commandTimeline.push({
+      type:      evt.type,
+      label:     COMMAND_STAGES.find(s=>s.type===evt.type)?.label || evt.type,
+      icon:      COMMAND_STAGES.find(s=>s.type===evt.type)?.icon  || '◎',
+      timestamp: evt.timestamp,
+      detail:    evt.payload?.summary || evt.payload?.message || '',
+      done:      true
+    });
+  }
+  // Partial update if Command Center is active
+  if (state.activeScreen === 'command' && !state.configOpen) {
+    const tl = document.getElementById('command-timeline');
+    if (tl) tl.innerHTML = buildTimelineHTML();
+  }
+}
+
+// ── Partial DOM updates (avoid re-render on every SSE tick) ───
+function refreshFeedUI() {
   const el = document.querySelector('.feed-entries');
   if (el) el.innerHTML = buildFeedEntriesHTML();
+  refreshFeedMeta();
+}
+function refreshFeedMeta() {
   const lbl = document.querySelector('.live-badge');
   if (lbl) {
-    if (state.sseState === 'connected') {
-      lbl.textContent = '● SSE LIVE';
-      lbl.style.color = 'var(--accent-teal)';
-    } else if (state.sseState === 'connecting') {
-      lbl.textContent = '○ SSE…';
-      lbl.style.color = 'var(--accent-amber)';
-    } else {
-      lbl.textContent = '● MOCK';
-      lbl.style.color = 'var(--accent-slate)';
-    }
+    const { text, color } = sseLiveLabel();
+    lbl.textContent = text; lbl.style.color = color;
   }
-  const cnt = document.querySelector('.feed-entry-count');
-  if (cnt) cnt.textContent = state.feedEvents.length || MOCK_LOGS.length;
+  const cnt = document.querySelector('.feed-count');
+  if (cnt) cnt.textContent = getFilteredFeedEvents().length;
+  const pauseBtn = document.querySelector('#btn-feed-pause');
+  if (pauseBtn) {
+    pauseBtn.textContent = state.feedPaused
+      ? (state.newWhilePaused ? `Follow Live (${state.newWhilePaused} new)` : 'Follow Live')
+      : 'Pause';
+  }
+}
+function refreshFeedPauseBadge() {
+  const pauseBtn = document.querySelector('#btn-feed-pause');
+  if (pauseBtn && state.feedPaused) {
+    pauseBtn.textContent = `Follow Live (${state.newWhilePaused} new)`;
+  }
+}
+function refreshTopBarUI() {
+  const el = document.querySelector('.topbar-hermes');
+  if (el) el.outerHTML = buildTopBarHermesHTML();
 }
 
-// Partial DOM update — only updates mode badge in topbar
-function updateTopBarMode() {
-  const el = document.querySelector('.mode-badge');
-  if (!el) return;
-  const { text, cls } = getModeBadge();
-  el.textContent = text;
-  el.className = `mode-badge mode-${cls}`;
+function sseLiveLabel() {
+  if (state.sseState === 'connected')  return { text:'● LIVE',     color:'var(--accent-teal)' };
+  if (state.sseState === 'connecting') return { text:'○ SSE…',     color:'var(--accent-amber)' };
+  if (state.sseState === 'error')      return { text:'● SSE ERR',  color:'var(--accent-red)' };
+  return { text:'● MOCK', color:'var(--accent-slate)' };
 }
 
-function getModeBadge() {
-  if (state.hermesMode === 'local-solo') {
-    return { text: '⬡ LOCAL SOLO', cls: 'local' };
-  }
-  if (state.hermesMode === 'preview-simple') {
-    return { text: '☁ PREVIEW', cls: 'preview' };
-  }
-  if (isConnected()) {
-    return { text: '⬡ CONNECTED', cls: 'local' };
-  }
-  return { text: '— OFFLINE', cls: 'offline' };
+// ── Feed data ──────────────────────────────────────────────────
+function toFeedEvent(log, i) {
+  return {
+    eventId:   `mock-${i}`,
+    timestamp: log.ts,
+    type:      log.sev === 'warn' || log.sev === 'error' ? 'risk_detected' : 'log',
+    source:    log.src,
+    payload:   { message: log.action, agent: log.agent, sev: log.sev, _mock: true }
+  };
+}
+
+function getFilteredFeedEvents() {
+  const raw = state.feedEvents.length ? state.feedEvents : MOCK_LOGS.map(toFeedEvent);
+  if (state.feedFilter === 'all')      return raw;
+  if (state.feedFilter === 'alerts')   return raw.filter(e => e.type === 'risk_detected' || e.payload?.sev === 'warn' || e.payload?.sev === 'error');
+  if (state.feedFilter === 'agents')   return raw.filter(e => ['agent_assigned','status_change'].includes(e.type));
+  if (state.feedFilter === 'commands') return raw.filter(e => ['command_received','plan_generated','approval_requested','approval_resolved'].includes(e.type));
+  if (state.feedFilter === 'tasks')    return raw.filter(e => e.type === 'task_updated');
+  return raw;
 }
 
 function buildFeedEntriesHTML() {
-  if (state.feedEvents.length) {
-    return state.feedEvents.slice(0, 60).map(e => {
-      const ts  = e.timestamp ? fmtTime(e.timestamp) : '—';
-      const src = e.type || e.source || 'event';
-      const msg = (e.payload && (e.payload.message || e.payload.action || e.payload.description))
-                  || (typeof e.payload === 'string' ? e.payload : '')
-                  || JSON.stringify(e.payload || {}).substring(0, 80);
-      const color = SSE_TYPE_COLOR[e.type] || 'var(--accent-violet)';
-      return `
-        <div class="feed-entry">
-          <div class="feed-entry-header">
-            <span class="feed-entry-ts">${esc(ts)}</span>
-            <span class="feed-entry-src" style="color:${color}">${esc(src)}</span>
-          </div>
-          <div class="feed-entry-msg">${esc(msg)}</div>
-        </div>`;
-    }).join('');
-  }
-  // Fallback to MOCK_LOGS — labeled clearly
-  return MOCK_LOGS.map(e => `
-    <div class="feed-entry feed-entry-mock">
-      <div class="feed-entry-header">
-        <span class="feed-entry-ts">${esc(e.ts)}</span>
-        <span class="feed-entry-src">${esc(e.src)}</span>
-      </div>
-      <div class="feed-entry-msg">${esc(e.action)}</div>
-    </div>`).join('');
+  const events = getFilteredFeedEvents().slice(0, 100);
+  if (!events.length) return `<div class="feed-empty">No events match this filter</div>`;
+  return events.map(e => {
+    const isMock = !!e.payload?._mock;
+    const meta   = EVENT_META[e.type] || EVENT_META.log;
+    const ts     = fmtTime(e.timestamp);
+    const src    = e.source || '';
+    const msg    = e.payload?.message || e.payload?.action || e.payload?.summary ||
+                   (typeof e.payload === 'string' ? e.payload : '') ||
+                   JSON.stringify(e.payload||{}).substring(0,80);
+    return `
+      <div class="feed-entry ${isMock?'feed-entry-mock':''}">
+        <div class="feed-entry-header">
+          <span class="feed-entry-ts">${esc(ts)}</span>
+          <span class="feed-entry-type" style="color:${meta.color}">${meta.icon} ${esc(meta.label)}</span>
+          ${src ? `<span class="feed-entry-src">${esc(src)}</span>` : ''}
+        </div>
+        <div class="feed-entry-msg">${esc(msg)}</div>
+      </div>`;
+  }).join('');
 }
 
-// ── Network layer (unchanged API contract) ─────────────────────
+// ── Command timeline HTML ──────────────────────────────────────
+function buildTimelineHTML() {
+  const done = new Set(state.commandTimeline.map(e => e.type));
+  return COMMAND_STAGES.map(stage => {
+    const hit = state.commandTimeline.find(e => e.type === stage.type);
+    const cls = hit ? 'done' : done.size > 0 ? 'pending' : 'pending';
+    return `
+      <div class="timeline-item ${cls}">
+        <div class="timeline-dot">${hit ? stage.icon : '○'}</div>
+        <div class="timeline-body">
+          <div class="timeline-label">${esc(stage.label)}</div>
+          ${hit ? `<div class="timeline-detail">${esc(hit.detail || '')}</div><div class="timeline-ts">${esc(fmtTime(hit.timestamp))}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Network layer — Preview / token path (unchanged contract) ──
 function headers() {
   const h = { 'content-type': 'application/json' };
-  // Tokens are read from state but never logged, never rendered as text
   if (state.token)       h['x-misato-desktop-token']     = state.token;
   if (state.bypassToken) h['x-vercel-protection-bypass'] = state.bypassToken;
   return h;
 }
-
 function endpoint(path) {
-  // In local-solo mode, route to Hermes sidecar; otherwise use configured base URL
-  const base = state.hermesMode === 'local-solo'
+  const base = isHermesConnected()
     ? hermesBase()
     : state.baseUrl.replace(/\/+$/, '');
   return `${base}/${path.replace(/^\/+/, '')}`;
 }
-
 async function apiGet(path) {
-  const res = await fetch(endpoint(path), { method:'GET', headers: headers() });
+  const res = await fetch(endpoint(path), { method:'GET', headers:headers() });
   const ct = res.headers.get('content-type') || '';
-  if (ct.includes('text/html') && !res.ok) throw Object.assign(new Error('Vercel Protected'), { isVercelSso: true, status: res.status });
-  if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
+  if (ct.includes('text/html') && !res.ok) throw Object.assign(new Error('Vercel Protected'), { isVercelSso:true, status:res.status });
+  if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status:res.status });
   return res.json();
 }
 
-// ── Test Connection (7 states) — Preview / token path ─────────
+// ── Test Connection (Preview/token path) ───────────────────────
 async function testConnection() {
   if (!state.baseUrl) {
-    state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Set MISATO API Base URL in the Advanced section below.' };
+    state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Set API Base URL in the Advanced section.' };
     render(); return;
   }
-  state.hermesMode = 'preview-simple';
   state.connTest = { label:'Testing…', cls:'testing', httpStatus:null, checkedAt:null, error:'', nextFix:'' };
   render();
   try {
-    const res = await fetch(`${state.baseUrl.replace(/\/+$/, '')}/status`, { method:'GET', headers: headers() });
-    const ct = res.headers.get('content-type') || '';
-    const checkedAt = now();
-    if (ct.includes('text/html') && !res.ok) {
-      state.connTest = { label:'Vercel Protected', cls:'protected', httpStatus:res.status, checkedAt, error:'Vercel SSO wall blocking API access.', nextFix:'Add the Vercel bypass token in the Advanced section.' };
-    } else if (res.status === 401 || res.status === 403) {
-      state.connTest = { label:'Unauthorized', cls:'unauthorized', httpStatus:res.status, checkedAt, error:'Backend rejected the desktop token.', nextFix:'Check your Desktop Auth Token matches MISATO_DESKTOP_AUTH_TOKEN in Vercel.' };
-    } else if (res.status === 404) {
-      state.connTest = { label:'404 / Wrong URL', cls:'not-found', httpStatus:404, checkedAt, error:'Route not found at this URL.', nextFix:'Verify the API Base URL includes the correct path.' };
-    } else if (res.ok) {
-      state.connTest = { label:'Connected', cls:'connected', httpStatus:200, checkedAt, error:'', nextFix:'' };
-      loadAll();
-    } else {
-      state.connTest = { label:'Failed', cls:'failed', httpStatus:res.status, checkedAt, error:`Unexpected response: HTTP ${res.status}`, nextFix:'Check if the server is running.' };
-    }
+    const url = `${state.baseUrl.replace(/\/+$/,'')}/status`;
+    const res = await fetch(url, { method:'GET', headers:headers() });
+    const ct  = res.headers.get('content-type') || '';
+    const ts  = now();
+    if (ct.includes('text/html') && !res.ok)      state.connTest = { label:'Vercel Protected', cls:'protected',    httpStatus:res.status, checkedAt:ts, error:'Vercel SSO wall blocking API access.',              nextFix:'Add the Vercel bypass token in Advanced.' };
+    else if (res.status === 401 || res.status === 403) state.connTest = { label:'Unauthorized',    cls:'unauthorized', httpStatus:res.status, checkedAt:ts, error:'Backend rejected the desktop token.',              nextFix:'Check Desktop Auth Token matches Vercel env.' };
+    else if (res.status === 404)                   state.connTest = { label:'404 / Wrong URL',  cls:'not-found',   httpStatus:404,        checkedAt:ts, error:'Route not found at this URL.',                    nextFix:'Verify API Base URL includes the correct path.' };
+    else if (res.ok)                               state.connTest = { label:'Connected',         cls:'connected',   httpStatus:200,        checkedAt:ts, error:'', nextFix:'' };
+    else                                           state.connTest = { label:'Failed',            cls:'failed',      httpStatus:res.status, checkedAt:ts, error:`Unexpected response: HTTP ${res.status}`,         nextFix:'Check if the server is running.' };
   } catch (e) {
-    const checkedAt = now();
-    if (e.isVercelSso) {
-      state.connTest = { label:'Vercel Protected', cls:'protected', httpStatus:e.status, checkedAt, error:'Vercel SSO wall detected.', nextFix:'Add the Vercel bypass token in the Advanced section.' };
-    } else {
-      state.connTest = { label:'Failed', cls:'failed', httpStatus:null, checkedAt, error: e.message || 'Network error', nextFix:'Check MISATO API Base URL and your connection.' };
-    }
+    const ts = now();
+    if (e.isVercelSso) state.connTest = { label:'Vercel Protected', cls:'protected', httpStatus:e.status, checkedAt:ts, error:'Vercel SSO wall detected.', nextFix:'Add the Vercel bypass token in Advanced.' };
+    else               state.connTest = { label:'Failed',           cls:'failed',    httpStatus:null,    checkedAt:ts, error:e.message||'Network error',   nextFix:'Check MISATO API Base URL and your connection.' };
   }
   render();
 }
 
-// ── Load all live data (Preview mode) ─────────────────────────
 async function loadAll() {
   try {
-    const [council, projects, tasks, approvals, logs] = await Promise.allSettled([
-      apiGet('council'), apiGet('projects'), apiGet('tasks'), apiGet('approvals'), apiGet('logs')
+    const [agents,tasks,approvals,logs,watchtower,sentinel] = await Promise.allSettled([
+      apiGet('council'), apiGet('tasks'), apiGet('approvals'), apiGet('logs'), apiGet('watchtower/status'), apiGet('secrets/status')
     ]);
-    state.council   = council.status   === 'fulfilled' && Array.isArray(council.value)   ? council.value   : [];
-    state.projects  = projects.status  === 'fulfilled' && Array.isArray(projects.value)  ? projects.value  : [];
-    state.tasks     = tasks.status     === 'fulfilled' && Array.isArray(tasks.value)     ? tasks.value     : [];
-    state.approvals = approvals.status === 'fulfilled' && Array.isArray(approvals.value) ? approvals.value : [];
-    state.logs      = logs.status      === 'fulfilled' && Array.isArray(logs.value)      ? logs.value      : [];
-  } catch {}
-  render();
-}
-
-// ── Load all live data (Hermes local-solo mode) ────────────────
-// Hermes endpoints: /agents /tasks /approvals /logs /watchtower
-async function loadAllFromHermes() {
-  if (state.hermesMode !== 'local-solo') return;
-  try {
-    const [agents, tasks, approvals, logs] = await Promise.allSettled([
-      fetch(`${hermesBase()}/agents`).then(r => r.ok ? r.json() : Promise.reject()),
-      fetch(`${hermesBase()}/tasks`).then(r => r.ok ? r.json() : Promise.reject()),
-      fetch(`${hermesBase()}/approvals`).then(r => r.ok ? r.json() : Promise.reject()),
-      fetch(`${hermesBase()}/logs`).then(r => r.ok ? r.json() : Promise.reject()),
-    ]);
-    if (agents.status === 'fulfilled' && Array.isArray(agents.value))       state.council   = agents.value;
-    if (tasks.status === 'fulfilled' && Array.isArray(tasks.value))         state.tasks     = tasks.value;
-    if (approvals.status === 'fulfilled' && Array.isArray(approvals.value)) state.approvals = approvals.value;
-    if (logs.status === 'fulfilled' && Array.isArray(logs.value))           state.logs      = logs.value;
+    const normalizedAgents = normalizeItemsResponse(agents.status === 'fulfilled' ? agents.value : null).map(normalizeCouncilAgent);
+    const normalizedTasks = normalizeItemsResponse(tasks.status === 'fulfilled' ? tasks.value : null);
+    const normalizedApprovals = normalizeItemsResponse(approvals.status === 'fulfilled' ? approvals.value : null);
+    const normalizedLogs = normalizeItemsResponse(logs.status === 'fulfilled' ? logs.value : null);
+    if (normalizedAgents.length)    state.agents    = normalizedAgents;
+    if (normalizedTasks.length)     state.tasks     = normalizedTasks;
+    if (normalizedApprovals.length) state.approvals = normalizedApprovals;
+    if (normalizedLogs.length)      state.logs      = normalizedLogs;
+    if (watchtower.status === 'fulfilled' && watchtower.value) state.watchtower = normalizeWatchtower(watchtower.value);
+    if (sentinel.status === 'fulfilled' && sentinel.value)     state.sentinel   = sentinel.value;
   } catch {}
   render();
 }
 
 // ── Send command ───────────────────────────────────────────────
 async function sendCommand(cmd) {
-  if (!cmd.trim() || state.loading) return;
+  if (!cmd.trim() || state.loading || !isConnected()) return;
   state.loading = true;
-  state.messages.push({ role:'user', text: cmd, ts: now() });
+  state.commandTimeline = [];
+  state.activeCommandId = null;
+  state.messages.push({ role:'user', text:cmd, ts:now() });
   render();
   try {
     const res = await fetch(endpoint('command'), {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ command: cmd })
+      method:'POST', headers:headers(),
+      body: JSON.stringify({ command:cmd })
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    // Canonical command response: ok, mode, missionSummary, hermesPlan, ...
+    // Canonical: { ok, commandId, mode, missionSummary, hermesPlan, … }
+    if (data.commandId) state.activeCommandId = data.commandId;
     const text = data.missionSummary || data.response || data.message || data.output || JSON.stringify(data);
-    state.messages.push({ role:'misato', text, ts: now() });
+    state.messages.push({ role:'misato', text, ts:now() });
   } catch (e) {
-    state.messages.push({ role:'misato', text:`Error: ${e.message}`, ts: now() });
+    state.messages.push({ role:'misato', text:`Error: ${e.message}`, ts:now() });
   }
   state.loading = false;
   render();
@@ -541,14 +674,12 @@ async function sendCommand(cmd) {
 
 // ── Save config ────────────────────────────────────────────────
 function saveConfig() {
-  const url   = document.getElementById('cfg-url')?.value?.trim()   || '';
-  const token = document.getElementById('cfg-token')?.value?.trim() || '';
-  const byp   = document.getElementById('cfg-bypass')?.value?.trim()|| '';
-  // Only update token fields if non-placeholder value entered
-  if (url)   { state.baseUrl = url; storage.set('misato_api_base_url', url); }
+  const url   = document.getElementById('cfg-url')?.value?.trim()    || '';
+  const token = document.getElementById('cfg-token')?.value?.trim()  || '';
+  const byp   = document.getElementById('cfg-bypass')?.value?.trim() || '';
+  if (url) { state.baseUrl = url; storage.set('misato_api_base_url', url); }
   if (token && token !== '••••••••••••••••') { state.token = token; storage.set('misato_desktop_auth_token', token); }
   if (byp   && byp   !== '••••••••••••••••') { state.bypassToken = byp; storage.set('misato_vercel_bypass_token', byp); }
-  // Never log token values
   state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Click Test Connection to verify.' };
   render();
   showToast('Configuration saved.', '◎');
@@ -565,87 +696,38 @@ function showToast(msg, icon='◎') {
   setTimeout(() => t.remove(), 4000);
 }
 
-// ── Navigation ─────────────────────────────────────────────────
+// ── Navigation config ──────────────────────────────────────────
 const NAV = [
-  { group:'MISSION',    items:[
-    { id:'overview', label:'Overview',       icon:'◉' },
-    { id:'command',  label:'Command Center', icon:'⊕' }
-  ]},
-  { group:'AGENTS',     items:[
-    { id:'agentdex',  label:'AgentDex',  icon:'⬢' },
-    { id:'schedule',  label:'Schedule',  icon:'◷' },
-    { id:'kanban',    label:'Kanban',    icon:'≣' }
-  ]},
-  { group:'OPERATIONS', items:[
-    { id:'watchtower', label:'Watchtower',      icon:'◈' },
-    { id:'sentinel',   label:'Secret Sentinel', icon:'◆' },
-    { id:'logs',       label:'Logs',            icon:'≡' }
-  ]},
-  { group:'SYSTEM',     items:[
-    { id:'designlib',   label:'Design Library',  icon:'◎' },
-    { id:'integrations',label:'Integrations',    icon:'⬡' },
-    { id:'lanes',       label:'Lanes',           icon:'⟂' },
-    { id:'approvals',   label:'Approvals',       icon:'◇' },
-    { id:'obsidian',    label:'Obsidian Mirror', icon:'⬡' }
-  ]}
+  { group:'MISSION',    items:[{ id:'overview',label:'Overview',icon:'◉' },{ id:'command',label:'Command Center',icon:'⊕' }]},
+  { group:'AGENTS',     items:[{ id:'agentdex',label:'AgentDex',icon:'⬢' },{ id:'schedule',label:'Schedule',icon:'◷' },{ id:'kanban',label:'Kanban',icon:'≣' }]},
+  { group:'OPERATIONS', items:[{ id:'watchtower',label:'Watchtower',icon:'◈' },{ id:'sentinel',label:'Secret Sentinel',icon:'◆' },{ id:'logs',label:'Logs',icon:'≡' }]},
+  { group:'SYSTEM',     items:[{ id:'integrations',label:'Integrations',icon:'⬡' },{ id:'lanes',label:'Lanes',icon:'⟂' },{ id:'approvals',label:'Approvals',icon:'◇' },{ id:'obsidian',label:'Obsidian Mirror',icon:'⬡' },{ id:'designlib',label:'Design Library',icon:'◎' }]}
 ];
 
-// ── Render Helpers ─────────────────────────────────────────────
-function renderNav() {
-  const groups = NAV.map(g => `
-    <div class="nav-group">
-      <div class="nav-group-label">${esc(g.group)}</div>
-      ${g.items.map(item => `
-        <button class="nav-item ${state.activeScreen === item.id ? 'active' : ''}" data-nav="${esc(item.id)}">
-          <span class="nav-item-icon">${item.icon}</span>
-          ${esc(item.label)}
-        </button>`).join('')}
-    </div>`).join('<div class="nav-divider"></div>');
-
-  return `
-    <nav class="nav">
-      ${groups}
-      <div class="nav-bottom">
-        <button class="nav-config-btn" data-nav="config">
-          <span>⚙</span>
-          <span>Settings</span>
-        </button>
-      </div>
-    </nav>`;
-}
-
-function renderFeed() {
-  const { text: modeText, cls: modeCls } = getModeBadge();
-  const sseLbl = state.sseState === 'connected' ? '● SSE LIVE'
-               : state.sseState === 'connecting' ? '○ SSE…'
-               : '● MOCK';
-  const sseLblColor = state.sseState === 'connected' ? 'var(--accent-teal)'
-                    : state.sseState === 'connecting' ? 'var(--accent-amber)'
-                    : 'var(--accent-slate)';
-  const count = state.feedEvents.length || MOCK_LOGS.length;
-
-  return `
-    <aside class="feed">
-      <div class="feed-header">
-        <span class="feed-title">Live Feed</span>
-        <span class="live-badge" style="color:${sseLblColor}">${sseLbl}</span>
-      </div>
-      <div class="feed-filter">
-        <button class="feed-filter-btn ${state.feedFilter==='all'?'active':''}" data-feedfilter="all">ALL</button>
-        <button class="feed-filter-btn ${state.feedFilter==='alerts'?'active':''}" data-feedfilter="alerts">ALERTS</button>
-        <button class="feed-filter-btn ${state.feedFilter==='agents'?'active':''}" data-feedfilter="agents">AGENTS</button>
-      </div>
-      <div class="feed-entries">${buildFeedEntriesHTML()}</div>
-      <div class="feed-footer">
-        <span style="font-size:10px;color:var(--text-tertiary)"><span class="feed-entry-count">${count}</span> entries</span>
-        <button class="btn btn-ghost btn-sm" id="btn-feed-pause">Pause</button>
-      </div>
-    </aside>`;
+// ── Render — Shell ─────────────────────────────────────────────
+function buildTopBarHermesHTML() {
+  const h = state.hermesHealth;
+  if (state.hermesState === 'connected' && h) {
+    const v      = h.version ? `v${h.version}` : '';
+    const uptime = fmtUptime(h.uptime);
+    const active = h.agents?.active ?? '?';
+    return `<div class="topbar-hermes connected">
+      <span class="hermes-dot">◉</span>
+      <span class="hermes-label">HERMES ${v}</span>
+      ${uptime !== '—' ? `<span class="hermes-meta">↑ ${esc(uptime)}</span>` : ''}
+      <span class="hermes-meta">${esc(String(active))} agents</span>
+    </div>`;
+  }
+  if (state.hermesState === 'finding') {
+    return `<div class="topbar-hermes finding"><span class="hermes-dot">○</span><span class="hermes-label">CONNECTING…</span></div>`;
+  }
+  if (state.hermesState === 'not-running') {
+    return `<div class="topbar-hermes offline"><span class="hermes-dot">⚠</span><span class="hermes-label">HERMES OFFLINE</span></div>`;
+  }
+  return `<div class="topbar-hermes idle"><span class="hermes-dot">—</span><span class="hermes-label">NOT STARTED</span></div>`;
 }
 
 function renderTopBar() {
-  const { label, cls } = state.connTest;
-  const { text: modeText, cls: modeCls } = getModeBadge();
   return `
     <header class="topbar">
       <div class="topbar-brand">
@@ -653,16 +735,66 @@ function renderTopBar() {
         MISATO
       </div>
       <div class="topbar-right">
-        <div class="mode-badge mode-${modeCls}">${esc(modeText)}</div>
-        <div class="conn-indicator">
-          <div class="conn-led ${cls}"></div>
-          <span>${esc(label)}</span>
-        </div>
+        ${buildTopBarHermesHTML()}
+        ${state.connTest.label !== 'Not configured' && !isHermesConnected() ? `
+          <div class="conn-indicator">
+            <div class="conn-led ${connCls(state.connTest.label)}"></div>
+            <span>${esc(state.connTest.label)}</span>
+          </div>` : ''}
       </div>
     </header>`;
 }
 
-function renderSectionHeader(title, meta, actions='') {
+function renderNav() {
+  const groups = NAV.map(g => `
+    <div class="nav-group">
+      <div class="nav-group-label">${esc(g.group)}</div>
+      ${g.items.map(item => `
+        <button class="nav-item ${state.activeScreen===item.id&&!state.configOpen?'active':''}" data-nav="${esc(item.id)}">
+          <span class="nav-item-icon">${item.icon}</span>${esc(item.label)}
+        </button>`).join('')}
+    </div>`).join('<div class="nav-divider"></div>');
+  return `
+    <nav class="nav">
+      ${groups}
+      <div class="nav-bottom">
+        <button class="nav-config-btn ${state.configOpen?'active':''}" data-nav="config">
+          <span>⚙</span><span>Settings</span>
+        </button>
+      </div>
+    </nav>`;
+}
+
+function renderFeed() {
+  const { text: liveTxt, color: liveColor } = sseLiveLabel();
+  const count = getFilteredFeedEvents().length;
+  const filters = [
+    { id:'all',      label:'ALL'      },
+    { id:'alerts',   label:'ALERTS'   },
+    { id:'agents',   label:'AGENTS'   },
+    { id:'commands', label:'CMDS'     },
+    { id:'tasks',    label:'TASKS'    }
+  ];
+  return `
+    <aside class="feed">
+      <div class="feed-header">
+        <span class="feed-title">Live Feed</span>
+        <span class="live-badge" style="color:${liveColor}">${liveTxt}</span>
+      </div>
+      <div class="feed-filter">
+        ${filters.map(f=>`<button class="feed-filter-btn ${state.feedFilter===f.id?'active':''}" data-feedfilter="${f.id}">${f.label}</button>`).join('')}
+      </div>
+      <div class="feed-entries">${buildFeedEntriesHTML()}</div>
+      <div class="feed-footer">
+        <span class="feed-count-wrap" style="font-size:10px;color:var(--text-tertiary)">
+          <span class="feed-count">${count}</span> events
+        </span>
+        <button class="btn btn-ghost btn-sm" id="btn-feed-pause">${state.feedPaused ? (state.newWhilePaused ? `Follow Live (${state.newWhilePaused} new)` : 'Follow Live') : 'Pause'}</button>
+      </div>
+    </aside>`;
+}
+
+function renderSectionHeader(title, meta='', actions='') {
   return `
     <div class="section-header">
       <div class="row gap-8">
@@ -673,207 +805,180 @@ function renderSectionHeader(title, meta, actions='') {
     </div>`;
 }
 
-// ── Hermes status card (shown in Settings) ─────────────────────
-function renderHermesStatusCard() {
+// ── Hermes Setup Card — shown on Overview when offline ─────────
+function renderHermesSetupCard() {
   const host = esc(state.hermesHost || 'localhost');
   const port = esc(state.hermesPort || '3010');
-  if (state.hermesFind === 'idle') {
-    return `
-      <div class="hermes-status-card idle">
-        <div class="hermes-status-icon">⬡</div>
-        <div class="hermes-status-body">
-          <div class="hermes-status-title">Hermes not searched yet</div>
-          <div class="hermes-status-msg">Click <strong>Find Hermes</strong> to discover your local sidecar at ${host}:${port}.</div>
-        </div>
-      </div>`;
-  }
-  if (state.hermesFind === 'finding') {
-    return `
-      <div class="hermes-status-card finding">
-        <div class="hermes-status-icon">○</div>
-        <div class="hermes-status-body">
-          <div class="hermes-status-title">Searching ${host}:${port}…</div>
-          <div class="hermes-status-msg">Connecting to local Hermes Bridge.</div>
-        </div>
-      </div>`;
-  }
-  if (state.hermesFind === 'found') {
-    return `
-      <div class="hermes-status-card found">
-        <div class="hermes-status-icon">◉</div>
-        <div class="hermes-status-body">
-          <div class="hermes-status-title">Hermes found — LOCAL SOLO mode active</div>
-          <div class="hermes-status-msg">Connected to ${host}:${port}. SSE event stream ${state.sseState === 'connected' ? 'live' : 'connecting…'}.</div>
-        </div>
-      </div>`;
-  }
-  // not-found
   return `
-    <div class="hermes-status-card not-found">
-      <div class="hermes-status-icon">⚠</div>
-      <div class="hermes-status-body">
-        <div class="hermes-status-title">Hermes not found at ${host}:${port}</div>
-        <div class="hermes-status-msg">Start your local Hermes sidecar, then click Find Hermes again.</div>
-        <div class="hermes-start-steps">
-          <div class="hermes-step"><span class="hermes-step-num">1</span><span>Navigate to the <code>misato-hermes-backend</code> branch in your terminal</span></div>
-          <div class="hermes-step"><span class="hermes-step-num">2</span><span>Run: <code>npm run hermes:dev</code> or <code>node hermes.js</code></span></div>
-          <div class="hermes-step"><span class="hermes-step-num">3</span><span>Hermes will start on <code>localhost:3010</code> — click Find Hermes above</span></div>
+    <div class="setup-card">
+      <div class="setup-card-icon">⬡</div>
+      <div class="setup-card-body">
+        <div class="setup-card-title">Hermes is not running</div>
+        <div class="setup-card-sub">Start your local AI runtime to activate MISATO · ${host}:${port}</div>
+        <div class="setup-steps">
+          <div class="setup-step"><span class="setup-step-num">1</span><span>Open a terminal in your <code>nexcall</code> project folder</span></div>
+          <div class="setup-step"><span class="setup-step-num">2</span><span>Run: <code>npm run hermes:dev</code></span></div>
+          <div class="setup-step"><span class="setup-step-num">3</span><span>Come back here — MISATO will auto-connect</span></div>
+        </div>
+        <div class="setup-card-actions">
+          <button class="btn btn-primary" id="btn-retry-hermes">Try Again</button>
+          <button class="btn btn-ghost btn-sm" data-nav="config">Use Vercel Preview instead →</button>
         </div>
       </div>
     </div>`;
 }
 
-// ── Config Panel — Local Bridge first, Advanced collapsed ───────
+// ── Settings panel — Local Hermes first ────────────────────────
+function renderHermesStatusInline() {
+  const h  = esc(state.hermesHost || 'localhost');
+  const p  = esc(state.hermesPort || '3010');
+  const st = state.hermesState;
+  if (st === 'connected') return `
+    <div class="hermes-inline found">
+      <span>◉</span>
+      <span>Hermes connected — <strong>LOCAL SOLO</strong> mode active · ${h}:${p}</span>
+      <span class="hermes-inline-ver">${state.hermesHealth?.version ? `v${state.hermesHealth.version}` : ''}</span>
+    </div>`;
+  if (st === 'finding') return `
+    <div class="hermes-inline finding"><span>○</span><span>Searching ${h}:${p}…</span></div>`;
+  if (st === 'not-running') return `
+    <div class="hermes-inline not-found">
+      <span>⚠</span>
+      <div class="hermes-inline-steps">
+        <div><strong>Hermes not found at ${h}:${p}</strong> — start the sidecar then click Find Hermes</div>
+        <div class="inline-steps-row">
+          <span>1. <code>cd nexcall</code></span>
+          <span>2. <code>npm run hermes:dev</code></span>
+          <span>3. Click Find Hermes above</span>
+        </div>
+      </div>
+    </div>`;
+  return `<div class="hermes-inline idle"><span>—</span><span>Click Find Hermes to discover your local sidecar</span></div>`;
+}
+
 function renderConfigPanel() {
   const { label, cls, error, nextFix, checkedAt } = state.connTest;
-  const h = esc(state.hermesHost || 'localhost');
-  const p = esc(state.hermesPort || '3010');
-
   return `
     <div class="workspace-body">
       <div style="max-width:540px">
-
-        <!-- ── Local Hermes Bridge (primary) ────────────────────── -->
         <div class="config-section-label">LOCAL HERMES BRIDGE</div>
-        <div class="config-panel mb-8">
-          <div class="row gap-8 mb-12">
+        <div class="config-panel mb-12">
+          <div class="row gap-8 mb-10">
             <div class="input-group" style="flex:1">
               <label class="input-label" for="cfg-hermes-host">Host</label>
-              <input class="input input-mono" id="cfg-hermes-host" type="text"
-                placeholder="localhost" value="${h}" />
+              <input class="input input-mono" id="cfg-hermes-host" type="text" placeholder="localhost" value="${esc(state.hermesHost||'localhost')}" />
             </div>
-            <div class="input-group" style="width:96px">
+            <div class="input-group" style="width:90px">
               <label class="input-label" for="cfg-hermes-port">Port</label>
-              <input class="input input-mono" id="cfg-hermes-port" type="text"
-                placeholder="3010" value="${p}" />
+              <input class="input input-mono" id="cfg-hermes-port" type="text" placeholder="3010" value="${esc(state.hermesPort||'3010')}" />
             </div>
           </div>
-          <div class="row gap-8">
+          <div class="row gap-8 mb-8">
             <button class="btn btn-primary" id="btn-find-hermes">Find Hermes</button>
-            ${state.hermesFind === 'found' ? `<button class="btn btn-ghost btn-sm" id="btn-stop-hermes">Disconnect</button>` : ''}
+            ${state.hermesState === 'connected' ? `<button class="btn btn-ghost btn-sm" id="btn-stop-hermes">Disconnect</button>` : ''}
           </div>
-          ${renderHermesStatusCard()}
+          ${renderHermesStatusInline()}
         </div>
 
-        <!-- ── Connection result ─────────────────────────────────── -->
-        <div class="conn-result ${cls} mb-16">
-          <div class="conn-result-status">${esc(label)}</div>
-          ${error   ? `<div class="conn-result-detail">${esc(error)}</div>` : ''}
-          ${nextFix ? `<div class="conn-result-fix">→ ${esc(nextFix)}</div>` : ''}
-          ${checkedAt ? `<div class="conn-result-ts">Last check: ${fmtTime(checkedAt)}</div>` : ''}
-        </div>
-
-        <!-- ── Advanced — Preview API + Token (collapsed) ───────── -->
-        <details class="advanced-details" ${state.advancedOpen ? 'open' : ''} id="advanced-details">
-          <summary class="advanced-summary" id="btn-toggle-advanced">
-            <span class="advanced-summary-arrow">▶</span>
-            <span>Advanced — Preview API &amp; Token</span>
-            ${state.token || state.bypassToken ? `<span class="badge badge-slate" style="margin-left:8px">configured</span>` : ''}
+        <details class="advanced-details" ${state.advancedOpen?'open':''} id="advanced-details">
+          <summary class="advanced-summary">
+            <span class="advanced-arrow">▶</span>
+            <span>Advanced — Vercel Preview API &amp; Token</span>
+            ${state.token||state.bypassToken ? `<span class="badge badge-slate" style="margin-left:8px">configured</span>` : ''}
           </summary>
           <div class="advanced-body">
-            <div class="config-section-label" style="margin-top:4px">VERCEL PREVIEW API</div>
-            <div class="config-panel mb-8">
-              <div class="col gap-12">
-                <div class="input-group">
-                  <label class="input-label" for="cfg-url">MISATO API Base URL</label>
-                  <input class="input input-mono" id="cfg-url" type="text"
-                    placeholder="https://…/api/misato"
-                    value="${esc(state.baseUrl)}" />
-                  <span class="input-hint">e.g. https://nexcall-git-…-projects.vercel.app/api/misato</span>
-                </div>
-                <div class="input-group">
-                  <label class="input-label" for="cfg-token">Desktop Auth Token</label>
-                  <input class="input input-mono" id="cfg-token" type="password"
-                    placeholder="Paste token — value never shown"
-                    value="${state.token ? '••••••••••••••••' : ''}" />
-                  <span class="input-hint">Saved locally · value never shown after entry</span>
-                </div>
-                <div class="input-group">
-                  <label class="input-label" for="cfg-bypass">Vercel Protection Bypass</label>
-                  <input class="input input-mono" id="cfg-bypass" type="password"
-                    placeholder="Paste bypass token — value never shown"
-                    value="${state.bypassToken ? '••••••••••••••••' : ''}" />
-                  <span class="input-hint">Saved locally · value never shown after entry</span>
-                </div>
+            <p class="config-note" style="margin-bottom:12px">Use this for cloud preview testing only. Local Hermes is the preferred daily path.</p>
+            <div class="col gap-10">
+              <div class="input-group">
+                <label class="input-label" for="cfg-url">MISATO API Base URL</label>
+                <input class="input input-mono" id="cfg-url" type="text" placeholder="https://…/api/misato" value="${esc(state.baseUrl)}" />
+                <span class="input-hint">e.g. https://nexcall-git-….vercel.app/api/misato</span>
               </div>
-              <div class="config-save-row">
-                <button class="btn btn-primary" id="btn-save">Save Config</button>
-                <button class="btn btn-secondary" id="btn-test">Test Connection</button>
+              <div class="input-group">
+                <label class="input-label" for="cfg-token">Desktop Auth Token</label>
+                <input class="input input-mono" id="cfg-token" type="password" placeholder="Paste token — value never shown" value="${state.token?'••••••••••••••••':''}" />
+                <span class="input-hint">Saved locally · value never shown after entry</span>
               </div>
-              <p class="config-note">Tokens never logged or displayed in results. Token fields always masked.</p>
+              <div class="input-group">
+                <label class="input-label" for="cfg-bypass">Vercel Protection Bypass</label>
+                <input class="input input-mono" id="cfg-bypass" type="password" placeholder="Paste bypass token — value never shown" value="${state.bypassToken?'••••••••••••••••':''}" />
+                <span class="input-hint">Saved locally · value never shown after entry</span>
+              </div>
             </div>
-            <div class="auth-modes">
-              <div class="auth-mode-row">
-                <div class="auth-mode-led ${state.token ? 'on' : 'off'}"></div>
-                <span>${state.token ? 'Desktop token configured' : 'Desktop token not set'}</span>
-              </div>
-              <div class="auth-mode-row">
-                <div class="auth-mode-led ${state.bypassToken ? 'on' : 'off'}"></div>
-                <span>${state.bypassToken ? 'Bypass token configured' : 'Bypass token not set'}</span>
-              </div>
-              <div class="auth-mode-row">
-                <div class="auth-mode-led ${isConnected() ? 'on' : 'off'}"></div>
-                <span>${isConnected() ? 'Verified — connected to backend' : 'Not verified'}</span>
-              </div>
+            <div class="config-save-row">
+              <button class="btn btn-primary" id="btn-save">Save Config</button>
+              <button class="btn btn-secondary" id="btn-test">Test Connection</button>
+            </div>
+            <p class="config-note">Tokens never logged or displayed in results.</p>
+            ${label !== 'Not configured' ? `
+              <div class="conn-result ${cls} mt-12">
+                <div class="conn-result-status">${esc(label)}</div>
+                ${error   ? `<div class="conn-result-detail">${esc(error)}</div>` : ''}
+                ${nextFix ? `<div class="conn-result-fix">→ ${esc(nextFix)}</div>` : ''}
+                ${checkedAt ? `<div class="conn-result-ts">Last check: ${fmtTime(checkedAt)}</div>` : ''}
+              </div>` : ''}
+            <div class="auth-modes mt-8">
+              <div class="auth-mode-row"><div class="auth-mode-led ${state.token?'on':'off'}"></div><span>${state.token?'Desktop token configured':'Desktop token not set'}</span></div>
+              <div class="auth-mode-row"><div class="auth-mode-led ${state.bypassToken?'on':'off'}"></div><span>${state.bypassToken?'Bypass token configured':'Bypass token not set'}</span></div>
             </div>
           </div>
         </details>
-
       </div>
     </div>`;
 }
 
 // ── Screen 1: Overview ─────────────────────────────────────────
 function renderOverview() {
-  const agents  = state.council.length  ? state.council  : COUNCIL_AGENTS;
-  const tasks   = state.tasks.length    ? state.tasks    : MOCK_TASKS;
-  const active  = agents.filter(a => a.state === 'active' || a.state === 'thinking').length;
-  const blocked = tasks.filter(t => t.status === 'Blocked').length;
-  const pending = (state.approvals.length ? state.approvals : MOCK_APPROVALS).length;
-  const { label, cls } = state.connTest;
+  const hermes  = isHermesConnected();
+  const h       = state.hermesHealth;
+  const agents  = state.agents  || MOCK_AGENTS;
+  const tasks   = state.tasks   || MOCK_TASKS;
+  const appr    = state.approvals || MOCK_APPROVALS;
+  const isMock  = !state.agents;
+  const active  = hermes && h?.agents?.active != null ? h.agents.active : agents.filter(a=>a.state==='active'||a.state==='thinking').length;
+  const blocked = tasks.filter(t=>t.status==='Blocked').length;
+  const pending = appr.length;
 
   const healthTiles = [
-    { label:'Backend',       value: label, sub: state.hermesMode === 'local-solo' ? `Hermes · ${state.hermesHost}:${state.hermesPort}` : state.baseUrl ? state.baseUrl.replace('https://', '').split('/')[0].substring(0,32) : 'Not configured', cls: cls === 'connected' ? 'ok' : cls === 'failed' || cls === 'protected' ? 'bad' : '' },
-    { label:'Active Agents', value: active,   sub:`${agents.length} total in council` },
-    { label:'Queue Depth',   value: tasks.filter(t=>t.status==='Doing').length, sub: blocked ? `${blocked} blocked` : 'No blockers', cls: blocked ? 'warn' : '' },
-    { label:'Approvals',     value: pending,  sub: pending ? `${pending} pending review` : 'All clear', cls: pending ? 'warn' : 'ok' }
+    { label:'Hermes',        value: hermes ? 'Connected' : state.hermesState === 'not-running' ? 'Offline' : '—', sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Local runtime', cls: hermes ? 'ok' : state.hermesState==='not-running' ? 'bad' : '' },
+    { label:'Uptime',        value: hermes && h?.uptime != null ? fmtUptime(h.uptime) : '—',  sub: hermes ? (h?.version ? `v${h.version}` : 'running') : 'not running',  cls: hermes ? 'ok' : '' },
+    { label:'Active Agents', value: active, sub:`${agents.length} total in council`, cls: active > 0 ? '' : '' },
+    { label:'Queue Depth',   value: tasks.filter(t=>t.status==='Doing').length, sub:blocked?`${blocked} blocked`:'No blockers', cls:blocked?'warn':'' },
+    { label:'Approvals',     value: pending, sub:pending?`${pending} pending review`:'All clear', cls:pending?'warn':'ok' }
   ].map(t => `
-    <div class="health-tile ${t.cls || ''}">
+    <div class="health-tile ${t.cls||''}">
       <div class="health-tile-label">${esc(t.label)}</div>
       <div class="health-tile-value">${esc(String(t.value))}</div>
       <div class="health-tile-sub">${esc(t.sub)}</div>
     </div>`).join('');
 
-  const agentRows = agents.slice(0,6).map(a => `
+  const agentRows = agents.slice(0,6).map(a=>`
     <div class="wt-service-row">
-      <div class="auth-mode-led on" style="background:${a.state==='active'||a.state==='complete'?'var(--accent-teal)':a.state==='thinking'?'var(--accent-blue)':a.state==='blocked'?'var(--accent-red)':'var(--surface-4)'}"></div>
+      <div class="auth-mode-led" style="background:${a.state==='active'||a.state==='complete'?'var(--accent-teal)':a.state==='thinking'?'var(--accent-blue)':a.state==='blocked'?'var(--accent-red)':'var(--surface-4)'}"></div>
       <div class="wt-service-name">${esc(a.name)}</div>
-      <div class="wt-service-meta" style="flex:1;truncate">${esc((a.feedback||'').substring(0,40))}…</div>
+      <div class="wt-service-meta" style="flex:1">${esc((a.feedback||'').substring(0,40))}…</div>
       ${agentStateBadge(a.state)}
     </div>`).join('');
 
-  const taskRows = tasks.filter(t=>t.status==='Doing').slice(0,5).map(t => `
+  const taskRows = tasks.filter(t=>t.status==='Doing').slice(0,5).map(t=>`
     <div class="wt-service-row">
       ${priorityBadge(t.priority)}
       <div class="wt-service-name" style="flex:1">${esc(t.title.substring(0,40))}</div>
       <span style="font-size:10px;color:var(--text-tertiary)">${esc(t.agent)}</span>
     </div>`).join('');
 
-  const alertRows = MOCK_LOGS.filter(l=>l.sev==='warn'||l.sev==='error').slice(0,4).map(l => `
-    <div class="wt-service-row">
-      <span class="log-ts">${esc(l.ts)}</span>
-      <span class="log-src">${esc(l.src)}</span>
-      <span class="log-msg" style="flex:1;font-size:11px">${esc(l.action.substring(0,50))}</span>
-    </div>`).join('');
-
   return `
-    ${renderSectionHeader('Overview', 'System status at a glance', `<button class="btn btn-secondary btn-sm" id="btn-refresh">Refresh</button>`)}
+    ${renderSectionHeader('Overview','System status at a glance',`<button class="btn btn-secondary btn-sm" id="btn-refresh">Refresh</button>`)}
     <div class="workspace-body">
-      <div class="health-strip section-gap">${healthTiles}</div>
+      ${state.hermesState === 'not-running' ? renderHermesSetupCard() : ''}
+      ${isMock && state.hermesState !== 'unknown' ? mockBanner() : ''}
+      <div class="health-strip section-gap" style="${state.hermesState==='not-running'?'opacity:0.45;pointer-events:none':''}">
+        ${healthTiles}
+      </div>
       <div class="grid-2 section-gap">
         <div class="card">
           <div class="card-header"><span class="card-title">Agent Status</span><button class="btn btn-ghost btn-sm" data-nav="agentdex">View all →</button></div>
-          ${agentRows || '<div class="empty-state"><div class="empty-state-msg">No agents loaded</div></div>'}
+          ${agentRows || '<div class="empty-state" style="padding:16px"><div class="empty-state-msg">No agents loaded</div></div>'}
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Active Work</span><button class="btn btn-ghost btn-sm" data-nav="kanban">Kanban →</button></div>
@@ -883,14 +988,15 @@ function renderOverview() {
       <div class="grid-3">
         <div class="card">
           <div class="card-header"><span class="card-title">Recent Alerts</span><button class="btn btn-ghost btn-sm" data-nav="logs">Logs →</button></div>
-          ${alertRows || '<div class="empty-state" style="padding:16px"><div class="empty-state-msg">No alerts</div></div>'}
+          ${MOCK_LOGS.filter(l=>l.sev==='warn'||l.sev==='error').slice(0,4).map(l=>`
+            <div class="wt-service-row"><span class="log-ts">${esc(l.ts)}</span><span class="log-src">${esc(l.src)}</span><span class="log-msg" style="flex:1;font-size:11px">${esc(l.action.substring(0,50))}</span></div>`).join('')}
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Approval Backlog</span><button class="btn btn-ghost btn-sm" data-nav="approvals">Review →</button></div>
-          ${pending ? (state.approvals.length ? state.approvals : MOCK_APPROVALS).map(a=>`
+          ${pending ? appr.map(a=>`
             <div class="wt-service-row">
               <span class="badge ${a.risk==='High'?'badge-red':a.risk==='Medium'?'badge-amber':'badge-slate'}">${esc(a.risk)}</span>
-              <span style="font-size:11px;flex:1">${esc(a.title.substring(0,36))}…</span>
+              <span style="font-size:11px;flex:1">${esc((a.title||'').substring(0,36))}…</span>
             </div>`).join('') : `<div style="padding:12px;font-size:12px;color:var(--accent-teal)">◉ No pending approvals</div>`}
         </div>
         <div class="card">
@@ -907,52 +1013,55 @@ function renderOverview() {
 
 // ── Screen 2: Command Center ───────────────────────────────────
 function renderCommand() {
-  const msgs = state.messages.map(m => `
-    <div class="cmd-message cmd-message-${m.role === 'user' ? 'user' : 'resp'}">
+  const connected = isConnected();
+  const hermes    = isHermesConnected();
+  const agents    = state.agents || MOCK_AGENTS;
+  const active    = agents.filter(a=>a.state==='active'||a.state==='thinking').slice(0,3);
+  const modeLabel = hermes ? `Hermes LOCAL SOLO · ${state.hermesHost}:${state.hermesPort}` : state.connTest.label === 'Connected' ? 'Vercel Preview' : 'Not connected';
+  const hasTimeline = state.commandTimeline.length > 0;
+
+  const msgs = state.messages.map(m=>`
+    <div class="cmd-message cmd-message-${m.role==='user'?'user':'resp'}">
       <div class="cmd-message-header">
-        <span class="cmd-message-role">${m.role === 'user' ? 'You' : 'MISATO'}</span>
+        <span class="cmd-message-role">${m.role==='user'?'You':'MISATO'}</span>
         <span class="cmd-message-ts">${fmtTime(m.ts)}</span>
       </div>
       <div class="cmd-message-body">${esc(m.text)}</div>
     </div>`).join('');
 
-  const quickBtns = QUICK_PROMPTS.map(p =>
-    `<button class="quick-action-btn" data-prompt="${esc(p.label)}">${p.icon} ${esc(p.label)}</button>`
-  ).join('');
-
-  const agents   = state.council.length ? state.council : COUNCIL_AGENTS;
-  const activeAgents = agents.filter(a=>a.state==='active'||a.state==='thinking').slice(0,3);
-  const modeLabel = state.hermesMode === 'local-solo' ? 'Local Solo · Hermes connected'
-                  : state.hermesMode === 'preview-simple' ? 'Preview deployment'
-                  : 'Not connected — configure below';
-
   return `
-    ${renderSectionHeader('Command Center', 'Active control surface',
-      `<button class="btn btn-secondary btn-sm" id="btn-clear-msgs">Clear history</button>`)}
+    ${renderSectionHeader('Command Center','Active control surface',`<button class="btn btn-ghost btn-sm" id="btn-clear-msgs">Clear</button>`)}
     <div class="workspace-body">
       <div class="mission-banner">
         <div>
           <div class="mission-banner-title">MISATO Active Session</div>
-          <div class="mission-banner-meta">${modeLabel}</div>
+          <div class="mission-banner-meta">${esc(modeLabel)}</div>
         </div>
-        ${!isConnected() ? `<button class="btn btn-secondary btn-sm" data-nav="config">Configure →</button>` : ''}
+        ${!connected ? `<button class="btn btn-secondary btn-sm" data-nav="config">Configure →</button>` : ''}
       </div>
       <div class="cmd-layout section-gap">
         <div class="card" style="padding:12px">
-          <div class="card-header" style="margin-bottom:8px"><span class="card-title">Quick Actions</span></div>
-          <div class="quick-actions-grid">${quickBtns}</div>
+          <div class="card-header mb-8"><span class="card-title">Quick Actions</span></div>
+          <div class="quick-actions-grid">
+            ${QUICK_PROMPTS.map(p=>`<button class="quick-action-btn" data-prompt="${esc(p.label)}">${p.icon} ${esc(p.label)}</button>`).join('')}
+          </div>
         </div>
         <div class="card" style="padding:12px">
-          <div class="card-header" style="margin-bottom:8px"><span class="card-title">Active Context</span></div>
-          ${activeAgents.length ? activeAgents.map(a=>`
-            <div class="wt-service-row" style="padding:6px 0;border-bottom:1px solid var(--border-subtle)">
-              <div class="auth-mode-led ${a.state==='thinking'?'on':'off'}" style="background:${a.state==='thinking'?'var(--accent-blue)':'var(--accent-teal)'}"></div>
-              <div style="flex:1">
-                <div style="font-size:12px;font-weight:500">${esc(a.name)}</div>
-                <div style="font-size:10px;color:var(--text-tertiary)">${esc(a.feedback.substring(0,60))}</div>
-              </div>
-              ${agentStateBadge(a.state)}
-            </div>`).join('') : '<div style="font-size:11px;color:var(--text-tertiary);padding:8px">Connect to load live agent context.</div>'}
+          <div class="card-header mb-8">
+            <span class="card-title">${hasTimeline ? 'Mission Timeline' : 'Active Context'}</span>
+            ${hasTimeline ? `<button class="btn btn-ghost btn-sm" id="btn-clear-timeline">Clear</button>` : ''}
+          </div>
+          ${hasTimeline ? `<div class="timeline" id="command-timeline">${buildTimelineHTML()}</div>` : `
+            ${active.length ? active.map(a=>`
+              <div class="wt-service-row" style="padding:6px 0;border-bottom:1px solid var(--border-subtle)">
+                <div class="auth-mode-led" style="background:${a.state==='thinking'?'var(--accent-blue)':'var(--accent-teal)'}"></div>
+                <div style="flex:1">
+                  <div style="font-size:12px;font-weight:500">${esc(a.name)}</div>
+                  <div style="font-size:10px;color:var(--text-tertiary)">${esc((a.feedback||'').substring(0,60))}</div>
+                </div>
+                ${agentStateBadge(a.state)}
+              </div>`).join('') : `<div style="font-size:11px;color:var(--text-tertiary);padding:8px">${connected?'No agents active':'Connect to load live agent context.'}</div>`}
+          `}
         </div>
       </div>
       <div class="cmd-input-area">
@@ -960,11 +1069,9 @@ function renderCommand() {
           ${msgs || `<div class="cmd-empty">Send a command or select a quick action to begin.</div>`}
         </div>
         <div class="cmd-input-bar">
-          <input class="cmd-input" id="cmd-input"
-            placeholder="Send a command to MISATO… (Ctrl+Enter)"
-            ${state.loading ? 'disabled' : ''} />
-          <button class="btn btn-primary" id="btn-send" ${state.loading || !isConnected() ? 'disabled' : ''}>
-            ${state.loading ? 'Sending…' : 'Send'}
+          <input class="cmd-input" id="cmd-input" placeholder="Send a command to MISATO… (Ctrl+Enter)" ${state.loading?'disabled':''} />
+          <button class="btn btn-primary" id="btn-send" ${state.loading||!connected?'disabled':''}>
+            ${state.loading?'Sending…':'Send'}
           </button>
         </div>
       </div>
@@ -973,18 +1080,19 @@ function renderCommand() {
 
 // ── Screen 3: AgentDex ─────────────────────────────────────────
 function renderAgentDex() {
-  const agents = state.council.length ? state.council : COUNCIL_AGENTS;
-  const filters = ['all','active','thinking','idle','blocked','complete'];
-  const filtered = state.agentFilter === 'all' ? agents : agents.filter(a => a.state === state.agentFilter);
+  const agents   = state.agents || MOCK_AGENTS;
+  const isMock   = !state.agents;
+  const filters  = ['all','active','thinking','idle','blocked','complete'];
+  const filtered = state.agentFilter==='all' ? agents : agents.filter(a=>a.state===state.agentFilter);
 
-  const pills = filters.map(f => `
-    <button class="filter-pill ${state.agentFilter === f ? 'active' : ''}" data-filter="${esc(f)}">
-      ${f.charAt(0).toUpperCase() + f.slice(1)}
+  const pills = filters.map(f=>`
+    <button class="filter-pill ${state.agentFilter===f?'active':''}" data-filter="${f}">
+      ${f.charAt(0).toUpperCase()+f.slice(1)}
       <span style="opacity:0.6;margin-left:4px">${agents.filter(a=>f==='all'||a.state===f).length}</span>
     </button>`).join('');
 
-  const cards = filtered.map(a => `
-    <div class="agent-card">
+  const cards = filtered.map(a=>`
+    <div class="agent-card ${state.selectedAgent?.id===a.id?'selected':''}" data-agent="${esc(a.id)}">
       <div class="agent-card-top">
         <div>
           <div class="agent-card-name">${esc(a.name)}</div>
@@ -997,128 +1105,160 @@ function renderAgentDex() {
       </div>
       <div class="agent-card-task">
         <div class="agent-card-task-label">Current task</div>
-        ${esc(a.feedback)}
+        ${esc(a.feedback||'—')}
       </div>
       <div class="agent-card-footer">
-        <span class="agent-card-ts">${esc(a.specialty.substring(0,30))}…</span>
+        <span class="agent-card-ts">${esc((a.specialty||'').substring(0,30))}…</span>
         <span class="badge ${a.risk==='High'?'badge-red':a.risk==='Medium'?'badge-amber':'badge-slate'}">${esc(a.risk)} risk</span>
       </div>
     </div>`).join('');
 
+  const drawer = state.selectedAgent ? `
+    <div class="agent-drawer">
+      <div class="agent-drawer-header">
+        <div>
+          <div class="agent-drawer-name">${esc(state.selectedAgent.name)}</div>
+          <div class="agent-drawer-role">${esc(state.selectedAgent.role)}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-close-drawer">✕</button>
+      </div>
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">State</div>
+        ${agentStateBadge(state.selectedAgent.state)}
+      </div>
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">Specialty</div>
+        <div class="agent-drawer-value">${esc(state.selectedAgent.specialty||'—')}</div>
+      </div>
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">Permissions</div>
+        <span class="badge badge-slate">${esc(state.selectedAgent.perm)}</span>
+        <span class="badge ${state.selectedAgent.risk==='High'?'badge-red':state.selectedAgent.risk==='Medium'?'badge-amber':'badge-slate'}" style="margin-left:4px">${esc(state.selectedAgent.risk)} risk</span>
+      </div>
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">Current feedback</div>
+        <div class="agent-drawer-value">${esc(state.selectedAgent.feedback||'—')}</div>
+      </div>
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">Recent events</div>
+        ${state.feedEvents.filter(e=>e.payload?.agent===state.selectedAgent.id||e.source===state.selectedAgent.id).slice(0,5).map(e=>`
+          <div class="feed-entry" style="padding:6px 0;border-bottom:1px solid var(--border-subtle)">
+            <div class="feed-entry-header"><span class="feed-entry-ts">${esc(fmtTime(e.timestamp))}</span><span class="feed-entry-type" style="color:${EVENT_META[e.type]?.color||'var(--accent-slate)'}">${esc(e.type||'')}</span></div>
+            <div class="feed-entry-msg">${esc(e.payload?.message||'')}</div>
+          </div>`).join('') || `<div style="font-size:11px;color:var(--text-tertiary)">No recent events</div>`}
+      </div>
+    </div>` : '';
+
   return `
-    ${renderSectionHeader('AgentDex', `${agents.length} agents in council`,
-      `<button class="btn btn-secondary btn-sm">+ Assign Task</button>`)}
-    <div class="workspace-body">
+    ${renderSectionHeader('AgentDex',`${agents.length} agents in council`,`<button class="btn btn-secondary btn-sm">+ Assign Task</button>`)}
+    <div class="workspace-body" style="padding-bottom:0">
+      ${isMock ? mockBanner() : ''}
       <div class="filter-strip">${pills}</div>
-      ${filtered.length ? `<div class="grid-auto">${cards}</div>` : `<div class="empty-state"><div class="empty-state-icon">⬢</div><div class="empty-state-title">No agents match filter</div><button class="btn btn-ghost btn-sm" data-filter="all">Clear filter</button></div>`}
+      <div class="agentdex-layout">
+        <div class="agentdex-grid">
+          ${filtered.length ? `<div class="grid-auto">${cards}</div>` : `<div class="empty-state"><div class="empty-state-icon">⬢</div><div class="empty-state-title">No agents match</div><button class="btn btn-ghost btn-sm" data-filter="all">Clear filter</button></div>`}
+        </div>
+        ${drawer}
+      </div>
     </div>`;
 }
 
 // ── Screen 4: Schedule ─────────────────────────────────────────
 function renderSchedule() {
-  const items = MOCK_SCHEDULE.map(s => `
-    <div class="agenda-item">
-      <div class="agenda-time">${esc(s.time)}</div>
-      <div class="agenda-body">
-        <div class="agenda-title">${esc(s.title)}</div>
-        <div class="agenda-meta">${esc(s.agent)} · ${priorityBadge(s.priority)} ${statusBadge(s.status)}</div>
-      </div>
-    </div>`).join('');
-
+  const items = (state.tasks?.filter(t=>t.scheduledAt) || MOCK_SCHEDULE).map ? MOCK_SCHEDULE : MOCK_SCHEDULE;
+  const isMock = !state.tasks;
   return `
-    ${renderSectionHeader('Schedule', 'Today · Agenda view',
-      `<div class="schedule-view-toggle">
-        <button class="view-toggle-btn">Day</button>
-        <button class="view-toggle-btn active">Agenda</button>
-        <button class="view-toggle-btn">Week</button>
-       </div>
-       <button class="btn btn-primary btn-sm" style="margin-left:8px">+ New Task</button>`)}
+    ${renderSectionHeader('Schedule','Today · Agenda view',`
+      <div class="schedule-view-toggle">
+        <button class="view-toggle-btn">Day</button><button class="view-toggle-btn active">Agenda</button><button class="view-toggle-btn">Week</button>
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-left:8px">+ New Task</button>`)}
     <div class="workspace-body">
+      ${isMock ? mockBanner('schedule from Hermes when connected') : ''}
       <div class="card">
         <div class="card-header">
           <span class="card-title">Today — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
           <span class="badge badge-blue">${MOCK_SCHEDULE.length} tasks</span>
         </div>
-        ${items}
+        ${MOCK_SCHEDULE.map(s=>`
+          <div class="agenda-item">
+            <div class="agenda-time">${esc(s.time)}</div>
+            <div class="agenda-body">
+              <div class="agenda-title">${esc(s.title)}</div>
+              <div class="agenda-meta">${esc(s.agent)} · ${priorityBadge(s.priority)} ${statusBadge(s.status)} ${s.live?`<span class="badge badge-teal" style="margin-left:4px">LIVE</span>`:`<span class="badge badge-slate" style="margin-left:4px">SCHEDULED</span>`}</div>
+            </div>
+          </div>`).join('')}
       </div>
     </div>`;
 }
 
 // ── Screen 5: Kanban ───────────────────────────────────────────
 function renderKanban() {
-  const tasks = state.tasks.length ? state.tasks : MOCK_TASKS;
-  const cols  = ['Done','Doing','Blocked','Idea'];
-
-  const board = cols.map(col => {
-    const colTasks = tasks.filter(t => t.status === col);
-    const cards = colTasks.map(t => {
-      const left = t.status === 'Blocked' ? 'blocked' : t.priority === 'High' ? 'high' : t.status === 'Done' ? 'done' : '';
-      return `
-        <div class="kanban-card ${left}">
-          <div class="kanban-card-title">${esc(t.title)}</div>
-          <div class="kanban-card-footer">
-            <span class="kanban-card-agent">${esc(t.agent)}</span>
-            ${priorityBadge(t.priority)}
-          </div>
-          ${t.status === 'Blocked' ? `<div class="kanban-card-blocker">⚠ Blocked — requires approval</div>` : ''}
-          <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px">${esc(t.project)}</div>
-        </div>`;
-    }).join('');
-    const colCls = col === 'Doing' ? 'badge-blue' : col === 'Done' ? 'badge-teal' : col === 'Blocked' ? 'badge-red' : 'badge-slate';
+  const tasks  = state.tasks || MOCK_TASKS;
+  const isMock = !state.tasks;
+  const cols   = ['Done','Doing','Blocked','Idea'];
+  const board  = cols.map(col => {
+    const colTasks = tasks.filter(t=>t.status===col);
+    const cls = col==='Doing'?'badge-blue':col==='Done'?'badge-teal':col==='Blocked'?'badge-red':'badge-slate';
     return `
       <div class="kanban-col">
         <div class="kanban-col-header">
           <span class="kanban-col-title">${esc(col)}</span>
-          <span class="kanban-col-count badge ${colCls}">${colTasks.length}</span>
+          <span class="kanban-col-count badge ${cls}">${colTasks.length}</span>
         </div>
-        ${cards || `<div style="padding:12px;font-size:11px;color:var(--text-tertiary);text-align:center">No tasks</div>`}
+        ${colTasks.map(t=>{
+          const left = t.status==='Blocked'?'blocked':t.priority==='High'?'high':t.status==='Done'?'done':'';
+          return `
+            <div class="kanban-card ${left}">
+              <div class="kanban-card-title">${esc(t.title)}</div>
+              <div class="kanban-card-footer">
+                <span class="kanban-card-agent">${esc(t.agent)}</span>
+                ${priorityBadge(t.priority)}
+              </div>
+              ${t.status==='Blocked'?`<div class="kanban-card-blocker">⚠ Blocked — requires approval</div>`:''}
+              <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px">${esc(t.project)}</div>
+            </div>`;
+        }).join('') || `<div style="padding:12px;font-size:11px;color:var(--text-tertiary);text-align:center">No tasks</div>`}
       </div>`;
   }).join('');
-
   return `
-    ${renderSectionHeader('Kanban', `${tasks.length} total tasks`,
-      `<button class="btn btn-primary btn-sm">+ Add Task</button>`)}
+    ${renderSectionHeader('Kanban',`${tasks.length} total tasks`,`<button class="btn btn-primary btn-sm">+ Add Task</button>`)}
     <div class="workspace-body" style="padding-bottom:0">
+      ${isMock ? mockBanner() : ''}
       <div class="kanban-board">${board}</div>
     </div>`;
 }
 
 // ── Screen 6: Watchtower ───────────────────────────────────────
 function renderWatchtower() {
-  const agents = state.council.length ? state.council : COUNCIL_AGENTS;
-  const { label, cls } = state.connTest;
+  const hermes  = isHermesConnected();
+  const h       = state.hermesHealth;
+  const agents  = state.agents || MOCK_AGENTS;
+  const tasks   = state.tasks  || MOCK_TASKS;
+  const wt      = state.watchtower || MOCK_WATCHTOWER;
+  const isMock  = !state.watchtower;
 
   const tiles = [
-    { label:'API',         value: label, sub: state.hermesMode === 'local-solo' ? `Hermes ${state.hermesHost}:${state.hermesPort}` : 'Preview deployment', cls: cls === 'connected' ? 'ok' : cls === 'failed' ? 'bad' : '' },
-    { label:'Auth Gate',   value: state.hermesMode === 'local-solo' ? 'Local Solo' : state.token ? 'Configured' : 'Not set', sub: state.hermesMode === 'local-solo' ? 'No token required' : 'x-misato-desktop-token', cls: (state.hermesMode === 'local-solo' || state.token) ? 'ok' : 'warn' },
-    { label:'SSE Stream',  value: state.sseState === 'connected' ? 'Live' : state.sseState === 'connecting' ? 'Connecting' : 'Offline', sub: state.sseState === 'connected' ? `${state.feedEvents.length} events received` : 'Start Hermes to activate', cls: state.sseState === 'connected' ? 'ok' : state.sseState === 'connecting' ? '' : '' },
-    { label:'Queue Depth', value: (state.tasks.length || MOCK_TASKS.length), sub:'tasks tracked' },
-    { label:'CORS',        value: 'WARN', sub:'Fix pending — redeploy required', cls:'warn' }
-  ].map(t => `
-    <div class="health-tile ${t.cls || ''}">
+    { label:'Hermes',       value: hermes?'Connected':'Offline',           sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Start hermes:dev',       cls: hermes?'ok':'bad'  },
+    { label:'SSE Stream',   value: state.sseState==='connected'?'Live':state.sseState==='connecting'?'Connecting':'Offline', sub: state.sseState==='connected'?`${state.feedEvents.length} events`:'No stream',  cls: state.sseState==='connected'?'ok':''  },
+    { label:'Auth Gate',    value: state.token?'Configured':'Not set',     sub: 'x-misato-desktop-token',                                                        cls: state.token?'ok':'' },
+    { label:'Queue Depth',  value: tasks.filter(t=>t.status==='Doing').length, sub:`${tasks.filter(t=>t.status==='Blocked').length} blocked`,                   cls: tasks.filter(t=>t.status==='Blocked').length?'warn':'' },
+    { label:'CORS',         value: 'WARN',                                  sub:'Fix pending — redeploy required',                                               cls:'warn' }
+  ].map(t=>`
+    <div class="health-tile ${t.cls||''}">
       <div class="health-tile-label">${esc(t.label)}</div>
       <div class="health-tile-value" style="font-size:16px">${esc(String(t.value))}</div>
       <div class="health-tile-sub">${esc(t.sub)}</div>
     </div>`).join('');
 
-  const serviceRows = [
-    { name:'Hermes Local Bridge',    meta: state.hermesFind === 'found' ? `${state.hermesHost}:${state.hermesPort} — active` : 'Not found yet', ts: state.hermesFind === 'found' ? 'just now' : '—', ok: state.hermesFind === 'found' },
-    { name:'SSE Event Stream',       meta: state.sseState === 'connected' ? 'Live — receiving events' : state.sseState === 'connecting' ? 'Connecting…' : 'Offline', ts:'—', ok: state.sseState === 'connected' },
-    { name:'Vercel Preview API',     meta: label, ts:'just now',  ok: cls === 'connected' },
-    { name:'Desktop Auth Token',     meta: state.hermesMode === 'local-solo' ? 'N/A (local mode)' : state.token ? 'Configured' : 'Not set', ts:'—', ok: state.hermesMode === 'local-solo' || !!state.token },
-    { name:'Bypass Token',           meta: state.bypassToken ? 'Configured' : 'Not set', ts:'—', ok: !!state.bypassToken },
-    { name:'CORS Headers',           meta:'Fix pending', ts:'—', ok: false },
-    { name:'Discord Bot',            meta:'Mock only', ts:'—', ok: null },
-    { name:'Obsidian Sync',          meta:'Not configured', ts:'—', ok: null }
-  ].map(s => `
+  const services = (wt.services || MOCK_WATCHTOWER.services).map(s=>`
     <div class="wt-service-row">
       <div class="auth-mode-led" style="background:${s.ok===true?'var(--accent-teal)':s.ok===false?'var(--accent-amber)':'var(--surface-4)'}"></div>
       <div class="wt-service-name">${esc(s.name)}</div>
-      <div class="wt-service-meta">${esc(s.meta)}</div>
-      <div class="wt-service-ts">${esc(s.ts)}</div>
+      <div class="wt-service-meta">${esc(s.meta||'')}</div>
     </div>`).join('');
 
-  const agentGrid = agents.map(a => {
+  const agentGrid = agents.map(a=>{
     const initials = a.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
     const color = a.state==='active'||a.state==='complete'?'var(--accent-teal)':a.state==='thinking'?'var(--accent-blue)':a.state==='blocked'?'var(--accent-red)':'var(--surface-4)';
     return `<div class="wt-agent-tile">
@@ -1129,14 +1269,14 @@ function renderWatchtower() {
   }).join('');
 
   return `
-    ${renderSectionHeader('Watchtower', 'Health and observability',
-      `<button class="btn btn-secondary btn-sm" id="btn-refresh">Refresh</button>`)}
+    ${renderSectionHeader('Watchtower','Health and observability',`<button class="btn btn-secondary btn-sm" id="btn-refresh">Refresh</button>`)}
     <div class="workspace-body">
+      ${isMock?mockBanner():''}
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px">${tiles}</div>
       <div class="grid-2 section-gap">
         <div class="card" style="padding:0">
           <div class="card-header" style="padding:12px 14px"><span class="card-title">Service Status</span></div>
-          ${serviceRows}
+          ${services}
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Agent State Map</span><span class="badge badge-slate">${agents.length} agents</span></div>
@@ -1145,67 +1285,61 @@ function renderWatchtower() {
       </div>
       <div class="card" style="padding:0">
         <div class="card-header" style="padding:12px 14px"><span class="card-title">Recent Incidents</span></div>
-        ${MOCK_LOGS.filter(l=>l.sev==='warn'||l.sev==='error').map(l=>`
-          <div class="wt-service-row">
-            <span class="log-ts">${esc(l.ts)}</span>
-            <span class="badge ${l.sev==='error'?'badge-red':'badge-amber'}">${l.sev.toUpperCase()}</span>
-            <span class="log-src">${esc(l.src)}</span>
-            <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(l.action)}</span>
-          </div>`).join('')}
+        ${(state.feedEvents.filter(e=>e.type==='risk_detected').slice(0,6).length
+          ? state.feedEvents.filter(e=>e.type==='risk_detected').slice(0,6).map(e=>`
+            <div class="wt-service-row">
+              <span class="log-ts">${esc(fmtTime(e.timestamp))}</span>
+              <span class="badge badge-red">RISK</span>
+              <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(e.payload?.message||'')}</span>
+            </div>`)
+          : MOCK_LOGS.filter(l=>l.sev==='warn'||l.sev==='error').map(l=>`
+            <div class="wt-service-row">
+              <span class="log-ts">${esc(l.ts)}</span>
+              <span class="badge ${l.sev==='error'?'badge-red':'badge-amber'}">${l.sev.toUpperCase()}</span>
+              <span class="log-src">${esc(l.src)}</span>
+              <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(l.action)}</span>
+            </div>`)
+        ).join('')}
       </div>
     </div>`;
 }
 
 // ── Screen 7: Secret Sentinel ──────────────────────────────────
 function renderSentinel() {
-  const findings = [
-    { sev:'warn', title:'Token value appeared in chat session', loc:'Browser chat / session transcript', age:'1h ago', status:'Confirmed' },
-    { sev:'info', title:'Bypass token in localStorage (expected)', loc:'desktop-ui/app.js → localStorage', age:'2h ago', status:'Confirmed' },
-    { sev:'info', title:'.env.example contains placeholder values only', loc:'.env.example', age:'—', status:'OK' }
-  ];
-
-  const rows = findings.map(f => `
-    <div class="sentinel-row">
-      <span class="badge ${f.sev==='warn'?'badge-amber':f.sev==='error'?'badge-red':'badge-slate'}">${f.sev.toUpperCase()}</span>
-      <div class="sentinel-row-info">
-        <div class="sentinel-row-title">${esc(f.title)}</div>
-        <div class="sentinel-row-path">${esc(f.loc)}</div>
-      </div>
-      <div class="col gap-4" style="align-items:flex-end">
-        <span class="badge ${f.status==='OK'?'badge-teal':f.status==='Confirmed'?'badge-amber':'badge-slate'}">${esc(f.status)}</span>
-        <span class="sentinel-row-age">${esc(f.age)}</span>
-      </div>
-    </div>`).join('');
-
-  const checks = [
-    { label:'Rotate all exposed secrets',          done:false },
-    { label:'.env.* is gitignored',                done:true  },
-    { label:'No secret values in client-side JS',  done:true  },
-    { label:'Token fields masked in UI',           done:true  },
-    { label:'No token in console.log / render',    done:true  },
-    { label:'CORS headers do not leak secrets',    done:true  }
-  ];
-  const done = checks.filter(c=>c.done).length;
-
+  const data   = state.sentinel || MOCK_SENTINEL;
+  const isMock = !state.sentinel;
+  const { findings, remediation, lastScanAt } = data;
+  const done   = (remediation||[]).filter(c=>c.done).length;
   return `
-    ${renderSectionHeader('Secret Sentinel', 'Security scan and remediation',
-      `<button class="btn btn-secondary btn-sm">Scan Now</button>`)}
+    ${renderSectionHeader('Secret Sentinel','Security scan and remediation',`<button class="btn btn-secondary btn-sm">Scan Now</button>`)}
     <div class="workspace-body">
+      ${isMock ? mockBanner('run hermes for live scan results') : ''}
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-        ${[{l:'Critical',v:0,c:'ok'},{l:'High',v:0,c:'ok'},{l:'Warnings',v:findings.filter(f=>f.sev==='warn').length,c:'warn'},{l:'Last Scan',v:'2m ago',c:''}].map(t=>`
+        ${[{l:'Critical',v:0,c:'ok'},{l:'High',v:0,c:'ok'},{l:'Warnings',v:(findings||[]).filter(f=>f.sev==='warn').length,c:'warn'},{l:'Last Scan',v:lastScanAt?fmtTime(lastScanAt):'—',c:''}].map(t=>`
           <div class="health-tile ${t.c}">
             <div class="health-tile-label">${esc(t.l)}</div>
-            <div class="health-tile-value" style="font-size:18px">${esc(String(t.v))}</div>
+            <div class="health-tile-value" style="font-size:16px">${esc(String(t.v))}</div>
           </div>`).join('')}
       </div>
       <div class="sentinel-layout">
         <div class="card" style="padding:0">
-          <div class="card-header" style="padding:12px 14px"><span class="card-title">Findings</span></div>
-          ${rows}
+          <div class="card-header" style="padding:12px 14px"><span class="card-title">Findings</span><span style="font-size:10px;color:var(--text-tertiary)">No raw secret values displayed</span></div>
+          ${(findings||[]).map(f=>`
+            <div class="sentinel-row">
+              <span class="badge ${f.sev==='warn'?'badge-amber':f.sev==='error'?'badge-red':'badge-slate'}">${f.sev.toUpperCase()}</span>
+              <div class="sentinel-row-info">
+                <div class="sentinel-row-title">${esc(f.title)}</div>
+                <div class="sentinel-row-path">${esc(f.loc)}</div>
+              </div>
+              <div class="col gap-4" style="align-items:flex-end">
+                <span class="badge ${f.status==='OK'?'badge-teal':f.status==='Confirmed'?'badge-amber':'badge-slate'}">${esc(f.status)}</span>
+                <span class="sentinel-row-age">${esc(f.age||'')}</span>
+              </div>
+            </div>`).join('')}
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">Remediation</span><span class="badge badge-teal">${done}/${checks.length}</span></div>
-          ${checks.map(c=>`
+          <div class="card-header"><span class="card-title">Remediation</span><span class="badge badge-teal">${done}/${(remediation||[]).length}</span></div>
+          ${(remediation||[]).map(c=>`
             <div class="remediation-item ${c.done?'done':''}">
               <span class="remediation-check">${c.done?'✓':'○'}</span>
               <span>${esc(c.label)}</span>
@@ -1215,96 +1349,30 @@ function renderSentinel() {
     </div>`;
 }
 
-// ── Screen 8: Design Library ───────────────────────────────────
-function renderDesignLib() {
-  const tabs = ['tokens','components','patterns'];
-  const tabBtns = tabs.map(t =>
-    `<span class="design-lib-nav-item ${state.designLibTab===t?'active':''}" data-dltab="${t}">${t.charAt(0).toUpperCase()+t.slice(1)}</span>`
-  ).join('');
-
-  let content = '';
-  if (state.designLibTab === 'tokens') {
-    content = `
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:12px">Color Tokens</div>
-      ${DESIGN_TOKENS.map(t=>`
-        <div class="token-swatch">
-          <div class="token-color-block" style="background:${esc(t.hex)}"></div>
-          <div class="col gap-4" style="flex:1">
-            <span class="token-name">${esc(t.name)}</span>
-            <span class="token-hex">${esc(t.hex)}</span>
-          </div>
-          <span class="token-usage">${esc(t.usage)}</span>
-        </div>`).join('')}
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin:16px 0 12px">Typography Scale</div>
-      ${[
-        {role:'Section title',   size:'15px',weight:'600'},
-        {role:'Card title',     size:'13px',weight:'600'},
-        {role:'Body / desc',    size:'13px',weight:'400'},
-        {role:'Label / nav',    size:'12px',weight:'500'},
-        {role:'Badge / status', size:'10px',weight:'700'},
-        {role:'Timestamp',      size:'11px',weight:'400'},
-      ].map(t=>`
-        <div class="token-swatch">
-          <div style="font-size:${t.size};font-weight:${t.weight};min-width:160px">Sample text</div>
-          <span class="token-name">${esc(t.role)}</span>
-          <span class="token-hex">${t.size} / ${t.weight}</span>
-        </div>`).join('')}`;
-  } else if (state.designLibTab === 'components') {
-    content = `
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:12px">Buttons</div>
-      <div class="row gap-8 mb-16">
-        <button class="btn btn-primary">Primary</button>
-        <button class="btn btn-secondary">Secondary</button>
-        <button class="btn btn-danger">Danger</button>
-        <button class="btn btn-ghost">Ghost</button>
-        <button class="btn btn-primary" disabled>Disabled</button>
-      </div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:12px">Badges</div>
-      <div class="row gap-8 mb-16">
-        <span class="badge badge-teal">Active</span>
-        <span class="badge badge-blue">Doing</span>
-        <span class="badge badge-amber">Warning</span>
-        <span class="badge badge-red">Critical</span>
-        <span class="badge badge-violet">Council</span>
-        <span class="badge badge-slate">Idle</span>
-      </div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:12px">Connection Result States</div>
-      <div class="col gap-8">
-        ${['Connected','Unauthorized','Vercel Protected','404 / Wrong URL','Failed','Not configured'].map(l=>`
-          <div class="conn-result ${connCls(l)}">
-            <div class="conn-result-status">${esc(l)}</div>
-            <div class="conn-result-detail">Example detail message for the ${esc(l)} state.</div>
-          </div>`).join('')}
-      </div>`;
-  } else {
-    content = `
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:12px">Design Patterns</div>
-      <div class="col gap-12">
-        ${[
-          {title:'Status badge + label', note:'Always pair color with text. Never color alone.'},
-          {title:'Connection result card', note:'7 states: Not configured, Testing, Connected, Unauthorized, Vercel Protected, 404, Failed.'},
-          {title:'Hermes status card', note:'4 states: idle, finding, found, not-found. Always shows actionable next step.'},
-          {title:'Agent card (AgentDex)', note:'Status / role / current task / trust level / risk / feedback.'},
-          {title:'Kanban card states', note:'Done (muted), Doing (normal), Blocked (amber left border + icon), Overdue (red).'},
-          {title:'Log entry row', note:'Fixed-width: timestamp (mono) | source | severity | agent | message.'},
-          {title:'Empty state', note:'Icon + title + message + CTA. Never a blank panel.'},
-          {title:'Approval card', note:'Risk level + title + agent + details + always-visible action buttons.'},
-          {title:'Health tile', note:'Label + metric value + sub-label. Top border color for warn/ok/bad.'},
-          {title:'Mode badge', note:'3 states: LOCAL SOLO (teal), PREVIEW (blue), OFFLINE (slate). Always in top bar.'}
-        ].map(p=>`
-          <div class="card card-sm">
-            <div class="card-title mb-4">${esc(p.title)}</div>
-            <div style="font-size:11px;color:var(--text-secondary)">${esc(p.note)}</div>
-          </div>`).join('')}
-      </div>`;
-  }
-
+// ── Screen 8: Logs ─────────────────────────────────────────────
+function renderLogs() {
+  const logs   = state.logs || MOCK_LOGS;
+  const isMock = !state.logs;
+  const rows   = logs.map(l=>`
+    <tr>
+      <td class="log-ts">${esc(l.ts||fmtTime(l.timestamp))}</td>
+      <td class="log-src">${esc(l.src||l.source||'—')}</td>
+      <td><span class="badge ${l.sev==='error'?'badge-red':l.sev==='warn'?'badge-amber':'badge-slate'} sev-${esc(l.sev||'info')}">${(l.sev||'info').toUpperCase()}</span></td>
+      <td style="font-size:11px;color:var(--text-secondary)">${esc(l.agent||'—')}</td>
+      <td class="log-msg">${esc(l.action||l.message||'')}</td>
+    </tr>`).join('');
   return `
-    ${renderSectionHeader('Design Library', 'Tokens, components, patterns')}
-    <div class="workspace-body" style="padding:0;overflow:hidden">
-      <div class="design-lib-layout" style="height:100%">
-        <div class="design-lib-nav">${tabBtns}</div>
-        <div class="design-lib-content">${content}</div>
+    ${renderSectionHeader('Logs',`${logs.length} entries`,`<button class="btn btn-secondary btn-sm">Export</button>`)}
+    <div class="workspace-body" style="padding:0">
+      ${isMock ? `<div class="mock-banner" style="border-radius:0">${mockBanner()}</div>` : ''}
+      <div style="padding:8px 12px;border-bottom:1px solid var(--border-subtle);display:flex;gap:8px;background:var(--surface-1)">
+        <span class="badge badge-slate">ALL</span><span class="badge">INFO</span><span class="badge badge-amber">WARN</span><span class="badge badge-red">ERROR</span>
+      </div>
+      <div style="overflow:auto;max-height:calc(100vh - 200px)">
+        <table class="log-table">
+          <thead><tr><th style="width:80px">Time</th><th style="width:100px">Source</th><th style="width:70px">Sev</th><th style="width:100px">Agent</th><th>Message</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
       </div>
     </div>`;
 }
@@ -1315,102 +1383,49 @@ function renderIntegrations() {
     const map = { active:'badge-teal', ready:'badge-blue', mock:'badge-slate', planned:'badge-amber' };
     return `<span class="badge ${map[m]||'badge-slate'}">${m.toUpperCase()}</span>`;
   };
-  const cards = INTEGRATIONS.map(i => `
+  const cards = INTEGRATIONS.map(i=>`
     <div class="integration-card">
       <div class="integration-card-top">
-        <div class="row gap-8">
-          <span class="integration-icon">${i.icon}</span>
-          <div>
-            <div class="integration-name">${esc(i.name)}</div>
-          </div>
-        </div>
+        <div class="row gap-8"><span class="integration-icon">${i.icon}</span><div class="integration-name">${esc(i.name)}</div></div>
         ${modeBadge(i.mode)}
       </div>
       <div class="integration-desc">${esc(i.desc)}</div>
       <div class="integration-next">→ ${esc(i.next)}</div>
       <div class="integration-actions">
         <button class="btn btn-secondary btn-sm">Configure</button>
-        ${i.mode === 'active' ? `<button class="btn btn-ghost btn-sm">Test</button>` : ''}
+        ${i.mode==='active'?`<button class="btn btn-ghost btn-sm">Test</button>`:''}
       </div>
     </div>`).join('');
-
   return `
-    ${renderSectionHeader('Integrations', `${INTEGRATIONS.filter(i=>i.mode==='active').length} active, ${INTEGRATIONS.filter(i=>i.mode==='mock'||i.mode==='planned').length} planned`,
-      `<button class="btn btn-primary btn-sm">+ Add Integration</button>`)}
-    <div class="workspace-body">
-      <div class="grid-2">${cards}</div>
-    </div>`;
+    ${renderSectionHeader('Integrations',`${INTEGRATIONS.filter(i=>i.mode==='active').length} active`,`<button class="btn btn-primary btn-sm">+ Add</button>`)}
+    <div class="workspace-body"><div class="grid-2">${cards}</div></div>`;
 }
 
 // ── Screen 10: Lanes ───────────────────────────────────────────
 function renderLanes() {
-  const cards = AGENT_LANES.map(l => `
+  const cards = AGENT_LANES.map(l=>`
     <div class="lane-card ${l.cls}">
       <div class="row-between">
-        <div>
-          <div class="lane-name">${esc(l.name)}</div>
-          <div class="lane-branch">${esc(l.branch)}</div>
-        </div>
+        <div><div class="lane-name">${esc(l.name)}</div><div class="lane-branch">${esc(l.branch)}</div></div>
         <span class="badge ${l.statusCls}">${esc(l.status)}</span>
       </div>
       <div class="col gap-4">
-        <div class="lane-task"><span style="color:var(--text-tertiary);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Current</span><br>${esc(l.currentTask)}</div>
-        ${l.blockers !== 'None' ? `<div style="font-size:11px;color:var(--accent-amber)">⚠ ${esc(l.blockers)}</div>` : ''}
+        <div class="lane-task"><span style="color:var(--text-tertiary);font-size:10px;font-weight:600;text-transform:uppercase">Current</span><br>${esc(l.currentTask)}</div>
+        ${l.blockers!=='None'?`<div style="font-size:11px;color:var(--accent-amber)">⚠ ${esc(l.blockers)}</div>`:''}
         <div style="font-size:11px;color:var(--text-secondary)">Next: ${esc(l.next)}</div>
       </div>
-      <div class="lane-owns">
-        ${l.owns.map(o=>`<span class="lane-owns-tag">${esc(o)}</span>`).join('')}
-      </div>
+      <div class="lane-owns">${l.owns.map(o=>`<span class="lane-owns-tag">${esc(o)}</span>`).join('')}</div>
     </div>`).join('');
-
   return `
-    ${renderSectionHeader('Lanes', `${AGENT_LANES.length} active lanes`)}
-    <div class="workspace-body">
-      <div class="grid-2">${cards}</div>
-    </div>`;
+    ${renderSectionHeader('Lanes',`${AGENT_LANES.length} active lanes`)}
+    <div class="workspace-body"><div class="grid-2">${cards}</div></div>`;
 }
 
-// ── Screen 11: Logs ────────────────────────────────────────────
-function renderLogs() {
-  const logs = state.logs.length ? state.logs : MOCK_LOGS;
-  const rows = logs.map(l => `
-    <tr>
-      <td class="log-ts">${esc(l.ts)}</td>
-      <td class="log-src">${esc(l.src)}</td>
-      <td><span class="badge ${l.sev==='error'?'badge-red':l.sev==='warn'?'badge-amber':'badge-slate'} sev-${esc(l.sev)}">${(l.sev||'info').toUpperCase()}</span></td>
-      <td style="font-size:11px;color:var(--text-secondary)">${esc(l.agent||'—')}</td>
-      <td class="log-msg">${esc(l.action)}</td>
-    </tr>`).join('');
-
-  return `
-    ${renderSectionHeader('Logs', `${logs.length} entries`,
-      `<button class="btn btn-secondary btn-sm">Export</button>`)}
-    <div class="workspace-body" style="padding:0">
-      <div style="padding:8px 12px;border-bottom:1px solid var(--border-subtle);display:flex;gap:8px;background:var(--surface-1)">
-        <span class="badge badge-slate">ALL</span>
-        <span class="badge">INFO</span>
-        <span class="badge badge-amber">WARN</span>
-        <span class="badge badge-red">ERROR</span>
-      </div>
-      <div style="overflow:auto;max-height:calc(100vh - 180px)">
-        <table class="log-table">
-          <thead><tr>
-            <th style="width:80px">Time</th>
-            <th style="width:100px">Source</th>
-            <th style="width:70px">Sev</th>
-            <th style="width:100px">Agent</th>
-            <th>Message</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </div>`;
-}
-
-// ── Screen 12: Approvals ───────────────────────────────────────
+// ── Screen 11: Approvals ───────────────────────────────────────
 function renderApprovals() {
-  const approvals = state.approvals.length ? state.approvals : MOCK_APPROVALS;
-  const cards = approvals.map(a => `
+  const approvals = state.approvals || MOCK_APPROVALS;
+  const isMock    = !state.approvals;
+  const cards     = approvals.map(a=>`
     <div class="approval-card ${(a.risk||'').toLowerCase()}">
       <div class="row-between mb-4">
         <span class="badge ${a.risk==='High'?'badge-red':a.risk==='Medium'?'badge-amber':'badge-slate'}">⚠ ${esc(a.risk)} Risk</span>
@@ -1425,45 +1440,94 @@ function renderApprovals() {
         <button class="btn btn-ghost btn-sm">Defer</button>
       </div>
     </div>`).join('');
-
-  const empty = `<div class="empty-state"><div class="empty-state-icon">◆</div><div class="empty-state-title" style="color:var(--accent-teal)">No pending approvals</div><div class="empty-state-msg">All gates clear. New approvals will appear here.</div></div>`;
-
   return `
-    ${renderSectionHeader('Approvals', `${approvals.length} pending`,
-      `<span class="badge ${approvals.length ? 'badge-amber' : 'badge-teal'}">${approvals.length} pending</span>`)}
+    ${renderSectionHeader('Approvals',`${approvals.length} pending`,`<span class="badge ${approvals.length?'badge-amber':'badge-teal'}">${approvals.length} pending</span>`)}
     <div class="workspace-body">
-      ${approvals.length ? cards : empty}
+      ${isMock?mockBanner():''}
+      ${approvals.length ? cards : `<div class="empty-state"><div class="empty-state-icon">◆</div><div class="empty-state-title" style="color:var(--accent-teal)">No pending approvals</div><div class="empty-state-msg">All gates clear.</div></div>`}
     </div>`;
 }
 
-// ── Screen 13: Obsidian Mirror ─────────────────────────────────
+// ── Screen 12: Obsidian Mirror ─────────────────────────────────
 function renderObsidian() {
   const folder = OBSIDIAN_FOLDERS[state.obsidianFolder];
-  const tree = OBSIDIAN_FOLDERS.map((f, i) => `
-    <div class="obsidian-folder ${i === state.obsidianFolder ? 'active' : ''}" data-obfolder="${i}">
-      <span>⬡</span>
-      <span style="flex:1">${esc(f.name)}</span>
-      <span class="obsidian-count">${f.count}</span>
+  const tree   = OBSIDIAN_FOLDERS.map((f,i)=>`
+    <div class="obsidian-folder ${i===state.obsidianFolder?'active':''}" data-obfolder="${i}">
+      <span>⬡</span><span style="flex:1">${esc(f.name)}</span><span class="obsidian-count">${f.count}</span>
     </div>`).join('');
-
-  const docContent = `
-    <h1>${esc(folder.name)}</h1>
-    <p>${esc(folder.desc)}</p>
-    <h2>About this folder</h2>
-    <p>This folder mirrors MISATO's Obsidian vault. Live sync is planned but not yet connected. Content here is read-only.</p>
-    <h2>Documents (${folder.count})</h2>
-    <p style="color:var(--text-tertiary);font-style:italic">Connect your Obsidian vault to see mirrored documents. Set OBSIDIAN_VAULT_PATH in your environment configuration.</p>`;
-
   return `
-    ${renderSectionHeader('Obsidian Mirror', 'Knowledge base',
-      `<button class="btn btn-secondary btn-sm">Open in Obsidian</button>`)}
+    ${renderSectionHeader('Obsidian Mirror','Knowledge base',`<button class="btn btn-secondary btn-sm">Open in Obsidian</button>`)}
     <div class="workspace-body" style="padding:0;overflow:hidden">
       <div style="background:var(--accent-amber-bg);border-bottom:1px solid var(--accent-amber);padding:8px 16px;font-size:11px;color:var(--accent-amber)">
-        ⚠ Live sync not configured — showing folder structure only. Set OBSIDIAN_VAULT_PATH to enable mirroring.
+        ⚠ Live sync not configured — showing folder structure only. Set OBSIDIAN_VAULT_PATH to enable.
       </div>
       <div class="obsidian-layout" style="padding:16px;height:calc(100% - 40px)">
         <div class="obsidian-tree">${tree}</div>
-        <div class="obsidian-doc">${docContent}</div>
+        <div class="obsidian-doc">
+          <h1>${esc(folder.name)}</h1><p>${esc(folder.desc)}</p>
+          <h2>About this folder</h2>
+          <p>This folder mirrors MISATO's Obsidian vault. Live sync is planned but not yet connected.</p>
+          <h2>Documents (${folder.count})</h2>
+          <p style="color:var(--text-tertiary);font-style:italic">Connect your vault to see mirrored documents.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Screen 13: Design Library ──────────────────────────────────
+function renderDesignLib() {
+  const tabs    = ['tokens','components','patterns'];
+  const tabBtns = tabs.map(t=>`<span class="design-lib-nav-item ${state.designLibTab===t?'active':''}" data-dltab="${t}">${t.charAt(0).toUpperCase()+t.slice(1)}</span>`).join('');
+  let content   = '';
+  if (state.designLibTab === 'tokens') {
+    content = `
+      <div class="dl-section-label">Color Tokens</div>
+      ${DESIGN_TOKENS.map(t=>`
+        <div class="token-swatch">
+          <div class="token-color-block" style="background:${esc(t.hex)}"></div>
+          <div class="col gap-4" style="flex:1"><span class="token-name">${esc(t.name)}</span><span class="token-hex">${esc(t.hex)}</span></div>
+          <span class="token-usage">${esc(t.usage)}</span>
+        </div>`).join('')}
+      <div class="dl-section-label" style="margin-top:16px">Typography Scale</div>
+      ${[{role:'Section title',size:'15px',weight:'600'},{role:'Card title',size:'13px',weight:'600'},{role:'Body / desc',size:'13px',weight:'400'},{role:'Label / nav',size:'12px',weight:'500'},{role:'Badge / status',size:'10px',weight:'700'},{role:'Timestamp',size:'11px',weight:'400'}].map(t=>`
+        <div class="token-swatch">
+          <div style="font-size:${t.size};font-weight:${t.weight};min-width:140px">Sample text</div>
+          <span class="token-name">${esc(t.role)}</span><span class="token-hex">${t.size} / ${t.weight}</span>
+        </div>`).join('')}`;
+  } else if (state.designLibTab === 'components') {
+    content = `
+      <div class="dl-section-label">Buttons</div>
+      <div class="row gap-8 mb-16"><button class="btn btn-primary">Primary</button><button class="btn btn-secondary">Secondary</button><button class="btn btn-danger">Danger</button><button class="btn btn-ghost">Ghost</button><button class="btn btn-primary" disabled>Disabled</button></div>
+      <div class="dl-section-label">Badges</div>
+      <div class="row gap-8 mb-16"><span class="badge badge-teal">Active</span><span class="badge badge-blue">Doing</span><span class="badge badge-amber">Warning</span><span class="badge badge-red">Critical</span><span class="badge badge-violet">Council</span><span class="badge badge-slate">Idle</span></div>
+      <div class="dl-section-label">Connection States</div>
+      <div class="col gap-8">
+        ${['Connected','Unauthorized','Vercel Protected','404 / Wrong URL','Failed','Not configured'].map(l=>`
+          <div class="conn-result ${connCls(l)}"><div class="conn-result-status">${esc(l)}</div><div class="conn-result-detail">Example detail for ${esc(l)} state.</div></div>`).join('')}
+      </div>`;
+  } else {
+    content = `
+      <div class="dl-section-label">Design Patterns</div>
+      <div class="col gap-12">
+        ${[
+          {title:'Setup card',          note:'Shown on Overview when Hermes is offline. Large, prominent, never buried.'},
+          {title:'Mock banner',         note:'Orange strip shown on screens using fallback data. Disappears when Hermes connects.'},
+          {title:'Command timeline',    note:'SSE-driven stages: received → plan → agent → task → risk → approval → complete.'},
+          {title:'Agent drawer',        note:'Slide-in panel on AgentDex click. Shows state, specialty, permissions, recent events.'},
+          {title:'Health tile',         note:'Label + metric + sub. Top border: ok=teal, warn=amber, bad=red.'},
+          {title:'Connection result',   note:'7 states with color+fix copy. Never shows raw token values.'},
+          {title:'Event feed',          note:'Filtered by type. Pause/Follow Live. Mock entries dimmed. SSE entries full-color.'},
+          {title:'Kanban card',         note:'Blocked = amber border. High priority = red border. Done = dimmed.'},
+          {title:'Approval card',       note:'Risk badge + details + Approve/Reject/Defer always visible.'}
+        ].map(p=>`<div class="card card-sm"><div class="card-title mb-4">${esc(p.title)}</div><div style="font-size:11px;color:var(--text-secondary)">${esc(p.note)}</div></div>`).join('')}
+      </div>`;
+  }
+  return `
+    ${renderSectionHeader('Design Library','Tokens, components, patterns')}
+    <div class="workspace-body" style="padding:0;overflow:hidden">
+      <div class="design-lib-layout" style="height:100%">
+        <div class="design-lib-nav">${tabBtns}</div>
+        <div class="design-lib-content">${content}</div>
       </div>
     </div>`;
 }
@@ -1480,11 +1544,11 @@ function renderScreen() {
     case 'watchtower':   return renderWatchtower();
     case 'sentinel':     return renderSentinel();
     case 'logs':         return renderLogs();
-    case 'designlib':    return renderDesignLib();
     case 'integrations': return renderIntegrations();
     case 'lanes':        return renderLanes();
     case 'approvals':    return renderApprovals();
     case 'obsidian':     return renderObsidian();
+    case 'designlib':    return renderDesignLib();
     default:             return renderOverview();
   }
 }
@@ -1496,9 +1560,7 @@ function render() {
     ${renderTopBar()}
     <div class="layout">
       ${renderNav()}
-      <main class="workspace">
-        ${renderScreen()}
-      </main>
+      <main class="workspace">${renderScreen()}</main>
       ${renderFeed()}
     </div>
     <div class="toast-container" id="toast-container"></div>`;
@@ -1510,117 +1572,101 @@ function bind() {
   // Navigation
   document.querySelectorAll('[data-nav]').forEach(el => {
     el.addEventListener('click', () => {
-      const target = el.dataset.nav;
-      if (target === 'config') {
-        state.configOpen = !state.configOpen;
-      } else {
-        state.configOpen = false;
-        state.activeScreen = target;
-      }
+      const t = el.dataset.nav;
+      if (t === 'config') { state.configOpen = !state.configOpen; }
+      else { state.configOpen = false; state.activeScreen = t; }
       render();
     });
   });
 
-  // Find Hermes (Local Bridge discovery)
-  document.getElementById('btn-find-hermes')?.addEventListener('click', () => {
-    saveHermesConfig();
-    discoverHermes();
-  });
+  // Find / Retry Hermes
+  const findBtn = document.getElementById('btn-find-hermes') || document.getElementById('btn-retry-hermes');
+  if (findBtn) findBtn.addEventListener('click', () => { saveHermesHostPort(); discoverHermes(); });
 
   // Disconnect Hermes
   document.getElementById('btn-stop-hermes')?.addEventListener('click', () => {
     stopSSE();
-    state.hermesMode = null;
-    state.hermesFind = 'idle';
-    state.connTest   = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Click Find Hermes to reconnect.' };
+    state.hermesState = 'unknown';
+    state.hermesHealth = null;
+    state.agents = state.tasks = state.approvals = state.logs = state.watchtower = state.sentinel = null;
     render();
-    showToast('Disconnected from local Hermes.', '⬡');
+    showToast('Disconnected from Hermes.', '⬡');
   });
 
-  // Advanced section toggle — track open state without re-render
-  document.getElementById('advanced-details')?.addEventListener('toggle', (e) => {
-    state.advancedOpen = e.target.open;
-  });
+  // Advanced details
+  document.getElementById('advanced-details')?.addEventListener('toggle', e => { state.advancedOpen = e.target.open; });
 
-  // Save config (Preview / token path)
+  // Save / Test (preview path)
   document.getElementById('btn-save')?.addEventListener('click', saveConfig);
-
-  // Test connection (Preview path)
   document.getElementById('btn-test')?.addEventListener('click', testConnection);
 
   // Refresh
   document.getElementById('btn-refresh')?.addEventListener('click', () => {
-    if (state.hermesMode === 'local-solo') {
-      discoverHermes();
-    } else {
-      testConnection();
-    }
+    if (isHermesConnected()) { discoverHermes(); }
+    else { testConnection(); }
   });
 
-  // Clear messages
-  document.getElementById('btn-clear-msgs')?.addEventListener('click', () => {
-    state.messages = [];
-    render();
-  });
+  // Clear messages / timeline
+  document.getElementById('btn-clear-msgs')?.addEventListener('click', () => { state.messages = []; render(); });
+  document.getElementById('btn-clear-timeline')?.addEventListener('click', () => { state.commandTimeline = []; state.activeCommandId = null; render(); });
 
   // Send command
-  const sendBtn = document.getElementById('btn-send');
+  const sendBtn  = document.getElementById('btn-send');
   const cmdInput = document.getElementById('cmd-input');
   if (sendBtn && cmdInput) {
     sendBtn.addEventListener('click', () => { sendCommand(cmdInput.value); cmdInput.value = ''; });
     cmdInput.addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        sendCommand(cmdInput.value); cmdInput.value = '';
-      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { sendCommand(cmdInput.value); cmdInput.value = ''; }
     });
   }
 
-  // Quick action prompts
+  // Quick prompts
   document.querySelectorAll('[data-prompt]').forEach(el => {
     el.addEventListener('click', () => {
       const cmd = el.dataset.prompt;
-      if (!isConnected()) {
-        state.configOpen = true;
-        render();
-        showToast('Connect to backend first — configure below.', '◈');
-        return;
-      }
-      sendCommand(cmd);
-      state.activeScreen = 'command';
+      if (!isConnected()) { state.configOpen = true; render(); showToast('Connect to Hermes first.', '◈'); return; }
+      sendCommand(cmd); state.activeScreen = 'command'; render();
+    });
+  });
+
+  // Agent filter
+  document.querySelectorAll('[data-filter]').forEach(el => {
+    el.addEventListener('click', () => { state.agentFilter = el.dataset.filter; render(); });
+  });
+
+  // Agent card click → drawer
+  document.querySelectorAll('[data-agent]').forEach(el => {
+    el.addEventListener('click', () => {
+      const agents = state.agents || MOCK_AGENTS;
+      const found  = agents.find(a => a.id === el.dataset.agent);
+      state.selectedAgent = state.selectedAgent?.id === el.dataset.agent ? null : (found || null);
       render();
     });
   });
 
-  // AgentDex filter
-  document.querySelectorAll('[data-filter]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.agentFilter = el.dataset.filter;
-      render();
-    });
-  });
+  // Close agent drawer
+  document.getElementById('btn-close-drawer')?.addEventListener('click', () => { state.selectedAgent = null; render(); });
 
   // Feed filter
   document.querySelectorAll('[data-feedfilter]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.feedFilter = el.dataset.feedfilter;
-      render();
-    });
+    el.addEventListener('click', () => { state.feedFilter = el.dataset.feedfilter; refreshFeedUI(); });
   });
 
-  // Design library tabs
+  // Feed pause / follow live
+  document.getElementById('btn-feed-pause')?.addEventListener('click', () => {
+    state.feedPaused = !state.feedPaused;
+    if (!state.feedPaused) { state.newWhilePaused = 0; refreshFeedUI(); }
+    else { refreshFeedMeta(); }
+  });
+
+  // Design lib tabs
   document.querySelectorAll('[data-dltab]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.designLibTab = el.dataset.dltab;
-      render();
-    });
+    el.addEventListener('click', () => { state.designLibTab = el.dataset.dltab; render(); });
   });
 
   // Obsidian folder
   document.querySelectorAll('[data-obfolder]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.obsidianFolder = parseInt(el.dataset.obfolder, 10);
-      render();
-    });
+    el.addEventListener('click', () => { state.obsidianFolder = parseInt(el.dataset.obfolder, 10); render(); });
   });
 
   // Auto-scroll cmd messages
@@ -1629,7 +1675,5 @@ function bind() {
 }
 
 // ── Boot ───────────────────────────────────────────────────────
-// 1. Render shell immediately
-render();
-// 2. Attempt Hermes discovery (silently, no blocking)
-discoverHermes();
+render();            // paint shell immediately
+discoverHermes();    // probe localhost:3010 — silent, no blocking
