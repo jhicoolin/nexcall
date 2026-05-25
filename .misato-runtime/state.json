@@ -22,7 +22,7 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: What needs attention today?",
-      "lastActivityAt": "2026-05-25T23:15:33.952Z"
+      "lastActivityAt": "2026-05-25T23:32:53.863Z"
     },
     {
       "agentId": "agent-ui",
@@ -92,7 +92,7 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-25T23:15:34.019Z"
+      "lastActivityAt": "2026-05-25T23:32:53.887Z"
     },
     {
       "agentId": "agent-qa",
@@ -114,9 +114,9 @@
       "approvalRequiredFor": [
         "Approval for production test toggles"
       ],
-      "currentTaskId": "task-01d63dcc-0c21-4f25-b4ad-46052fd8d3fe",
-      "currentTask": "contract-check",
-      "lastActivityAt": "2026-05-25T21:24:08.870Z"
+      "currentTaskId": "task-d90b2b91-8cec-40f1-be55-5c8392d328d8",
+      "currentTask": "qa-wire-check",
+      "lastActivityAt": "2026-05-25T23:32:53.912Z"
     },
     {
       "agentId": "agent-vercel",
@@ -141,7 +141,7 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-25T23:15:34.019Z"
+      "lastActivityAt": "2026-05-25T23:32:53.887Z"
     },
     {
       "agentId": "agent-business",
@@ -274,7 +274,7 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-25T23:15:34.019Z"
+      "lastActivityAt": "2026-05-25T23:32:53.888Z"
     }
   ],
   "tasks": [
@@ -322,7 +322,7 @@
       "assignedAgentId": "agent-vercel",
       "assignedBy": "MISATO Hermes",
       "createdAt": "2026-05-25T23:13:02.380Z",
-      "updatedAt": "2026-05-25T23:15:34.021Z",
+      "updatedAt": "2026-05-25T23:32:53.889Z",
       "scheduledAt": null,
       "dueAt": null,
       "tags": [
@@ -342,6 +342,11 @@
           "at": "2026-05-25T23:15:34.021Z",
           "event": "command.repeated",
           "commandId": "cmd-676eb2fd-6fbf-496b-a60d-fcb310f43740"
+        },
+        {
+          "at": "2026-05-25T23:32:53.889Z",
+          "event": "command.repeated",
+          "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
         }
       ]
     },
@@ -430,7 +435,7 @@
       "assignedAgentId": "agent-strategy",
       "assignedBy": "MISATO Hermes",
       "createdAt": "2026-05-25T23:13:02.294Z",
-      "updatedAt": "2026-05-25T23:15:33.955Z",
+      "updatedAt": "2026-05-25T23:32:53.865Z",
       "scheduledAt": null,
       "dueAt": null,
       "tags": [
@@ -460,6 +465,11 @@
           "at": "2026-05-25T23:15:33.955Z",
           "event": "command.repeated",
           "commandId": "cmd-2ee2f53c-f55f-4074-a51d-8309480ab9bd"
+        },
+        {
+          "at": "2026-05-25T23:32:53.865Z",
+          "event": "command.repeated",
+          "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
         }
       ]
     },
@@ -752,6 +762,26 @@
   ],
   "approvals": [
     {
+      "id": "apr-85078fb5-4719-447a-91bc-3cf205953382",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Deferred",
+      "createdAt": "2026-05-25T23:32:53.892Z",
+      "updatedAt": "2026-05-25T23:32:53.956Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-25T23:32:53.956Z",
+      "decisionBy": "owner"
+    },
+    {
       "id": "apr-85b15742-5a72-4538-80c5-f23e2d9627fa",
       "title": "Approval required: deploy to production now",
       "description": "Protected action category detected. Explicit owner approval required before any execution.",
@@ -976,6 +1006,225 @@
     }
   ],
   "logs": [
+    {
+      "id": "log-8218cd55-9336-4bfb-a6f6-1b41568ba516",
+      "timestamp": "2026-05-25T23:32:53.993Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: qa-wire-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-ab663806-916b-4c19-9f53-c003f6f1b0fd",
+      "timestamp": "2026-05-25T23:32:53.965Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: qa mission",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-42181166-80d1-494d-a489-ff54dc2c151c",
+      "timestamp": "2026-05-25T23:32:53.956Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval deferred: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-e5143d8f-f1fc-44e4-a488-9f854e8e3b1b",
+      "timestamp": "2026-05-25T23:32:53.914Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned qa-wire-check to QA Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-f9b6bd71-033c-4c59-8ca9-696dc714834f",
+      "timestamp": "2026-05-25T23:32:53.901Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: qa-wire-check",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-ad5c87c5-bda5-487c-a7f0-1dc8f8c0a044",
+      "timestamp": "2026-05-25T23:32:53.891Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-1a3b1fef-332b-44f1-8b65-c86c3adb1321",
+      "timestamp": "2026-05-25T23:32:53.890Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-90db1ea3-8c36-4a5a-b925-6266d7347eb2",
+      "timestamp": "2026-05-25T23:32:53.889Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-b5fc584f-ac6d-41d4-8c43-adc1cf36d1ab",
+      "timestamp": "2026-05-25T23:32:53.886Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-8030d827-1fac-4b8f-b040-57e04108e2af",
+      "timestamp": "2026-05-25T23:32:53.886Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-da99089c-26a0-4da1-bbeb-394978bc3de0",
+      "timestamp": "2026-05-25T23:32:53.883Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-3776f246-d1e6-4205-a76c-1efe15646490",
+      "timestamp": "2026-05-25T23:32:53.882Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+      }
+    },
+    {
+      "id": "log-5005728b-b877-48d7-bee8-5aa7e3e2346c",
+      "timestamp": "2026-05-25T23:32:53.868Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-764d3711-8e1a-4a9d-b1c1-c3fda294d74c",
+      "timestamp": "2026-05-25T23:32:53.867Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-ce6e2f0c-588f-44f5-b394-b678a33f7d42",
+      "timestamp": "2026-05-25T23:32:53.865Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-765004c6-628b-41de-b71f-07c8c9d7cfad",
+      "timestamp": "2026-05-25T23:32:53.865Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 2 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-fdadb094-53d9-4499-80ae-28413b679c64",
+      "timestamp": "2026-05-25T23:32:53.863Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 2 agents: Strategy Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-88c1e8d3-3574-4de4-939e-2c4a3df5e607",
+      "timestamp": "2026-05-25T23:32:53.862Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 3 plan steps for daily_summary",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-179f4d98-fb66-4854-9e2e-35509915b84b",
+      "timestamp": "2026-05-25T23:32:53.859Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: daily_summary (NexCall, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-a12665be-d1b8-43bd-a81e-88a15f2545a8",
+      "timestamp": "2026-05-25T23:32:53.858Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: What needs attention today?",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-fd6da482-f49b-4829-8891-887c9fd3b639"
+      }
+    },
+    {
+      "id": "log-c0bb78f1-9273-46ef-a53d-607c33d72fe5",
+      "timestamp": "2026-05-25T23:32:53.849Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: qa-wire-check",
+      "type": "log.created",
+      "payload": {}
+    },
     {
       "id": "log-3c711191-7adb-4ecb-9156-fcb2cf5774dd",
       "timestamp": "2026-05-25T23:15:34.023Z",
@@ -2649,7 +2898,7 @@
   "runtime": {
     "mode": "local-first",
     "runtimeStatus": "connected",
-    "lastCommandAt": "2026-05-25T23:15:34.002Z",
+    "lastCommandAt": "2026-05-25T23:32:53.868Z",
     "approvalsPending": 11
   },
   "missions": [
@@ -2702,6 +2951,24 @@
       "createdBy": "MISATO",
       "createdAt": "2026-05-25T21:25:17.510Z",
       "updatedAt": "2026-05-25T21:25:17.510Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-a49170d6-50a9-4a23-af3a-dc4b079fd4e9",
+      "title": "qa mission",
+      "description": "",
+      "project": "runtime",
+      "priority": "Low",
+      "status": "Pending",
+      "assignedAgentId": "agent-hermes-arch",
+      "assignedAgentName": "Hermes Architecture Agent",
+      "taskIds": [
+        "task-e0b2d72b-7261-40aa-ba0a-9d53f48ebfd2"
+      ],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T23:32:53.964Z",
+      "updatedAt": "2026-05-25T23:32:53.976Z",
       "completedAt": null,
       "handoffNote": null
     }
