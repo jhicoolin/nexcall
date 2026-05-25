@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOwnerEmail } from "@/lib/misato/auth";
 import { runMisatoMockCommand } from "@/lib/misato/mock/data";
-import { assertOwnerJson } from "@/lib/misato/owner-guard";
+import { assertOwnerJson, isLocalSoloMode } from "@/lib/misato/owner-guard";
 import { misatoDesignTokens } from "@/lib/misato/design/designTokens";
 import { subagentRegistry } from "@/lib/misato/subagents/registry";
 import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
@@ -27,8 +27,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const localSolo = isLocalSoloMode(request);
   const owner = getOwnerEmail();
-  if (!owner) {
+  if (!owner && !localSolo) {
     return withMisatoCors(
       NextResponse.json(
         {
@@ -66,8 +67,9 @@ export async function POST(request: Request) {
   return withMisatoCors(
     NextResponse.json({
       ok: true,
-      mode: "mock-safe",
-      ownerOnly: true,
+      mode: localSolo ? "local-solo" : "mock-safe",
+      ownerOnly: !localSolo,
+      localSoloMode: localSolo,
       liveAutomations: false,
       commandReceived: command,
       missionSummary: result.missionSummary,

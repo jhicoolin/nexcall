@@ -144,6 +144,7 @@ const storage = {
 // ── State ──────────────────────────────────────────────────────
 const injectedBase = (window.__MISATO_API_BASE_URL__ || '').trim();
 const state = {
+  mode:        storage.get('misato_mode', 'preview'),
   baseUrl:     storage.get('misato_api_base_url', injectedBase),
   token:       storage.get('misato_desktop_auth_token', ''),
   bypassToken: storage.get('misato_vercel_bypass_token', ''),
@@ -179,6 +180,29 @@ function now() { return new Date().toISOString(); }
 function isConnected() { return state.connTest.label === 'Connected'; }
 function esc(s) { return String(s || '').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+const MODES = {
+  local: 'local',
+  preview: 'preview',
+  production: 'production'
+};
+
+function applyModeDefaults(mode, preserve=false) {
+  state.mode = mode;
+  if (mode === MODES.local) {
+    state.baseUrl = 'http://localhost:3000/api/misato';
+    if (!preserve) {
+      state.token = '';
+      state.bypassToken = '';
+    }
+  }
+}
+
+function modeLabel() {
+  if (state.mode === MODES.local) return 'Local';
+  if (state.mode === MODES.production) return 'Production';
+  return 'Preview';
+}
+
 function connCls(label) {
   if (label === 'Connected')        return 'connected';
   if (label === 'Unauthorized')     return 'unauthorized';
@@ -192,8 +216,8 @@ function connCls(label) {
 // ── Network layer (unchanged) ──────────────────────────────────
 function headers() {
   const h = { 'content-type': 'application/json' };
-  if (state.token)       h['x-misato-desktop-token']     = state.token;
-  if (state.bypassToken) h['x-vercel-protection-bypass'] = state.bypassToken;
+  if (state.mode !== MODES.local && state.token) h['x-misato-desktop-token'] = state.token;
+  if (state.mode !== MODES.local && state.bypassToken) h['x-vercel-protection-bypass'] = state.bypassToken;
   return h;
 }
 
@@ -234,7 +258,7 @@ async function testConnection() {
     if (html || data?.__vercelProtected) {
       state.connTest = { label:'Vercel Protected', cls:'protected', httpStatus: res.status, checkedAt,
         error: 'Vercel deployment protection is blocking requests.',
-        nextFix: 'Add your Vercel Bypass Token in Config → Save → Test Connection. Or disable Preview protection in Vercel Project Settings → Deployment Protection.'
+        nextFix: 'Vercel Preview Protection is blocking this. Disable it for this preview or use Advanced bypass token.'
       };
     } else if (res.ok && data?.ok) {
       state.connTest = { label:'Connected', cls:'connected', httpStatus: res.status, checkedAt,
@@ -243,7 +267,7 @@ async function testConnection() {
     } else if (res.status === 401 || data?.auth === 'invalid') {
       state.connTest = { label:'Unauthorized', cls:'unauthorized', httpStatus: res.status, checkedAt,
         error: data?.error || 'unauthorized',
-        nextFix: 'Unauthorized means token mismatch or missing token. Check MISATO_DESKTOP_AUTH_TOKEN matches the value set in Vercel Preview env, then Save Config and retry.'
+        nextFix: state.mode === MODES.local ? 'Local mode should not require a token. Ensure npm run dev is running on localhost:3000.' : 'Desktop token is missing or mismatched. Verify MISATO_DESKTOP_AUTH_TOKEN and retry.'
       };
     } else if (res.status === 404) {
       state.connTest = { label:'404 / Wrong URL', cls:'not-found', httpStatus: 404, checkedAt,
@@ -334,14 +358,24 @@ async function sendCommand(cmdText) {
 }
 
 function saveConfig() {
-  const base   = (document.getElementById('cfg-base')?.value   || '').trim();
-  const token  = (document.getElementById('cfg-token')?.value  || '').trim();
+  const mode = (document.getElementById('cfg-mode')?.value || state.mode || MODES.preview).trim();
+  const base = (document.getElementById('cfg-base')?.value || '').trim();
+  const token = (document.getElementById('cfg-token')?.value || '').trim();
   const bypass = (document.getElementById('cfg-bypass')?.value || '').trim();
-  if (base)   state.baseUrl     = base;
-  if (token)  state.token       = token;
-  if (bypass) state.bypassToken = bypass;
-  storage.set('misato_api_base_url',        state.baseUrl);
-  storage.set('misato_desktop_auth_token',  state.token);
+
+  applyModeDefaults(mode, true);
+  if (base) state.baseUrl = base;
+  if (mode === MODES.local) {
+    state.token = '';
+    state.bypassToken = '';
+  } else {
+    if (token) state.token = token;
+    if (bypass) state.bypassToken = bypass;
+  }
+
+  storage.set('misato_mode', state.mode);
+  storage.set('misato_api_base_url', state.baseUrl);
+  storage.set('misato_desktop_auth_token', state.token);
   storage.set('misato_vercel_bypass_token', state.bypassToken);
   state.connTest = { label:'Not tested', cls:'unconfigured', httpStatus:null, checkedAt:null,
     error:'', nextFix:'Click Test Connection to verify backend/auth.' };
@@ -365,7 +399,7 @@ function renderHeader() {
           </div>
         </div>
         <div class="hdr-sep"></div>
-        <span class="hdr-badge hdr-badge-preview">Preview</span>
+        <span class="hdr-badge hdr-badge-preview">${modeLabel()}</span>
       </div>
       <div class="hdr-right">
         <span class="hdr-badge hdr-badge-safe">⊘ Automations Disabled</span>
@@ -392,24 +426,33 @@ function renderSidebar() {
       <div class="sb-section">Connection Setup</div>
 
       <div class="sb-panel">
-        <div class="sb-label">API Base URL</div>
-        <input id="cfg-base" class="m-input" placeholder="https://…/api/misato"
-          value="${esc(state.baseUrl)}" />
-        <div class="m-input-hint">Use misato-full-build preview URL, not nexcall.one, until production MISATO routes are deployed.</div>
+        <div class="sb-label">Mode</div>
+        <select id="cfg-mode" class="m-input">
+          <option value="local" ${state.mode===MODES.local?'selected':''}>Local Mode</option>
+          <option value="preview" ${state.mode===MODES.preview?'selected':''}>Preview Mode</option>
+          <option value="production" ${state.mode===MODES.production?'selected':''}>Production Mode</option>
+        </select>
+        <div class="m-input-hint">Current: ${modeLabel()} mode</div>
 
+        <div class="sb-label" style="margin-top:10px">API Base URL</div>
+        <input id="cfg-base" class="m-input" placeholder="https://…/api/misato" value="${esc(state.baseUrl)}" />
+        <div class="m-input-hint">${state.mode===MODES.local ? 'Local Solo Mode: no token required. Run npm run dev first.' : state.mode===MODES.preview ? 'Preview mode uses one desktop token. Bypass token is advanced-only.' : 'Production must remain protected.'}</div>
+
+        ${state.mode===MODES.local ? '' : `
         <div class="sb-label" style="margin-top:10px">Desktop Token</div>
-        <input id="cfg-token" class="m-input" type="password" autocomplete="off"
-          placeholder="MISATO_DESKTOP_AUTH_TOKEN" value="" />
+        <input id="cfg-token" class="m-input" type="password" autocomplete="off" placeholder="MISATO_DESKTOP_AUTH_TOKEN" value="" />
         <div class="m-input-hint">Saved locally · ${state.token ? 'configured ✓' : 'not set'} · value never shown</div>
 
-        <div class="sb-label" style="margin-top:8px">Vercel Bypass Token</div>
-        <input id="cfg-bypass" class="m-input" type="password" autocomplete="off"
-          placeholder="x-vercel-protection-bypass" value="" />
-        <div class="m-input-hint">Saved locally · ${state.bypassToken ? 'configured ✓' : 'not set'} · value never shown</div>
+        <details style="margin-top:8px">
+          <summary class="mono fs9 t-faint">Advanced: Vercel bypass token</summary>
+          <div class="sb-label" style="margin-top:8px">Bypass Token</div>
+          <input id="cfg-bypass" class="m-input" type="password" autocomplete="off" placeholder="x-vercel-protection-bypass" value="" />
+          <div class="m-input-hint">Use only if Preview Protection is enabled.</div>
+        </details>`}
 
         <div class="btn-row">
           <button class="btn btn-secondary" id="btn-save">Save</button>
-          <button class="btn btn-primary"   id="btn-test">Test Conn.</button>
+          <button class="btn btn-primary" id="btn-test">Test Conn.</button>
         </div>
       </div>
 
@@ -425,7 +468,7 @@ function renderSidebar() {
       </div>
 
       <div class="sb-panel">
-        <div class="sb-label">Auth Mode</div>
+        <div class="sb-label">Auth Mode (${modeLabel()})</div>
         <div class="led-row" style="margin-bottom:6px">
           <span class="led ${state.token ? 'ok' : 'dim'}"></span>
           <span class="fs10 ${state.token ? 't-ok' : 't-faint'}">${state.token ? 'Desktop token configured' : 'No desktop token'}</span>
@@ -827,6 +870,10 @@ function render() {
 // ── Event binding ──────────────────────────────────────────────
 function bind() {
   document.getElementById('btn-save')?.addEventListener('click', saveConfig);
+  document.getElementById('cfg-mode')?.addEventListener('change', e => {
+    applyModeDefaults(e.target.value || MODES.preview);
+    render();
+  });
   document.getElementById('btn-test')?.addEventListener('click', testConnection);
   document.getElementById('btn-reload')?.addEventListener('click', loadAll);
 
@@ -863,4 +910,6 @@ function bind() {
 }
 
 // ── Boot ───────────────────────────────────────────────────────
+applyModeDefaults(state.mode || MODES.preview, true);
+if (!state.baseUrl) applyModeDefaults(MODES.preview, true);
 render();

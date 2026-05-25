@@ -131,17 +131,27 @@ function limitRequestInMemory(identity: string, config: LimitConfig) {
   return { configured: false, success: existing.count <= config.limit, limit: config.limit, remaining: Math.max(0, config.limit - existing.count), reset: existing.reset };
 }
 
+function isLocalSoloAllowed(request: NextRequest) {
+  if (process.env.NODE_ENV === "production") return false;
+  if (process.env.VERCEL) return false;
+  const host = (request.headers.get("host") || "").toLowerCase();
+  const localhost = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  const envEnabled = (process.env.MISATO_LOCAL_SOLO_MODE || "false").toLowerCase() === "true";
+  return localhost || envEnabled;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const localSoloAllowed = isProtectedMisatoApi(pathname) && isLocalSoloAllowed(request);
   const desktopTokenAuthenticated = isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname) && hasValidDesktopToken(request);
 
   if (isProtectedMisatoRoute(pathname) || (isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname))) {
     const session = request.cookies.get(OWNER_COOKIE)?.value || "";
-    if (!desktopTokenAuthenticated && !session) {
+    if (!localSoloAllowed && !desktopTokenAuthenticated && !session) {
       if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    if (!desktopTokenAuthenticated && !(await hasValidOwnerCookie(session))) {
+    if (!localSoloAllowed && !desktopTokenAuthenticated && session && !(await hasValidOwnerCookie(session))) {
       if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 403 });
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
