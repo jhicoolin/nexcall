@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "status": "ok",
+  "service": "MISATO Hermes Bridge",
+  "mode": "local-first",
+  "runtimeStatus": "connected",
+  "version": "1.0.0-local",
+  "uptime": 4778.9540816,
+  "agents": {
+    "active": 7,
+    "total": 12
+  },
+  "tasks": {
+    "doing": 14,
+    "blocked": 1
+  },
+  "events": 71,
+  "localFirst": true,
+  "cloudOptional": true,
+  "approvalsPending": 9,
+  "paths": {
+    "dataDir": "C:\\Users\\pixel\\nexcall\\.misato-runtime",
+    "storePath": "C:\\Users\\pixel\\nexcall\\.misato-runtime\\state.json",
+    "eventsPath": "C:\\Users\\pixel\\nexcall\\.misato-runtime\\events.jsonl"
+  },
+  "timestamp": "2026-05-25T19:20:12.076Z"
+}

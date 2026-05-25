@@ -1,0 +1,4702 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "evt-237bbce5-fc40-4bc6-906b-a6ca2cca8726",
+      "eventId": "evt-546e9380-f338-4c5a-9e68-aec5c1303606",
+      "timestamp": "2026-05-25T16:31:48.928Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 6
+      }
+    },
+    {
+      "id": "evt-3a745fb1-6cd8-4388-ba49-b82569c4d683",
+      "eventId": "evt-fa9fe212-1c46-4b03-acb6-8b96d930dca3",
+      "timestamp": "2026-05-25T16:31:48.928Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-f3b8bace-2b14-41d4-bd5f-61ffe8657e75",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-ff960246-609e-4c8b-865f-1adb02b3f7d7",
+      "eventId": "evt-2b47703f-014f-457a-831c-271e28a5a6d1",
+      "timestamp": "2026-05-25T16:31:48.999Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "command": "What needs attention today?"
+      }
+    },
+    {
+      "id": "evt-cacdacbc-92ad-4ac3-8806-2bde579f7ccd",
+      "eventId": "evt-59fabb49-6a8b-4f1b-b793-cd6ba61f0e3b",
+      "timestamp": "2026-05-25T16:31:49.000Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "command": "What needs attention today?",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-065bbed0-263e-41a5-9b2c-a50a3f5e1eca",
+      "eventId": "evt-91aad058-5efe-437a-8e79-4342bb294f28",
+      "timestamp": "2026-05-25T16:31:49.000Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-c7940a40-6c04-48fa-aa19-6819c6e79d53",
+      "eventId": "evt-4eea7038-d249-48f7-bec0-746328354c8b",
+      "timestamp": "2026-05-25T16:31:49.001Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-66858886-fc1e-44b6-b4b6-c09548a6949c",
+      "eventId": "evt-79a11721-da59-47ec-b1e7-9022ede7ca12",
+      "timestamp": "2026-05-25T16:31:49.001Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-945ba16c-f44d-4d78-bf0b-6fa38fe7d886",
+      "eventId": "evt-ffae39e6-0067-4757-8266-23e7265de8a2",
+      "timestamp": "2026-05-25T16:31:49.002Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-ec239010-aa52-4e79-9fac-3310acbb596a",
+      "eventId": "evt-36a1b157-6c53-411a-80d3-9e26471d9377",
+      "timestamp": "2026-05-25T16:31:49.002Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-a6699650-4e2b-45ce-9c43-56aadb9f1ea7",
+      "eventId": "evt-8ee55fe7-ff95-4786-a41b-ac14d5bd5c21",
+      "timestamp": "2026-05-25T16:31:49.003Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-27654e15-d490-4653-bcb2-6beb89548c96",
+        "task": {
+          "id": "task-27654e15-d490-4653-bcb2-6beb89548c96",
+          "title": "Command: What needs attention today?",
+          "description": "",
+          "project": "NexCall",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:49.003Z",
+          "updatedAt": "2026-05-25T16:31:49.003Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-27654e15-d490-4653-bcb2-6beb89548c96"
+    },
+    {
+      "id": "evt-93909448-96df-4436-a395-3f37861e06cb",
+      "eventId": "evt-b4d24253-19eb-46fd-87aa-1af5b0b09536",
+      "timestamp": "2026-05-25T16:31:49.004Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: What needs attention today?"
+      }
+    },
+    {
+      "id": "evt-1b653869-7e79-4104-96a8-9a113a31c928",
+      "eventId": "evt-b0d3aa6d-ff23-4a00-a1dd-52bfc5687c61",
+      "timestamp": "2026-05-25T16:31:49.005Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: What needs attention today?",
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8"
+      }
+    },
+    {
+      "id": "evt-98c7e787-ea88-4da8-b09d-3fd5257b75a4",
+      "eventId": "evt-04786aa4-9364-4ecf-85b0-49e49e7dff81",
+      "timestamp": "2026-05-25T16:31:49.006Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 6
+      }
+    },
+    {
+      "id": "evt-3d22a72c-6871-4a7c-8d7e-7a0da136f72f",
+      "eventId": "evt-ac99ed3e-6c46-42a2-b91a-55c3b0800585",
+      "timestamp": "2026-05-25T16:31:49.006Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-e5d5e47e-d906-47fc-b500-a1462cd55744",
+      "eventId": "evt-b86ea7d8-aa11-465d-9e3a-5ccb1cfd62fd",
+      "timestamp": "2026-05-25T16:31:49.077Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-491b1c35-9e2b-48cd-a7ae-c16cc7f9cf36",
+      "eventId": "evt-7b23a869-2d65-46dd-a06e-f39874e78d4d",
+      "timestamp": "2026-05-25T16:31:49.078Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-d8695133-8d0b-4d0d-8b32-faaae6479c4b",
+      "eventId": "evt-c38994ef-3069-4b29-9136-76c1b8450d2b",
+      "timestamp": "2026-05-25T16:31:49.079Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-1626357b-dc85-49d5-b9c3-71faca2b5ca6",
+      "eventId": "evt-f3f91a60-3f00-4cc7-b0ea-198d791cfe61",
+      "timestamp": "2026-05-25T16:31:49.079Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-74072dc3-a5a8-415e-b481-eb4ad6ba5129",
+      "eventId": "evt-2a4c1d96-c8d7-405d-87d6-2cc212de8d86",
+      "timestamp": "2026-05-25T16:31:49.080Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-d8532750-f9b4-4ac0-a7c9-2df84a5e6a37",
+      "eventId": "evt-bf944a16-c293-41e2-8cf8-ba35bdfe3990",
+      "timestamp": "2026-05-25T16:31:49.080Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-4c3f3a7d-3512-42f8-8bc6-451241937ebf",
+      "eventId": "evt-514628f4-f17e-4772-a6ec-5a1690674776",
+      "timestamp": "2026-05-25T16:31:49.080Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-6c0b93b4-f6a7-478d-8c78-8928db1c9096",
+      "eventId": "evt-40c88bb0-e2d8-43b7-9d7b-1a9c55fda984",
+      "timestamp": "2026-05-25T16:31:49.081Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-20f0d839-f379-4999-9607-ac34f94d0c18",
+        "task": {
+          "id": "task-20f0d839-f379-4999-9607-ac34f94d0c18",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:49.081Z",
+          "updatedAt": "2026-05-25T16:31:49.081Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-20f0d839-f379-4999-9607-ac34f94d0c18"
+    },
+    {
+      "id": "evt-7f5f00a7-defa-46b9-9f30-44e7d1f08cc5",
+      "eventId": "evt-dd62da78-1b29-4efb-9825-01b1205f900a",
+      "timestamp": "2026-05-25T16:31:49.082Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-c3b7db12-3cfd-4811-bb7c-b154b382b003",
+      "eventId": "evt-df4bb175-73c0-44a8-878c-6c041a2f6d02",
+      "timestamp": "2026-05-25T16:31:49.083Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+        "approval": {
+          "id": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T16:31:49.083Z",
+          "updatedAt": "2026-05-25T16:31:49.083Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c"
+    },
+    {
+      "id": "evt-8c47d62f-cf43-4c87-82c2-d263ab07b165",
+      "eventId": "evt-cdea5a0e-c5d7-4375-a66d-15f7b967c244",
+      "timestamp": "2026-05-25T16:31:49.084Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+        "approval": {
+          "id": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T16:31:49.083Z",
+          "updatedAt": "2026-05-25T16:31:49.083Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c"
+    },
+    {
+      "id": "evt-cf4f7c07-147c-41e5-9f7c-b21ea6a0aa69",
+      "eventId": "evt-0979fa3a-8c64-469c-a55d-e6c6d569a4aa",
+      "timestamp": "2026-05-25T16:31:49.084Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-f2070632-5b5b-49c5-a83f-a00c4a7e2029",
+      "eventId": "evt-a6b04e2c-7ff1-4c55-ba23-2c9176653732",
+      "timestamp": "2026-05-25T16:31:49.084Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878"
+      }
+    },
+    {
+      "id": "evt-d046de64-f2c6-425e-be14-a6878adcb4b4",
+      "eventId": "evt-cdd8bfe3-ab1a-4877-b944-a17ad2467553",
+      "timestamp": "2026-05-25T16:31:49.085Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 7
+      }
+    },
+    {
+      "id": "evt-fd94d87e-681c-47c9-9345-9eeaee6891d6",
+      "eventId": "evt-da62982c-9a41-443c-a532-237bc665b4d2",
+      "timestamp": "2026-05-25T16:31:49.085Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-38f230d3-b4a5-49dc-80cf-22998639e430",
+      "eventId": "evt-345bd1a6-0c37-4b44-af95-c787803f3e3f",
+      "timestamp": "2026-05-25T16:31:53.692Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "task": {
+          "id": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+          "title": "Task A",
+          "description": "",
+          "project": "runtime",
+          "priority": "High",
+          "status": "Idea",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:53.692Z",
+          "updatedAt": "2026-05-25T16:31:53.692Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-dd968aaa-528d-45af-91e1-eec6d2f22322",
+      "eventId": "evt-18520410-fe05-4bbc-a39b-16686d874a94",
+      "timestamp": "2026-05-25T16:31:53.693Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Task A"
+      }
+    },
+    {
+      "id": "evt-70c4e47e-3666-41bc-888d-7a2cc969e13c",
+      "eventId": "evt-69686a7f-c65b-4003-ba56-bfd9738031e9",
+      "timestamp": "2026-05-25T16:31:54.323Z",
+      "type": "task.updated",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "task": {
+          "id": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+          "title": "Task A",
+          "description": "",
+          "project": "runtime",
+          "priority": "Low",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:53.692Z",
+          "updatedAt": "2026-05-25T16:31:54.323Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-36e0e0b2-3d7a-4b58-8f98-e8b085ac3e86",
+      "eventId": "evt-eb2c6abc-57f0-484a-83b5-40911cca43c4",
+      "timestamp": "2026-05-25T16:31:54.325Z",
+      "type": "task.status_changed",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "from": "Idea",
+        "to": "Doing"
+      },
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-d7eeebbf-d675-47b1-bebc-d91bed71490c",
+      "eventId": "evt-9223f76b-1e4b-437c-8a7f-57120aecc2e8",
+      "timestamp": "2026-05-25T16:31:54.326Z",
+      "type": "task.priority_changed",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "from": "High",
+        "to": "Low"
+      },
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-afda6e82-4e79-4b9d-9b2f-f1486815d36e",
+      "eventId": "evt-ef440bd3-1f9d-4893-828a-01a915eabebd",
+      "timestamp": "2026-05-25T16:31:54.327Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task updated: Task A"
+      }
+    },
+    {
+      "id": "evt-5ba4c011-1f39-4e22-8bcf-fba9a422fbda",
+      "eventId": "evt-6d6c29ea-9566-4c3a-83b8-593f9cff78bb",
+      "timestamp": "2026-05-25T16:31:55.100Z",
+      "type": "agent.assigned",
+      "source": "misato.agents",
+      "severity": "info",
+      "payload": {
+        "agentId": "agent-strategy",
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "agent": {
+          "agentId": "agent-strategy",
+          "name": "Strategy Agent",
+          "role": "High-level planning",
+          "status": "active",
+          "riskTier": "L1",
+          "permissions": [
+            "Docs",
+            "Planning"
+          ],
+          "blockedActions": [
+            "Production deploy"
+          ],
+          "allowedActions": [
+            "Roadmapping",
+            "Prioritization"
+          ],
+          "approvalRequiredFor": [
+            "Needs approval for execution"
+          ],
+          "currentTaskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+          "currentTask": "Task A",
+          "lastActivityAt": "2026-05-25T16:31:55.100Z"
+        },
+        "task": {
+          "id": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+          "title": "Task A",
+          "description": "",
+          "project": "runtime",
+          "priority": "Low",
+          "status": "Doing",
+          "ownerAgentId": "agent-strategy",
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:53.692Z",
+          "updatedAt": "2026-05-25T16:31:55.100Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": [],
+          "assignedAgentId": "agent-strategy",
+          "agent": "Strategy Agent"
+        }
+      },
+      "agentId": "agent-strategy",
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-edc1d5e4-ae2a-40da-80f8-6212136b57ed",
+      "eventId": "evt-d17c0286-d977-4602-86a1-b9df108b0104",
+      "timestamp": "2026-05-25T16:31:55.101Z",
+      "type": "task.updated",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "task": {
+          "id": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+          "title": "Task A",
+          "description": "",
+          "project": "runtime",
+          "priority": "Low",
+          "status": "Doing",
+          "ownerAgentId": "agent-strategy",
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:53.692Z",
+          "updatedAt": "2026-05-25T16:31:55.100Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": [],
+          "assignedAgentId": "agent-strategy",
+          "agent": "Strategy Agent"
+        }
+      },
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-beb5f2f3-3fe4-4126-a332-fa11097ab485",
+      "eventId": "evt-fa3e5bbf-94d0-43ba-a126-293dc9fbb361",
+      "timestamp": "2026-05-25T16:31:55.101Z",
+      "type": "log.created",
+      "source": "misato.agents",
+      "severity": "info",
+      "payload": {
+        "message": "Assigned Task A to Strategy Agent"
+      }
+    },
+    {
+      "id": "evt-38649b21-080b-4b59-8df0-6bbcc3d338c3",
+      "eventId": "evt-113390e6-f557-4bc8-b2c4-4443ee573d8d",
+      "timestamp": "2026-05-25T16:31:55.761Z",
+      "type": "task.deleted",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "payload": {
+        "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+        "task": {
+          "id": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+          "title": "Task A",
+          "description": "",
+          "project": "runtime",
+          "priority": "Low",
+          "status": "Doing",
+          "ownerAgentId": "agent-strategy",
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:31:53.692Z",
+          "updatedAt": "2026-05-25T16:31:55.100Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": [],
+          "assignedAgentId": "agent-strategy",
+          "agent": "Strategy Agent"
+        }
+      },
+      "taskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00"
+    },
+    {
+      "id": "evt-239e586f-9810-42cf-a9f1-6460944fcefa",
+      "eventId": "evt-40228784-3a4f-4bf4-b9bb-c4cc5a6ae9ab",
+      "timestamp": "2026-05-25T16:31:55.762Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "payload": {
+        "message": "Task deleted: Task A"
+      }
+    },
+    {
+      "id": "evt-9d8fb056-9d22-45bb-b1f1-869816d04e06",
+      "eventId": "evt-2f0c7dd7-2882-490e-ace3-f625f2f1c9a9",
+      "timestamp": "2026-05-25T16:31:56.475Z",
+      "type": "approval.deferred",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+        "approval": {
+          "id": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Deferred",
+          "createdAt": "2026-05-25T16:31:49.083Z",
+          "updatedAt": "2026-05-25T16:31:56.475Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true,
+          "decisionAt": "2026-05-25T16:31:56.475Z",
+          "decisionBy": "owner"
+        }
+      },
+      "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c"
+    },
+    {
+      "id": "evt-11a0e798-9b93-4e9f-8866-e17a10c7c6d9",
+      "eventId": "evt-12a7fbba-6746-43ad-b322-0f835b828a31",
+      "timestamp": "2026-05-25T16:31:56.476Z",
+      "type": "log.created",
+      "source": "misato.approvals",
+      "severity": "info",
+      "payload": {
+        "message": "Approval deferred: Approval required: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-d9656ff5-39c3-46c1-b929-a1edb850759c",
+      "eventId": "evt-494e15d9-ce0f-4c4f-931f-276ed71bcf34",
+      "timestamp": "2026-05-25T16:31:56.544Z",
+      "type": "approval.approved",
+      "source": "misato.approvals",
+      "severity": "info",
+      "payload": {
+        "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+        "approval": {
+          "id": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Approved",
+          "createdAt": "2026-05-25T16:31:49.083Z",
+          "updatedAt": "2026-05-25T16:31:56.544Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true,
+          "decisionAt": "2026-05-25T16:31:56.544Z",
+          "decisionBy": "owner"
+        }
+      },
+      "approvalId": "apr-4371fb44-aeea-41db-b814-401186fbed9c"
+    },
+    {
+      "id": "evt-1334be67-078b-4d71-ad7c-98be2c5502d9",
+      "eventId": "evt-a1749642-9722-463c-ac61-3adb4b88ca66",
+      "timestamp": "2026-05-25T16:31:56.545Z",
+      "type": "log.created",
+      "source": "misato.approvals",
+      "severity": "info",
+      "payload": {
+        "message": "Approval approved: Approval required: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-f464356b-3512-413c-b747-d60b6a50391d",
+      "eventId": "evt-d9191d27-b906-4192-ac36-392b55a2a3d0",
+      "timestamp": "2026-05-25T16:31:57.345Z",
+      "type": "watchtower.checked",
+      "source": "misato.watchtower",
+      "severity": "info",
+      "payload": {
+        "summary": {
+          "ok": true,
+          "serviceHealth": "healthy",
+          "checkState": "local-runtime",
+          "mode": "local-first",
+          "liveExternalCalls": false,
+          "monitors": [
+            {
+              "id": "local-runtime",
+              "name": "Local Hermes runtime",
+              "status": "up",
+              "target": "http://127.0.0.1:3010/health"
+            },
+            {
+              "id": "command",
+              "name": "Command endpoint",
+              "status": "up",
+              "target": "http://127.0.0.1:3010/api/misato/command"
+            },
+            {
+              "id": "events",
+              "name": "SSE stream",
+              "status": "up",
+              "target": "http://127.0.0.1:3010/api/misato/events/stream"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "evt-f446a069-9217-4ee3-baaf-e2e7802c354d",
+      "eventId": "evt-ca3de445-1f14-4715-afd1-fec323b1ed70",
+      "timestamp": "2026-05-25T16:31:58.148Z",
+      "type": "secret.scan.checked",
+      "source": "misato.secrets",
+      "severity": "info",
+      "payload": {
+        "summary": {
+          "findings": 2,
+          "token": "[REDACTED]"
+        }
+      }
+    },
+    {
+      "id": "evt-4f7be364-0629-4f8f-b820-41b6a7014482",
+      "eventId": "evt-d6ef5a87-61b5-48c5-a85c-d5651a224b56",
+      "timestamp": "2026-05-25T16:34:01.890Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "command": "HI"
+      }
+    },
+    {
+      "id": "evt-4bcdaec7-18f7-4665-b4cb-a7e1c14574c1",
+      "eventId": "evt-788ee7fd-eb7e-4acb-91c7-d077c6c87b7f",
+      "timestamp": "2026-05-25T16:34:01.890Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "command": "HI",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-b4474340-134e-4cc3-842d-0777a655ba72",
+      "eventId": "evt-967cfe5a-8c27-48a2-b6d9-894ef5e5f194",
+      "timestamp": "2026-05-25T16:34:01.891Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-32396806-f3a3-41ac-a903-7df2eb9e79fb",
+      "eventId": "evt-04ea8535-e708-491a-a5f6-745ca6389865",
+      "timestamp": "2026-05-25T16:34:01.892Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-c12ae9a9-7761-4803-b107-81d9042d5979",
+      "eventId": "evt-d143dbc8-c836-4c90-82db-2cf59a422c9a",
+      "timestamp": "2026-05-25T16:34:01.892Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-7b214c7d-3535-4006-ac12-b8f1c9a9abcc",
+      "eventId": "evt-74088878-d86c-4c57-bfe7-3e5da88323d9",
+      "timestamp": "2026-05-25T16:34:01.892Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-7e20d68b-2756-4f1a-8c4a-94a0e6a7596b",
+      "eventId": "evt-20506ab2-84ef-4981-aae8-347df1fca954",
+      "timestamp": "2026-05-25T16:34:01.893Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-32957826-f458-4cf3-8bdb-cdfebe710727",
+      "eventId": "evt-d4d13438-c395-4e8e-becc-2d45b3f07302",
+      "timestamp": "2026-05-25T16:34:01.894Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-df6b85ef-1743-4479-9367-834918e17e0a",
+        "task": {
+          "id": "task-df6b85ef-1743-4479-9367-834918e17e0a",
+          "title": "Command: HI",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:34:01.894Z",
+          "updatedAt": "2026-05-25T16:34:01.894Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-df6b85ef-1743-4479-9367-834918e17e0a"
+    },
+    {
+      "id": "evt-017b506d-41e1-430c-aa6f-5a50dcd0abd5",
+      "eventId": "evt-01f01cda-216a-48ca-b13d-f4eab0c0e624",
+      "timestamp": "2026-05-25T16:34:01.894Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: HI"
+      }
+    },
+    {
+      "id": "evt-58017bd8-d8da-4090-a401-22d149f158d2",
+      "eventId": "evt-384b3b60-7c54-46bf-a458-d332160fd6f1",
+      "timestamp": "2026-05-25T16:34:01.896Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: HI",
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9"
+      }
+    },
+    {
+      "id": "evt-07cd17f7-d2c1-4794-80ee-b5e66e7980d8",
+      "eventId": "evt-48b5dfc7-e508-4346-abed-40250f37ee61",
+      "timestamp": "2026-05-25T16:34:01.896Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 6
+      }
+    },
+    {
+      "id": "evt-f872bdac-c92e-43a0-af71-9d1d71d126e0",
+      "eventId": "evt-76dc6c7d-2b8e-4714-ab62-aaa7f8ebf0cb",
+      "timestamp": "2026-05-25T16:34:01.897Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-a997ab2d-e7a4-4ede-8e0d-7beecede898e",
+      "eventId": "evt-ecf1814e-5dfa-41e8-82a2-af75f7190b4f",
+      "timestamp": "2026-05-25T16:36:33.275Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "command": "HI"
+      }
+    },
+    {
+      "id": "evt-70fdc0f5-d9d9-4a5f-b9dd-f1021f74a509",
+      "eventId": "evt-7203f057-a2cb-489c-9b38-375dd5b47744",
+      "timestamp": "2026-05-25T16:36:33.275Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "command": "HI",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-ffe8896d-9c8c-4b4a-a547-a4986db322bb",
+      "eventId": "evt-bf995935-cc95-47cf-9f98-28a67d8ffb59",
+      "timestamp": "2026-05-25T16:36:33.276Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-58c107aa-8194-416f-8fce-0dad98db1a30",
+      "eventId": "evt-f25c7655-1dae-4929-8f49-946c7074a623",
+      "timestamp": "2026-05-25T16:36:33.276Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-0158b770-5f10-4022-93a9-a9b6a874e35c",
+      "eventId": "evt-cc2a008a-5d54-4ad8-adea-f0ce9853a7ec",
+      "timestamp": "2026-05-25T16:36:33.277Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-184855b0-2109-41a8-b105-a3f034142848",
+      "eventId": "evt-bba7e273-588d-4144-a1d9-71a41a7972bd",
+      "timestamp": "2026-05-25T16:36:33.277Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-0ecd35cd-d50b-4fcf-90e4-d5d264278925",
+      "eventId": "evt-b794ead8-7753-48be-953f-5c02f7b24046",
+      "timestamp": "2026-05-25T16:36:33.277Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-bc0b0eb1-0ae1-4ef4-8502-e9cf6a5c0943",
+      "eventId": "evt-535a2d4c-0165-439c-b4e2-d3c36130bcb6",
+      "timestamp": "2026-05-25T16:36:33.279Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-a4bc5b81-7171-4475-b38c-6ffe5f673a00",
+        "task": {
+          "id": "task-a4bc5b81-7171-4475-b38c-6ffe5f673a00",
+          "title": "Command: HI",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T16:36:33.279Z",
+          "updatedAt": "2026-05-25T16:36:33.279Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-a4bc5b81-7171-4475-b38c-6ffe5f673a00"
+    },
+    {
+      "id": "evt-528929fd-8eab-47c1-a429-7e0d1f4cd5d2",
+      "eventId": "evt-786da7c4-ff16-4874-af65-6a4b11ec3cb2",
+      "timestamp": "2026-05-25T16:36:33.280Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: HI"
+      }
+    },
+    {
+      "id": "evt-96c0c237-406a-4424-867a-8e4f485cc934",
+      "eventId": "evt-f15c9474-184a-4e81-b10e-99d892c3e395",
+      "timestamp": "2026-05-25T16:36:33.281Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: HI",
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707"
+      }
+    },
+    {
+      "id": "evt-686966c3-c0a0-4e1d-92b6-27c45e0239c3",
+      "eventId": "evt-6a6b87f5-167a-4292-a704-f7d11e0a6cbb",
+      "timestamp": "2026-05-25T16:36:33.281Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 6
+      }
+    },
+    {
+      "id": "evt-1aac6d99-bbf2-42b2-ac30-5d76bdb17136",
+      "eventId": "evt-d4ee7626-eb81-4c3b-9f93-04e6d1895c2a",
+      "timestamp": "2026-05-25T16:36:33.282Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-1c5fc604-c846-46bc-8184-ec2828a9edee",
+      "eventId": "evt-a02e787a-3e20-4169-b319-cd7108f0485b",
+      "timestamp": "2026-05-25T17:10:11.049Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "command": "HI"
+      }
+    },
+    {
+      "id": "evt-3742ea71-6ae4-4424-b736-716fa610136e",
+      "eventId": "evt-8ae6a48e-25aa-48ba-a7ef-98e8e31ae927",
+      "timestamp": "2026-05-25T17:10:11.050Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "command": "HI",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-06ab70cb-1e0b-4062-9c4d-6a18aa90dbd1",
+      "eventId": "evt-07c59b66-a1cd-49ef-952a-d4bdd0851ba0",
+      "timestamp": "2026-05-25T17:10:11.050Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-a0d587ac-3eab-4209-ba1e-b0ccb06b265c",
+      "eventId": "evt-4be8c0b7-9ebe-4939-8c9d-b611a62e8c51",
+      "timestamp": "2026-05-25T17:10:11.051Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-ab85583f-23d1-4602-82a2-aed912d98eb6",
+      "eventId": "evt-a2e27efd-94f3-44c9-acf8-29990034288b",
+      "timestamp": "2026-05-25T17:10:11.052Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-fefe5068-c24c-40d4-ad9f-3f625edfc57b",
+      "eventId": "evt-96c04ca1-41a3-4986-b065-551fe97dd12f",
+      "timestamp": "2026-05-25T17:10:11.052Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-53751e7a-4d7f-4061-b1b5-69ae16972a7e",
+      "eventId": "evt-52015e33-64b8-4688-83d1-4421f9a95d03",
+      "timestamp": "2026-05-25T17:10:11.053Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-55442de7-86b8-412b-93eb-82f7f4ece153",
+      "eventId": "evt-677264f2-0b26-4e6c-9d74-6c60db222e3f",
+      "timestamp": "2026-05-25T17:10:11.055Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-509c3e13-1e01-44a6-b115-31216cfaa88c",
+        "task": {
+          "id": "task-509c3e13-1e01-44a6-b115-31216cfaa88c",
+          "title": "Command: HI",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T17:10:11.055Z",
+          "updatedAt": "2026-05-25T17:10:11.055Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-509c3e13-1e01-44a6-b115-31216cfaa88c"
+    },
+    {
+      "id": "evt-78a5b482-45f8-4616-bec8-330633d37a32",
+      "eventId": "evt-c6c2b34b-fe82-4593-aea8-3af181a73585",
+      "timestamp": "2026-05-25T17:10:11.055Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: HI"
+      }
+    },
+    {
+      "id": "evt-08b1cadb-7af2-449c-9b17-3d3d95e37aa0",
+      "eventId": "evt-1c47c066-4afc-4e11-9b42-63f628fd47c8",
+      "timestamp": "2026-05-25T17:10:11.057Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: HI",
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81"
+      }
+    },
+    {
+      "id": "evt-e33543bb-dc78-4741-9878-fca0a770a0c2",
+      "eventId": "evt-c1dbf5c2-f97b-4c72-aa1c-1d36e9ca0c16",
+      "timestamp": "2026-05-25T17:10:11.057Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 6
+      }
+    },
+    {
+      "id": "evt-a50389fd-a93b-4696-818f-8446fbae030a",
+      "eventId": "evt-3f888550-95da-4860-82a2-368c4a6943b7",
+      "timestamp": "2026-05-25T17:10:11.058Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-8d477075-cf6f-40af-951b-f0c4766ec7fd",
+      "eventId": "evt-4b42e59e-9652-49c6-afcb-c275121edcae",
+      "timestamp": "2026-05-25T18:01:36.216Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-0488f289-ad5c-4d1e-a23d-a18bfa0dadff",
+      "eventId": "evt-8edec79b-fe63-4fb9-b517-8d58b5ceac41",
+      "timestamp": "2026-05-25T18:01:36.217Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-6c21ab82-c047-4dbc-abbc-d4be6f91a525",
+      "eventId": "evt-1005ba21-ba73-4747-8f71-91130ebaccb3",
+      "timestamp": "2026-05-25T18:01:36.218Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-e72bb793-14f7-45ff-b449-5b9b1b8d50d3",
+      "eventId": "evt-6e728f93-5400-4b08-a599-3ae16ee685a7",
+      "timestamp": "2026-05-25T18:01:36.219Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-481f617b-580b-461b-8293-51bef324ecd6",
+      "eventId": "evt-67b3a709-392b-422c-9e27-781208778512",
+      "timestamp": "2026-05-25T18:01:36.222Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-a9d654aa-f823-4f84-92a6-063a368df79a",
+      "eventId": "evt-1e41f5c4-1efd-4735-af65-350bbfac58bc",
+      "timestamp": "2026-05-25T18:01:36.223Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-9733aabf-5c41-4816-a797-83640b2ca367",
+      "eventId": "evt-ed2e4ec2-4b66-40cd-98ff-7e5f787aedb4",
+      "timestamp": "2026-05-25T18:01:36.224Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-213a5f1a-4aac-4f6e-9c0e-715c30e3c100",
+      "eventId": "evt-491a5d3a-50c3-4fd5-982d-fc23bf4324eb",
+      "timestamp": "2026-05-25T18:01:36.226Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-8bd9fa29-6a98-4e95-b060-af0d40becba3",
+        "task": {
+          "id": "task-8bd9fa29-6a98-4e95-b060-af0d40becba3",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:01:36.226Z",
+          "updatedAt": "2026-05-25T18:01:36.226Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-8bd9fa29-6a98-4e95-b060-af0d40becba3"
+    },
+    {
+      "id": "evt-42495d78-38d4-4665-9b41-eeee19fc151b",
+      "eventId": "evt-d7057aef-022c-41b8-971f-fa5c79cdce55",
+      "timestamp": "2026-05-25T18:01:36.227Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-58385b62-8cab-4a15-821e-370fdb530089",
+      "eventId": "evt-8376953b-2bc5-4160-b7db-87c8d63dc776",
+      "timestamp": "2026-05-25T18:01:36.229Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+        "approval": {
+          "id": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:01:36.229Z",
+          "updatedAt": "2026-05-25T18:01:36.229Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5"
+    },
+    {
+      "id": "evt-818ff120-6093-4318-9558-8d1a1dfd88f7",
+      "eventId": "evt-a18fbdc3-e846-4fa5-bfd5-7e42bc2e40f3",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+        "approval": {
+          "id": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:01:36.229Z",
+          "updatedAt": "2026-05-25T18:01:36.229Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5"
+    },
+    {
+      "id": "evt-26a41a38-a587-4ee9-8889-045add40a10c",
+      "eventId": "evt-52f3a7b2-f605-49f8-8818-f224e96b3f7d",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-b864bce2-bfe9-4aa9-8ca4-d64716c6fbf4",
+      "eventId": "evt-e2cb20f2-88eb-45ba-acb0-919a81d92677",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39"
+      }
+    },
+    {
+      "id": "evt-442111f8-c55a-44b1-adfa-0f0b645f81d3",
+      "eventId": "evt-5bfbdff6-bf1d-4833-8c73-0edee9974230",
+      "timestamp": "2026-05-25T18:01:36.231Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 7
+      }
+    },
+    {
+      "id": "evt-95cbc70f-be56-47c0-bc7a-afd74cb8a0c6",
+      "eventId": "evt-a24afd24-f21c-4453-b82b-6f1c63e3bc54",
+      "timestamp": "2026-05-25T18:01:36.231Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-45d0436d-3cfb-480f-b1a8-7f34bb3d4d50",
+      "eventId": "evt-00a8546b-1108-4a3b-a36c-43d0561e72b0",
+      "timestamp": "2026-05-25T18:07:39.030Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "command": "hi bb"
+      }
+    },
+    {
+      "id": "evt-21eb0dfc-03d5-41e4-8c89-010bd16a0d2b",
+      "eventId": "evt-9dd4a585-6156-4e5b-9c67-5b8cdcdd6036",
+      "timestamp": "2026-05-25T18:07:39.031Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "command": "hi bb",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-60eba2f2-44b2-49d9-a120-346c4518bc07",
+      "eventId": "evt-71e7e721-0520-42e3-ba5b-313a36c36b76",
+      "timestamp": "2026-05-25T18:07:39.032Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-e72319bf-fbe7-442b-8b12-b17cdc671300",
+      "eventId": "evt-4acfcc56-da81-4b19-8de8-2a2ab07814c0",
+      "timestamp": "2026-05-25T18:07:39.032Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-f97fee3a-1ebf-415e-96b5-87ebc008d8bb",
+      "eventId": "evt-c406e50d-a5be-40bb-b362-df4400e6205b",
+      "timestamp": "2026-05-25T18:07:39.033Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-6ef6b720-b61b-4585-8091-48f3e83679f0",
+      "eventId": "evt-5371c135-1116-41d4-9c7e-d2a6dec731d2",
+      "timestamp": "2026-05-25T18:07:39.033Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-d8569d03-17a6-443d-b47a-d9bfa6d8f48d",
+      "eventId": "evt-1f6438fb-8695-4669-8755-72af6614bd6b",
+      "timestamp": "2026-05-25T18:07:39.034Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-97584506-1acd-427d-a67e-a8eaf07e8969",
+      "eventId": "evt-5bcd7705-6475-45d7-9974-4857fe548561",
+      "timestamp": "2026-05-25T18:07:39.035Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-2243aaea-7ae4-41f0-99bc-73886ae1d002",
+        "task": {
+          "id": "task-2243aaea-7ae4-41f0-99bc-73886ae1d002",
+          "title": "Command: hi bb",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:07:39.035Z",
+          "updatedAt": "2026-05-25T18:07:39.035Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-2243aaea-7ae4-41f0-99bc-73886ae1d002"
+    },
+    {
+      "id": "evt-97556b5b-4647-4f0d-a057-4e112b40a4f0",
+      "eventId": "evt-8e8d8f79-3ef7-4f82-909f-2b8658e85731",
+      "timestamp": "2026-05-25T18:07:39.036Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: hi bb"
+      }
+    },
+    {
+      "id": "evt-51b8123a-0a45-482e-95d2-bea40678b06d",
+      "eventId": "evt-0fde9702-a979-4d5d-8738-ec2bc1aafa41",
+      "timestamp": "2026-05-25T18:07:39.037Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: hi bb",
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f"
+      }
+    },
+    {
+      "id": "evt-72300833-3db0-468b-9f81-2302c6dd551b",
+      "eventId": "evt-b96c4fd3-2656-46b4-8720-4dc751df1b88",
+      "timestamp": "2026-05-25T18:07:39.038Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 7
+      }
+    },
+    {
+      "id": "evt-4879e667-c6e8-4291-9689-39af48fdb670",
+      "eventId": "evt-6addf372-436f-49f9-91ac-9f8c222d473e",
+      "timestamp": "2026-05-25T18:07:39.038Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-4d8d4e70-9302-499b-8b79-a8ad05035394",
+      "eventId": "evt-bcec56c6-9e6c-43de-aba0-5b74da097bec",
+      "timestamp": "2026-05-25T18:07:39.167Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-b3ff44a0-497e-4864-8581-c4d12d357b7b",
+      "eventId": "evt-f88c2fe7-510f-4857-97c5-229b8aff108f",
+      "timestamp": "2026-05-25T18:07:39.168Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-b869f2cf-c964-4c77-bee5-d145d7d329ca",
+      "eventId": "evt-492ac016-b662-4cab-b091-fe436c5ceac2",
+      "timestamp": "2026-05-25T18:07:39.168Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-ed6dba59-fcbb-45f2-b3f5-00f2a16701c3",
+      "eventId": "evt-085ab871-b811-498b-8c85-5e85d1ac4f85",
+      "timestamp": "2026-05-25T18:07:39.169Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-457ed26c-1241-4f49-847e-56e31278affa",
+      "eventId": "evt-a37d2d4d-e660-4a14-8204-e50078870b6a",
+      "timestamp": "2026-05-25T18:07:39.170Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-1d77190b-42d9-43fe-95bf-55081a31922f",
+      "eventId": "evt-a5872a98-2171-4242-837f-70b44572d09e",
+      "timestamp": "2026-05-25T18:07:39.171Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-7f0bea38-cc49-4c9e-ba8c-3913942e40e4",
+      "eventId": "evt-ba40c1ce-08bb-4896-b213-d38bc3d4b54a",
+      "timestamp": "2026-05-25T18:07:39.172Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-259541fe-df39-4254-96fe-8f8837dda913",
+      "eventId": "evt-f86e799b-4626-4767-91a1-8e5e5ec97f63",
+      "timestamp": "2026-05-25T18:07:39.174Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-2ffbeec2-d5ec-4100-a1c1-efafc7c7d675",
+        "task": {
+          "id": "task-2ffbeec2-d5ec-4100-a1c1-efafc7c7d675",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:07:39.174Z",
+          "updatedAt": "2026-05-25T18:07:39.174Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-2ffbeec2-d5ec-4100-a1c1-efafc7c7d675"
+    },
+    {
+      "id": "evt-3f97dfa2-2299-4359-b807-87cfc7a5ca4e",
+      "eventId": "evt-f56df8a7-2399-455c-8d19-37e5e385aa6d",
+      "timestamp": "2026-05-25T18:07:39.174Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-df493de3-9bf6-4337-a5ff-bf477ef62fad",
+      "eventId": "evt-928bef62-da44-448a-ac43-4f2e0fcf9bac",
+      "timestamp": "2026-05-25T18:07:39.176Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+        "approval": {
+          "id": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:07:39.176Z",
+          "updatedAt": "2026-05-25T18:07:39.176Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089"
+    },
+    {
+      "id": "evt-f9b10482-a9a8-4028-b41c-8feb071e9ca2",
+      "eventId": "evt-ea8bf61b-76a7-4bac-ac46-ba308ea15802",
+      "timestamp": "2026-05-25T18:07:39.176Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+        "approval": {
+          "id": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:07:39.176Z",
+          "updatedAt": "2026-05-25T18:07:39.176Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089"
+    },
+    {
+      "id": "evt-2403c994-c9c5-41ed-8834-9ceb7d960464",
+      "eventId": "evt-f5d2ff31-2ec7-49b6-919e-5c40b6fafcb7",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-048566ba-573e-4124-88ea-1dbc0048c2fc",
+      "eventId": "evt-647586a7-4b64-4827-b48f-053b19a51580",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0"
+      }
+    },
+    {
+      "id": "evt-b2454350-5aed-4554-872e-04a809f56698",
+      "eventId": "evt-066ec861-3e22-4bef-9521-c07fedeb6798",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 8
+      }
+    },
+    {
+      "id": "evt-a7d15748-8efe-40d5-8d52-12815578364f",
+      "eventId": "evt-615bcf24-c0df-46be-8404-b4c83b70b810",
+      "timestamp": "2026-05-25T18:07:39.178Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-351b1a93-c898-49d7-ab07-fc33964c6241",
+      "eventId": "evt-04e5fd65-1da5-4ac7-845c-3f3fa093c101",
+      "timestamp": "2026-05-25T18:19:12.348Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-4176366f-cd69-433d-8a05-5cc6a3bc86f2",
+      "eventId": "evt-61756908-0aec-4234-9df7-43bd9332adfa",
+      "timestamp": "2026-05-25T18:19:12.349Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-13ff07ca-48f8-40e9-bfee-8bdb7c9f951d",
+      "eventId": "evt-6cc72c0b-3c7e-455f-9ca8-97939b3b945a",
+      "timestamp": "2026-05-25T18:19:12.349Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-1b2d6c94-98ca-444d-8298-38d8093493ad",
+      "eventId": "evt-3c151f38-8ea1-410b-a8f0-e1efa5420a51",
+      "timestamp": "2026-05-25T18:19:12.350Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-d79e0f4b-7ee2-4f68-a4b2-4b5e19383439",
+      "eventId": "evt-a29eb4bd-8fff-40f9-8a1d-88c0112a317b",
+      "timestamp": "2026-05-25T18:19:12.350Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-1dca4ac5-d9db-4d07-b994-7eb282ba9acd",
+      "eventId": "evt-2ecb590a-9d42-417b-8046-b0df001d9f69",
+      "timestamp": "2026-05-25T18:19:12.351Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-f1235e1e-dd52-4ad2-ae54-f19847be8a8b",
+      "eventId": "evt-b94b598e-b4c6-4858-893c-c5b83b10f0c3",
+      "timestamp": "2026-05-25T18:19:12.351Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-bcbe6b84-3743-4bf4-afb1-5b046d2b638e",
+      "eventId": "evt-1882fe80-ac21-47ed-91f5-1284ee086b34",
+      "timestamp": "2026-05-25T18:19:12.352Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-d079152e-1d00-477a-971e-2f13f3da66df",
+        "task": {
+          "id": "task-d079152e-1d00-477a-971e-2f13f3da66df",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:19:12.352Z",
+          "updatedAt": "2026-05-25T18:19:12.352Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-d079152e-1d00-477a-971e-2f13f3da66df"
+    },
+    {
+      "id": "evt-8fdff9c2-b91a-41f8-a054-cf0e66a9490e",
+      "eventId": "evt-7839321e-df4f-4b0f-a445-45e09f9460d4",
+      "timestamp": "2026-05-25T18:19:12.353Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-7a497f10-5edc-4ae7-ab01-d4bce43888ed",
+      "eventId": "evt-c2328050-9012-4f9f-b1e9-a6decc710284",
+      "timestamp": "2026-05-25T18:19:12.354Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+        "approval": {
+          "id": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:19:12.354Z",
+          "updatedAt": "2026-05-25T18:19:12.354Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d"
+    },
+    {
+      "id": "evt-c7f84ab0-35d9-47dd-92e7-cef721d7b97e",
+      "eventId": "evt-b1dea246-64d8-4abf-90cc-5f2235007a76",
+      "timestamp": "2026-05-25T18:19:12.355Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+        "approval": {
+          "id": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:19:12.354Z",
+          "updatedAt": "2026-05-25T18:19:12.354Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d"
+    },
+    {
+      "id": "evt-67397dc4-f930-4a7e-bfa5-acf8c80ef7a0",
+      "eventId": "evt-af704c63-b12b-4036-8ec4-4eb789e44da6",
+      "timestamp": "2026-05-25T18:19:12.356Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-4fb5ccc2-1635-4b74-a87c-2a285d3db866",
+      "eventId": "evt-5d21ee0d-ded1-497b-a479-7bd9282d92a0",
+      "timestamp": "2026-05-25T18:19:12.356Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5"
+      }
+    },
+    {
+      "id": "evt-2fb190ed-91c7-4562-bc2b-75fc866b5bf6",
+      "eventId": "evt-90cf5430-0c97-49a1-b9c9-8f108f5798a2",
+      "timestamp": "2026-05-25T18:19:12.357Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-90945e89-774b-4192-9f0e-aeaf54c16d9e",
+      "eventId": "evt-3548d483-d035-4463-99e7-1ee7229a8a24",
+      "timestamp": "2026-05-25T18:19:12.357Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-06fc5ffd-579a-4844-83b9-900953562996",
+      "eventId": "evt-dc05a279-8252-4f6f-b9d8-84451419e738",
+      "timestamp": "2026-05-25T18:19:28.883Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "command": "hi bb"
+      }
+    },
+    {
+      "id": "evt-d409322d-2530-4e61-8ba1-40d15aad769a",
+      "eventId": "evt-26984abc-697a-4dd1-94a8-890aced4e651",
+      "timestamp": "2026-05-25T18:19:28.884Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "command": "hi bb",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-2c908ca6-06d7-412f-b0f2-24090c124351",
+      "eventId": "evt-774241b3-3b80-45e1-bbeb-8dadd76c6374",
+      "timestamp": "2026-05-25T18:19:28.885Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-e64c3b00-7e46-4ba9-9e2b-fb1641dd896c",
+      "eventId": "evt-d6314cda-45f0-464b-8ddc-790832b6682f",
+      "timestamp": "2026-05-25T18:19:28.885Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-7b14ebc3-5f34-4279-9762-4f3a5503bfe4",
+      "eventId": "evt-31a27ae2-5fb2-40bc-b482-4317032182ae",
+      "timestamp": "2026-05-25T18:19:28.886Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-25df6cd6-f9f1-4a07-b110-b0c38ce9137f",
+      "eventId": "evt-bc1d39ff-c7b7-4bb8-9bae-d5445443bf6f",
+      "timestamp": "2026-05-25T18:19:28.886Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-c1e80947-b48f-4484-a011-eeaba4551932",
+      "eventId": "evt-b116446b-9908-471d-b86a-c7f7e52d0f30",
+      "timestamp": "2026-05-25T18:19:28.887Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-21649f9c-18d8-4bf9-84c2-b149586320d3",
+      "eventId": "evt-12fef9ac-6f5c-4fd4-bfbe-6ae242a2ea69",
+      "timestamp": "2026-05-25T18:19:28.888Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-8e4b5e6a-8d9d-4554-a656-797b34f73094",
+        "task": {
+          "id": "task-8e4b5e6a-8d9d-4554-a656-797b34f73094",
+          "title": "Command: hi bb",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:19:28.888Z",
+          "updatedAt": "2026-05-25T18:19:28.888Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-8e4b5e6a-8d9d-4554-a656-797b34f73094"
+    },
+    {
+      "id": "evt-f06fd80a-a5ee-4c70-ab1c-acf30ecfee7a",
+      "eventId": "evt-6cb9d79c-3431-404c-8cb1-636de0b19fe1",
+      "timestamp": "2026-05-25T18:19:28.888Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: hi bb"
+      }
+    },
+    {
+      "id": "evt-a7551d39-6b86-4fca-a258-43445319316e",
+      "eventId": "evt-ed6caee4-53e4-4af8-a728-aacd2bd9aa5c",
+      "timestamp": "2026-05-25T18:19:28.890Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: hi bb",
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b"
+      }
+    },
+    {
+      "id": "evt-cb8aaf47-8377-464d-818b-2889908ecb75",
+      "eventId": "evt-4e0ecd97-57b8-4adb-989c-aa6574b7f873",
+      "timestamp": "2026-05-25T18:19:28.890Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-ad11138c-cbe3-4998-9758-3f6ddd84109b",
+      "eventId": "evt-dcb1887c-9266-4d6d-9981-0efcd272cf7e",
+      "timestamp": "2026-05-25T18:19:28.891Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-e4de79f8-0dc6-4d7d-a09e-09886a95ccc4",
+      "eventId": "evt-4eb198a4-fc57-4b79-9bdb-7b06a8a3d145",
+      "timestamp": "2026-05-25T19:20:12.085Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "command": "hi bb"
+      }
+    },
+    {
+      "id": "evt-00ace9dd-7337-45bd-94ba-6cd2dcbc9211",
+      "eventId": "evt-9c2e0f02-4353-487c-9932-15af5bd51aa0",
+      "timestamp": "2026-05-25T19:20:12.086Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "command": "hi bb",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-f1e3ea2d-7bec-4f86-b8dd-2eeca0e1bc45",
+      "eventId": "evt-2dbee33e-6c62-4505-9b97-97dbc746b351",
+      "timestamp": "2026-05-25T19:20:12.087Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-48ccca6c-7de6-47d5-bfea-7110edbde3c4",
+      "eventId": "evt-059aa5c6-509f-431a-b9ce-cfd2c7677da2",
+      "timestamp": "2026-05-25T19:20:12.087Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-f306284a-c1e8-4d66-b23f-afc5173169aa",
+      "eventId": "evt-476ebec0-b874-4bc9-a94c-e05a7ebdba4e",
+      "timestamp": "2026-05-25T19:20:12.088Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-c58ce24c-3eb4-4405-921c-6c8870bbd0df",
+      "eventId": "evt-bf3ba3c4-3fec-4e20-b9d5-e58f3fa248d1",
+      "timestamp": "2026-05-25T19:20:12.088Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-81047605-9a74-4086-a67a-bb6809d64e79",
+      "eventId": "evt-c465de6b-7248-4bd3-9cda-8f042a5a4ba1",
+      "timestamp": "2026-05-25T19:20:12.088Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-d6737cb5-09e1-4ee4-a012-1dba7a487351",
+      "eventId": "evt-7b2a2e83-9c30-4ebe-bb5b-13278ee1adde",
+      "timestamp": "2026-05-25T19:20:12.090Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-7c76bbe6-1756-46ad-beb9-06ceba48c0f5",
+        "task": {
+          "id": "task-7c76bbe6-1756-46ad-beb9-06ceba48c0f5",
+          "title": "Command: hi bb",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T19:20:12.089Z",
+          "updatedAt": "2026-05-25T19:20:12.089Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-7c76bbe6-1756-46ad-beb9-06ceba48c0f5"
+    },
+    {
+      "id": "evt-d9918614-e27f-4350-accf-f6bb97c59124",
+      "eventId": "evt-1a916d65-82ae-43b8-a4df-b28f8741b841",
+      "timestamp": "2026-05-25T19:20:12.090Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: hi bb"
+      }
+    },
+    {
+      "id": "evt-52337312-a137-414c-8512-07a2d958cfc3",
+      "eventId": "evt-d88b845e-1a1e-40c9-a33f-bf4b844b8ab3",
+      "timestamp": "2026-05-25T19:20:12.091Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: hi bb",
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085"
+      }
+    },
+    {
+      "id": "evt-baa892a7-955c-47e6-a4c5-22542e81696c",
+      "eventId": "evt-82b146f2-a2f5-4c32-abbf-c9b998a25e63",
+      "timestamp": "2026-05-25T19:20:12.092Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-bea419a0-336d-4776-8ec4-71c53d51943b",
+      "eventId": "evt-abe75e61-6698-48f7-9d99-691664d9fd80",
+      "timestamp": "2026-05-25T19:20:12.092Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-6a4c1498-38f8-40cd-b9f0-836bb7c52a36",
+      "eventId": "evt-4b66e95f-9eff-4a32-b582-6905f8662322",
+      "timestamp": "2026-05-25T19:20:12.102Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "command": "What needs attention today?"
+      }
+    },
+    {
+      "id": "evt-b06895eb-846c-4665-a6c6-cdd92823e5ee",
+      "eventId": "evt-7935b2ae-012c-4640-a931-ab1bace0186f",
+      "timestamp": "2026-05-25T19:20:12.103Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "command": "What needs attention today?",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-9181a15a-0b5a-4ab0-9d42-3552cbdd0cf1",
+      "eventId": "evt-8b30d661-f9f4-4fa7-a01c-668c5fd0401f",
+      "timestamp": "2026-05-25T19:20:12.103Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-604e77a3-f991-462f-a33a-ba421320254e",
+      "eventId": "evt-8f07423e-2680-402c-8306-42545846a6c2",
+      "timestamp": "2026-05-25T19:20:12.104Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-c9375003-915d-452a-94cb-68cea0923c31",
+      "eventId": "evt-c696059d-012a-4a78-b127-5fd9abe4348b",
+      "timestamp": "2026-05-25T19:20:12.104Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-82d62a4c-f7d7-4bac-8b98-b1da4db49490",
+      "eventId": "evt-d0ee5bf2-f0a2-4701-94e4-02fffb85fadb",
+      "timestamp": "2026-05-25T19:20:12.104Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-50e4cc7f-409d-43b2-86d8-9d091eb66f17",
+      "eventId": "evt-016d5ab9-bedd-4aa8-b683-87f297902983",
+      "timestamp": "2026-05-25T19:20:12.105Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-8f629e17-06e9-4fdc-82a7-7f2f240d9d96",
+      "eventId": "evt-5787330b-9586-456b-8657-bfba3a4fbafa",
+      "timestamp": "2026-05-25T19:20:12.105Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-2df44c1a-f445-4025-af80-3a993edc73b6",
+        "task": {
+          "id": "task-2df44c1a-f445-4025-af80-3a993edc73b6",
+          "title": "Command: What needs attention today?",
+          "description": "",
+          "project": "NexCall",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T19:20:12.105Z",
+          "updatedAt": "2026-05-25T19:20:12.105Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-2df44c1a-f445-4025-af80-3a993edc73b6"
+    },
+    {
+      "id": "evt-e707a8e2-018b-4a8a-b79c-cc04f2d95043",
+      "eventId": "evt-4c06b9e4-ac3e-4df8-aea5-d288231bbcff",
+      "timestamp": "2026-05-25T19:20:12.106Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: What needs attention today?"
+      }
+    },
+    {
+      "id": "evt-b02d2de5-6f29-44f8-a917-f2ac20a16aae",
+      "eventId": "evt-6fcaeba8-fe48-45e0-8743-82124447baac",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: What needs attention today?",
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e"
+      }
+    },
+    {
+      "id": "evt-7c350c1e-29b1-421b-a160-4a56ae96a859",
+      "eventId": "evt-1dea9a31-9787-43ed-9810-ff56219063e0",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-eeb28771-8302-4316-8e19-2927030a30d1",
+      "eventId": "evt-bcc60320-61eb-4192-95a7-18ea3e6dee51",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-c07fe591-abfc-42c0-ad2c-9fad10a2a59d",
+      "eventId": "evt-098107a6-6610-4bb9-8818-062fcc6832b8",
+      "timestamp": "2026-05-25T19:20:12.116Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-b14b2b3b-47e2-479f-84d9-5a9005e31888",
+      "eventId": "evt-81c3e4c8-dabc-4b3a-8f22-fd990361bc66",
+      "timestamp": "2026-05-25T19:20:12.116Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-67c1212e-875b-461b-a5eb-713feebd8cd3",
+      "eventId": "evt-91116763-f074-4b9e-9e12-38c880f10782",
+      "timestamp": "2026-05-25T19:20:12.116Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-8ef03068-a4d9-4278-8b51-7240b212161f",
+      "eventId": "evt-6754a583-d962-4216-bed6-b11c02ba1b05",
+      "timestamp": "2026-05-25T19:20:12.117Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-1af2ace2-43e6-4b45-8ece-6fdd490fb17f",
+      "eventId": "evt-a4fba406-3f26-4996-9d6e-905a846f136e",
+      "timestamp": "2026-05-25T19:20:12.117Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-8f45cc56-ca9b-4595-828b-71cc19a7192f",
+      "eventId": "evt-395981f7-b01f-4770-b794-c008e78438ce",
+      "timestamp": "2026-05-25T19:20:12.117Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-ec8ce957-4a28-4a54-b9c8-b9bdc1f54d9a",
+      "eventId": "evt-609f9dfb-78da-41ad-95c0-9b0b7ab25cb6",
+      "timestamp": "2026-05-25T19:20:12.118Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-3bfa8fdb-b27a-4bae-b2a6-883daed30170",
+      "eventId": "evt-bdcec15a-2d64-4ef7-a651-d41d650d9c2f",
+      "timestamp": "2026-05-25T19:20:12.119Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-06bdf49d-3872-4cce-9465-a84ea50e25e8",
+        "task": {
+          "id": "task-06bdf49d-3872-4cce-9465-a84ea50e25e8",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T19:20:12.119Z",
+          "updatedAt": "2026-05-25T19:20:12.119Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-06bdf49d-3872-4cce-9465-a84ea50e25e8"
+    },
+    {
+      "id": "evt-a8ba5d69-f57c-4faf-b418-30a1884e24ab",
+      "eventId": "evt-ca7e59af-8a58-492b-90bd-aa4ec604e200",
+      "timestamp": "2026-05-25T19:20:12.119Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-9f488722-4bf2-4242-8afc-b647b0212835",
+      "eventId": "evt-b62d5856-f2c4-425d-a632-099b649a61b1",
+      "timestamp": "2026-05-25T19:20:12.120Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+        "approval": {
+          "id": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T19:20:12.120Z",
+          "updatedAt": "2026-05-25T19:20:12.120Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71"
+    },
+    {
+      "id": "evt-d4695f90-ca4c-4fef-99f5-f3225bb3b899",
+      "eventId": "evt-accfd9e8-bca8-4df0-b305-2530f739d585",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+        "approval": {
+          "id": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T19:20:12.120Z",
+          "updatedAt": "2026-05-25T19:20:12.120Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71"
+    },
+    {
+      "id": "evt-a227b4ed-9df5-4952-ab4a-b24dd10f03ce",
+      "eventId": "evt-f32f729d-42cd-4981-b828-4910ecdeb671",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-7f257b96-dc47-48a2-a356-17ef45aa23f2",
+      "eventId": "evt-b5c6e1c8-0b25-41af-90e3-905796ead355",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1"
+      }
+    },
+    {
+      "id": "evt-310ef272-8518-4e17-b97e-6a2ed1b9dbca",
+      "eventId": "evt-581a6b1e-112d-420f-b954-3e0aa6ed9105",
+      "timestamp": "2026-05-25T19:20:12.122Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 10
+      }
+    },
+    {
+      "id": "evt-958544c8-3ff4-4236-ac83-63e296101bbb",
+      "eventId": "evt-25902431-f957-4650-8bef-2ba98e36809a",
+      "timestamp": "2026-05-25T19:20:12.122Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-8d477075-cf6f-40af-951b-f0c4766ec7fd",
+      "eventId": "evt-4b42e59e-9652-49c6-afcb-c275121edcae",
+      "timestamp": "2026-05-25T18:01:36.216Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-0488f289-ad5c-4d1e-a23d-a18bfa0dadff",
+      "eventId": "evt-8edec79b-fe63-4fb9-b517-8d58b5ceac41",
+      "timestamp": "2026-05-25T18:01:36.217Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-6c21ab82-c047-4dbc-abbc-d4be6f91a525",
+      "eventId": "evt-1005ba21-ba73-4747-8f71-91130ebaccb3",
+      "timestamp": "2026-05-25T18:01:36.218Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-e72bb793-14f7-45ff-b449-5b9b1b8d50d3",
+      "eventId": "evt-6e728f93-5400-4b08-a599-3ae16ee685a7",
+      "timestamp": "2026-05-25T18:01:36.219Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-481f617b-580b-461b-8293-51bef324ecd6",
+      "eventId": "evt-67b3a709-392b-422c-9e27-781208778512",
+      "timestamp": "2026-05-25T18:01:36.222Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-a9d654aa-f823-4f84-92a6-063a368df79a",
+      "eventId": "evt-1e41f5c4-1efd-4735-af65-350bbfac58bc",
+      "timestamp": "2026-05-25T18:01:36.223Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-9733aabf-5c41-4816-a797-83640b2ca367",
+      "eventId": "evt-ed2e4ec2-4b66-40cd-98ff-7e5f787aedb4",
+      "timestamp": "2026-05-25T18:01:36.224Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-213a5f1a-4aac-4f6e-9c0e-715c30e3c100",
+      "eventId": "evt-491a5d3a-50c3-4fd5-982d-fc23bf4324eb",
+      "timestamp": "2026-05-25T18:01:36.226Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-8bd9fa29-6a98-4e95-b060-af0d40becba3",
+        "task": {
+          "id": "task-8bd9fa29-6a98-4e95-b060-af0d40becba3",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:01:36.226Z",
+          "updatedAt": "2026-05-25T18:01:36.226Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-8bd9fa29-6a98-4e95-b060-af0d40becba3"
+    },
+    {
+      "id": "evt-42495d78-38d4-4665-9b41-eeee19fc151b",
+      "eventId": "evt-d7057aef-022c-41b8-971f-fa5c79cdce55",
+      "timestamp": "2026-05-25T18:01:36.227Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-58385b62-8cab-4a15-821e-370fdb530089",
+      "eventId": "evt-8376953b-2bc5-4160-b7db-87c8d63dc776",
+      "timestamp": "2026-05-25T18:01:36.229Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+        "approval": {
+          "id": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:01:36.229Z",
+          "updatedAt": "2026-05-25T18:01:36.229Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5"
+    },
+    {
+      "id": "evt-818ff120-6093-4318-9558-8d1a1dfd88f7",
+      "eventId": "evt-a18fbdc3-e846-4fa5-bfd5-7e42bc2e40f3",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+        "approval": {
+          "id": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:01:36.229Z",
+          "updatedAt": "2026-05-25T18:01:36.229Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5"
+    },
+    {
+      "id": "evt-26a41a38-a587-4ee9-8889-045add40a10c",
+      "eventId": "evt-52f3a7b2-f605-49f8-8818-f224e96b3f7d",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-b864bce2-bfe9-4aa9-8ca4-d64716c6fbf4",
+      "eventId": "evt-e2cb20f2-88eb-45ba-acb0-919a81d92677",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39"
+      }
+    },
+    {
+      "id": "evt-442111f8-c55a-44b1-adfa-0f0b645f81d3",
+      "eventId": "evt-5bfbdff6-bf1d-4833-8c73-0edee9974230",
+      "timestamp": "2026-05-25T18:01:36.231Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 7
+      }
+    },
+    {
+      "id": "evt-95cbc70f-be56-47c0-bc7a-afd74cb8a0c6",
+      "eventId": "evt-a24afd24-f21c-4453-b82b-6f1c63e3bc54",
+      "timestamp": "2026-05-25T18:01:36.231Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-45d0436d-3cfb-480f-b1a8-7f34bb3d4d50",
+      "eventId": "evt-00a8546b-1108-4a3b-a36c-43d0561e72b0",
+      "timestamp": "2026-05-25T18:07:39.030Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "command": "hi bb"
+      }
+    },
+    {
+      "id": "evt-21eb0dfc-03d5-41e4-8c89-010bd16a0d2b",
+      "eventId": "evt-9dd4a585-6156-4e5b-9c67-5b8cdcdd6036",
+      "timestamp": "2026-05-25T18:07:39.031Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "command": "hi bb",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-60eba2f2-44b2-49d9-a120-346c4518bc07",
+      "eventId": "evt-71e7e721-0520-42e3-ba5b-313a36c36b76",
+      "timestamp": "2026-05-25T18:07:39.032Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-e72319bf-fbe7-442b-8b12-b17cdc671300",
+      "eventId": "evt-4acfcc56-da81-4b19-8de8-2a2ab07814c0",
+      "timestamp": "2026-05-25T18:07:39.032Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-f97fee3a-1ebf-415e-96b5-87ebc008d8bb",
+      "eventId": "evt-c406e50d-a5be-40bb-b362-df4400e6205b",
+      "timestamp": "2026-05-25T18:07:39.033Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-6ef6b720-b61b-4585-8091-48f3e83679f0",
+      "eventId": "evt-5371c135-1116-41d4-9c7e-d2a6dec731d2",
+      "timestamp": "2026-05-25T18:07:39.033Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-d8569d03-17a6-443d-b47a-d9bfa6d8f48d",
+      "eventId": "evt-1f6438fb-8695-4669-8755-72af6614bd6b",
+      "timestamp": "2026-05-25T18:07:39.034Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-97584506-1acd-427d-a67e-a8eaf07e8969",
+      "eventId": "evt-5bcd7705-6475-45d7-9974-4857fe548561",
+      "timestamp": "2026-05-25T18:07:39.035Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-2243aaea-7ae4-41f0-99bc-73886ae1d002",
+        "task": {
+          "id": "task-2243aaea-7ae4-41f0-99bc-73886ae1d002",
+          "title": "Command: hi bb",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:07:39.035Z",
+          "updatedAt": "2026-05-25T18:07:39.035Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-2243aaea-7ae4-41f0-99bc-73886ae1d002"
+    },
+    {
+      "id": "evt-97556b5b-4647-4f0d-a057-4e112b40a4f0",
+      "eventId": "evt-8e8d8f79-3ef7-4f82-909f-2b8658e85731",
+      "timestamp": "2026-05-25T18:07:39.036Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: hi bb"
+      }
+    },
+    {
+      "id": "evt-51b8123a-0a45-482e-95d2-bea40678b06d",
+      "eventId": "evt-0fde9702-a979-4d5d-8738-ec2bc1aafa41",
+      "timestamp": "2026-05-25T18:07:39.037Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: hi bb",
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f"
+      }
+    },
+    {
+      "id": "evt-72300833-3db0-468b-9f81-2302c6dd551b",
+      "eventId": "evt-b96c4fd3-2656-46b4-8720-4dc751df1b88",
+      "timestamp": "2026-05-25T18:07:39.038Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 7
+      }
+    },
+    {
+      "id": "evt-4879e667-c6e8-4291-9689-39af48fdb670",
+      "eventId": "evt-6addf372-436f-49f9-91ac-9f8c222d473e",
+      "timestamp": "2026-05-25T18:07:39.038Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f",
+        "approvalRequired": false
+      }
+    },
+    {
+      "eventId": "a03cec79-a03a-4a5d-b63f-925998a51929",
+      "timestamp": "2026-05-25T18:07:39.156Z",
+      "type": "context_loaded",
+      "source": "misato.runtime",
+      "payload": {
+        "stream": "connected"
+      }
+    },
+    {
+      "id": "evt-4d8d4e70-9302-499b-8b79-a8ad05035394",
+      "eventId": "evt-bcec56c6-9e6c-43de-aba0-5b74da097bec",
+      "timestamp": "2026-05-25T18:07:39.167Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-b3ff44a0-497e-4864-8581-c4d12d357b7b",
+      "eventId": "evt-f88c2fe7-510f-4857-97c5-229b8aff108f",
+      "timestamp": "2026-05-25T18:07:39.168Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-b869f2cf-c964-4c77-bee5-d145d7d329ca",
+      "eventId": "evt-492ac016-b662-4cab-b091-fe436c5ceac2",
+      "timestamp": "2026-05-25T18:07:39.168Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-ed6dba59-fcbb-45f2-b3f5-00f2a16701c3",
+      "eventId": "evt-085ab871-b811-498b-8c85-5e85d1ac4f85",
+      "timestamp": "2026-05-25T18:07:39.169Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-457ed26c-1241-4f49-847e-56e31278affa",
+      "eventId": "evt-a37d2d4d-e660-4a14-8204-e50078870b6a",
+      "timestamp": "2026-05-25T18:07:39.170Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-1d77190b-42d9-43fe-95bf-55081a31922f",
+      "eventId": "evt-a5872a98-2171-4242-837f-70b44572d09e",
+      "timestamp": "2026-05-25T18:07:39.171Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-7f0bea38-cc49-4c9e-ba8c-3913942e40e4",
+      "eventId": "evt-ba40c1ce-08bb-4896-b213-d38bc3d4b54a",
+      "timestamp": "2026-05-25T18:07:39.172Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-259541fe-df39-4254-96fe-8f8837dda913",
+      "eventId": "evt-f86e799b-4626-4767-91a1-8e5e5ec97f63",
+      "timestamp": "2026-05-25T18:07:39.174Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-2ffbeec2-d5ec-4100-a1c1-efafc7c7d675",
+        "task": {
+          "id": "task-2ffbeec2-d5ec-4100-a1c1-efafc7c7d675",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:07:39.174Z",
+          "updatedAt": "2026-05-25T18:07:39.174Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-2ffbeec2-d5ec-4100-a1c1-efafc7c7d675"
+    },
+    {
+      "id": "evt-3f97dfa2-2299-4359-b807-87cfc7a5ca4e",
+      "eventId": "evt-f56df8a7-2399-455c-8d19-37e5e385aa6d",
+      "timestamp": "2026-05-25T18:07:39.174Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-df493de3-9bf6-4337-a5ff-bf477ef62fad",
+      "eventId": "evt-928bef62-da44-448a-ac43-4f2e0fcf9bac",
+      "timestamp": "2026-05-25T18:07:39.176Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+        "approval": {
+          "id": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:07:39.176Z",
+          "updatedAt": "2026-05-25T18:07:39.176Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089"
+    },
+    {
+      "id": "evt-f9b10482-a9a8-4028-b41c-8feb071e9ca2",
+      "eventId": "evt-ea8bf61b-76a7-4bac-ac46-ba308ea15802",
+      "timestamp": "2026-05-25T18:07:39.176Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+        "approval": {
+          "id": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:07:39.176Z",
+          "updatedAt": "2026-05-25T18:07:39.176Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089"
+    },
+    {
+      "id": "evt-2403c994-c9c5-41ed-8834-9ceb7d960464",
+      "eventId": "evt-f5d2ff31-2ec7-49b6-919e-5c40b6fafcb7",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-048566ba-573e-4124-88ea-1dbc0048c2fc",
+      "eventId": "evt-647586a7-4b64-4827-b48f-053b19a51580",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0"
+      }
+    },
+    {
+      "id": "evt-b2454350-5aed-4554-872e-04a809f56698",
+      "eventId": "evt-066ec861-3e22-4bef-9521-c07fedeb6798",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 8
+      }
+    },
+    {
+      "id": "evt-a7d15748-8efe-40d5-8d52-12815578364f",
+      "eventId": "evt-615bcf24-c0df-46be-8404-b4c83b70b810",
+      "timestamp": "2026-05-25T18:07:39.178Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0",
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "evt-351b1a93-c898-49d7-ab07-fc33964c6241",
+      "eventId": "evt-04e5fd65-1da5-4ac7-845c-3f3fa093c101",
+      "timestamp": "2026-05-25T18:19:12.348Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-4176366f-cd69-433d-8a05-5cc6a3bc86f2",
+      "eventId": "evt-61756908-0aec-4234-9df7-43bd9332adfa",
+      "timestamp": "2026-05-25T18:19:12.349Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-13ff07ca-48f8-40e9-bfee-8bdb7c9f951d",
+      "eventId": "evt-6cc72c0b-3c7e-455f-9ca8-97939b3b945a",
+      "timestamp": "2026-05-25T18:19:12.349Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-1b2d6c94-98ca-444d-8298-38d8093493ad",
+      "eventId": "evt-3c151f38-8ea1-410b-a8f0-e1efa5420a51",
+      "timestamp": "2026-05-25T18:19:12.350Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-d79e0f4b-7ee2-4f68-a4b2-4b5e19383439",
+      "eventId": "evt-a29eb4bd-8fff-40f9-8a1d-88c0112a317b",
+      "timestamp": "2026-05-25T18:19:12.350Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-1dca4ac5-d9db-4d07-b994-7eb282ba9acd",
+      "eventId": "evt-2ecb590a-9d42-417b-8046-b0df001d9f69",
+      "timestamp": "2026-05-25T18:19:12.351Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-f1235e1e-dd52-4ad2-ae54-f19847be8a8b",
+      "eventId": "evt-b94b598e-b4c6-4858-893c-c5b83b10f0c3",
+      "timestamp": "2026-05-25T18:19:12.351Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-bcbe6b84-3743-4bf4-afb1-5b046d2b638e",
+      "eventId": "evt-1882fe80-ac21-47ed-91f5-1284ee086b34",
+      "timestamp": "2026-05-25T18:19:12.352Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-d079152e-1d00-477a-971e-2f13f3da66df",
+        "task": {
+          "id": "task-d079152e-1d00-477a-971e-2f13f3da66df",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:19:12.352Z",
+          "updatedAt": "2026-05-25T18:19:12.352Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-d079152e-1d00-477a-971e-2f13f3da66df"
+    },
+    {
+      "id": "evt-8fdff9c2-b91a-41f8-a054-cf0e66a9490e",
+      "eventId": "evt-7839321e-df4f-4b0f-a445-45e09f9460d4",
+      "timestamp": "2026-05-25T18:19:12.353Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-7a497f10-5edc-4ae7-ab01-d4bce43888ed",
+      "eventId": "evt-c2328050-9012-4f9f-b1e9-a6decc710284",
+      "timestamp": "2026-05-25T18:19:12.354Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+        "approval": {
+          "id": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:19:12.354Z",
+          "updatedAt": "2026-05-25T18:19:12.354Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d"
+    },
+    {
+      "id": "evt-c7f84ab0-35d9-47dd-92e7-cef721d7b97e",
+      "eventId": "evt-b1dea246-64d8-4abf-90cc-5f2235007a76",
+      "timestamp": "2026-05-25T18:19:12.355Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+        "approval": {
+          "id": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T18:19:12.354Z",
+          "updatedAt": "2026-05-25T18:19:12.354Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-92d6f209-792d-4318-84c4-7365b925f11d"
+    },
+    {
+      "id": "evt-67397dc4-f930-4a7e-bfa5-acf8c80ef7a0",
+      "eventId": "evt-af704c63-b12b-4036-8ec4-4eb789e44da6",
+      "timestamp": "2026-05-25T18:19:12.356Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-4fb5ccc2-1635-4b74-a87c-2a285d3db866",
+      "eventId": "evt-5d21ee0d-ded1-497b-a479-7bd9282d92a0",
+      "timestamp": "2026-05-25T18:19:12.356Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5"
+      }
+    },
+    {
+      "id": "evt-2fb190ed-91c7-4562-bc2b-75fc866b5bf6",
+      "eventId": "evt-90cf5430-0c97-49a1-b9c9-8f108f5798a2",
+      "timestamp": "2026-05-25T18:19:12.357Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-90945e89-774b-4192-9f0e-aeaf54c16d9e",
+      "eventId": "evt-3548d483-d035-4463-99e7-1ee7229a8a24",
+      "timestamp": "2026-05-25T18:19:12.357Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5",
+        "approvalRequired": true
+      }
+    },
+    {
+      "eventId": "dba35786-173c-4f76-973c-bf32a1937b08",
+      "timestamp": "2026-05-25T18:19:12.366Z",
+      "type": "context_loaded",
+      "source": "misato.runtime",
+      "payload": {
+        "stream": "connected"
+      }
+    },
+    {
+      "id": "evt-06fc5ffd-579a-4844-83b9-900953562996",
+      "eventId": "evt-dc05a279-8252-4f6f-b9d8-84451419e738",
+      "timestamp": "2026-05-25T18:19:28.883Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "command": "hi bb"
+      }
+    },
+    {
+      "id": "evt-d409322d-2530-4e61-8ba1-40d15aad769a",
+      "eventId": "evt-26984abc-697a-4dd1-94a8-890aced4e651",
+      "timestamp": "2026-05-25T18:19:28.884Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "command": "hi bb",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-2c908ca6-06d7-412f-b0f2-24090c124351",
+      "eventId": "evt-774241b3-3b80-45e1-bbeb-8dadd76c6374",
+      "timestamp": "2026-05-25T18:19:28.885Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-e64c3b00-7e46-4ba9-9e2b-fb1641dd896c",
+      "eventId": "evt-d6314cda-45f0-464b-8ddc-790832b6682f",
+      "timestamp": "2026-05-25T18:19:28.885Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-7b14ebc3-5f34-4279-9762-4f3a5503bfe4",
+      "eventId": "evt-31a27ae2-5fb2-40bc-b482-4317032182ae",
+      "timestamp": "2026-05-25T18:19:28.886Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-25df6cd6-f9f1-4a07-b110-b0c38ce9137f",
+      "eventId": "evt-bc1d39ff-c7b7-4bb8-9bae-d5445443bf6f",
+      "timestamp": "2026-05-25T18:19:28.886Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-c1e80947-b48f-4484-a011-eeaba4551932",
+      "eventId": "evt-b116446b-9908-471d-b86a-c7f7e52d0f30",
+      "timestamp": "2026-05-25T18:19:28.887Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-21649f9c-18d8-4bf9-84c2-b149586320d3",
+      "eventId": "evt-12fef9ac-6f5c-4fd4-bfbe-6ae242a2ea69",
+      "timestamp": "2026-05-25T18:19:28.888Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-8e4b5e6a-8d9d-4554-a656-797b34f73094",
+        "task": {
+          "id": "task-8e4b5e6a-8d9d-4554-a656-797b34f73094",
+          "title": "Command: hi bb",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T18:19:28.888Z",
+          "updatedAt": "2026-05-25T18:19:28.888Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-8e4b5e6a-8d9d-4554-a656-797b34f73094"
+    },
+    {
+      "id": "evt-f06fd80a-a5ee-4c70-ab1c-acf30ecfee7a",
+      "eventId": "evt-6cb9d79c-3431-404c-8cb1-636de0b19fe1",
+      "timestamp": "2026-05-25T18:19:28.888Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: hi bb"
+      }
+    },
+    {
+      "id": "evt-a7551d39-6b86-4fca-a258-43445319316e",
+      "eventId": "evt-ed6caee4-53e4-4af8-a728-aacd2bd9aa5c",
+      "timestamp": "2026-05-25T18:19:28.890Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: hi bb",
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b"
+      }
+    },
+    {
+      "id": "evt-cb8aaf47-8377-464d-818b-2889908ecb75",
+      "eventId": "evt-4e0ecd97-57b8-4adb-989c-aa6574b7f873",
+      "timestamp": "2026-05-25T18:19:28.890Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-ad11138c-cbe3-4998-9758-3f6ddd84109b",
+      "eventId": "evt-dcb1887c-9266-4d6d-9981-0efcd272cf7e",
+      "timestamp": "2026-05-25T18:19:28.891Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-e4de79f8-0dc6-4d7d-a09e-09886a95ccc4",
+      "eventId": "evt-4eb198a4-fc57-4b79-9bdb-7b06a8a3d145",
+      "timestamp": "2026-05-25T19:20:12.085Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "command": "hi bb"
+      }
+    },
+    {
+      "id": "evt-00ace9dd-7337-45bd-94ba-6cd2dcbc9211",
+      "eventId": "evt-9c2e0f02-4353-487c-9932-15af5bd51aa0",
+      "timestamp": "2026-05-25T19:20:12.086Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "command": "hi bb",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-f1e3ea2d-7bec-4f86-b8dd-2eeca0e1bc45",
+      "eventId": "evt-2dbee33e-6c62-4505-9b97-97dbc746b351",
+      "timestamp": "2026-05-25T19:20:12.087Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-48ccca6c-7de6-47d5-bfea-7110edbde3c4",
+      "eventId": "evt-059aa5c6-509f-431a-b9ce-cfd2c7677da2",
+      "timestamp": "2026-05-25T19:20:12.087Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-f306284a-c1e8-4d66-b23f-afc5173169aa",
+      "eventId": "evt-476ebec0-b874-4bc9-a94c-e05a7ebdba4e",
+      "timestamp": "2026-05-25T19:20:12.088Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-c58ce24c-3eb4-4405-921c-6c8870bbd0df",
+      "eventId": "evt-bf3ba3c4-3fec-4e20-b9d5-e58f3fa248d1",
+      "timestamp": "2026-05-25T19:20:12.088Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-81047605-9a74-4086-a67a-bb6809d64e79",
+      "eventId": "evt-c465de6b-7248-4bd3-9cda-8f042a5a4ba1",
+      "timestamp": "2026-05-25T19:20:12.088Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-d6737cb5-09e1-4ee4-a012-1dba7a487351",
+      "eventId": "evt-7b2a2e83-9c30-4ebe-bb5b-13278ee1adde",
+      "timestamp": "2026-05-25T19:20:12.090Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-7c76bbe6-1756-46ad-beb9-06ceba48c0f5",
+        "task": {
+          "id": "task-7c76bbe6-1756-46ad-beb9-06ceba48c0f5",
+          "title": "Command: hi bb",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T19:20:12.089Z",
+          "updatedAt": "2026-05-25T19:20:12.089Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-7c76bbe6-1756-46ad-beb9-06ceba48c0f5"
+    },
+    {
+      "id": "evt-d9918614-e27f-4350-accf-f6bb97c59124",
+      "eventId": "evt-1a916d65-82ae-43b8-a4df-b28f8741b841",
+      "timestamp": "2026-05-25T19:20:12.090Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: hi bb"
+      }
+    },
+    {
+      "id": "evt-52337312-a137-414c-8512-07a2d958cfc3",
+      "eventId": "evt-d88b845e-1a1e-40c9-a33f-bf4b844b8ab3",
+      "timestamp": "2026-05-25T19:20:12.091Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: hi bb",
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085"
+      }
+    },
+    {
+      "id": "evt-baa892a7-955c-47e6-a4c5-22542e81696c",
+      "eventId": "evt-82b146f2-a2f5-4c32-abbf-c9b998a25e63",
+      "timestamp": "2026-05-25T19:20:12.092Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-bea419a0-336d-4776-8ec4-71c53d51943b",
+      "eventId": "evt-abe75e61-6698-48f7-9d99-691664d9fd80",
+      "timestamp": "2026-05-25T19:20:12.092Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-6a4c1498-38f8-40cd-b9f0-836bb7c52a36",
+      "eventId": "evt-4b66e95f-9eff-4a32-b582-6905f8662322",
+      "timestamp": "2026-05-25T19:20:12.102Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "command": "What needs attention today?"
+      }
+    },
+    {
+      "id": "evt-b06895eb-846c-4665-a6c6-cdd92823e5ee",
+      "eventId": "evt-7935b2ae-012c-4640-a931-ab1bace0186f",
+      "timestamp": "2026-05-25T19:20:12.103Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "command": "What needs attention today?",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-9181a15a-0b5a-4ab0-9d42-3552cbdd0cf1",
+      "eventId": "evt-8b30d661-f9f4-4fa7-a01c-668c5fd0401f",
+      "timestamp": "2026-05-25T19:20:12.103Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-604e77a3-f991-462f-a33a-ba421320254e",
+      "eventId": "evt-8f07423e-2680-402c-8306-42545846a6c2",
+      "timestamp": "2026-05-25T19:20:12.104Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-c9375003-915d-452a-94cb-68cea0923c31",
+      "eventId": "evt-c696059d-012a-4a78-b127-5fd9abe4348b",
+      "timestamp": "2026-05-25T19:20:12.104Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-82d62a4c-f7d7-4bac-8b98-b1da4db49490",
+      "eventId": "evt-d0ee5bf2-f0a2-4701-94e4-02fffb85fadb",
+      "timestamp": "2026-05-25T19:20:12.104Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-50e4cc7f-409d-43b2-86d8-9d091eb66f17",
+      "eventId": "evt-016d5ab9-bedd-4aa8-b683-87f297902983",
+      "timestamp": "2026-05-25T19:20:12.105Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-8f629e17-06e9-4fdc-82a7-7f2f240d9d96",
+      "eventId": "evt-5787330b-9586-456b-8657-bfba3a4fbafa",
+      "timestamp": "2026-05-25T19:20:12.105Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-2df44c1a-f445-4025-af80-3a993edc73b6",
+        "task": {
+          "id": "task-2df44c1a-f445-4025-af80-3a993edc73b6",
+          "title": "Command: What needs attention today?",
+          "description": "",
+          "project": "NexCall",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T19:20:12.105Z",
+          "updatedAt": "2026-05-25T19:20:12.105Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "Low",
+          "approvalRequired": false,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-2df44c1a-f445-4025-af80-3a993edc73b6"
+    },
+    {
+      "id": "evt-e707a8e2-018b-4a8a-b79c-cc04f2d95043",
+      "eventId": "evt-4c06b9e4-ac3e-4df8-aea5-d288231bbcff",
+      "timestamp": "2026-05-25T19:20:12.106Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: What needs attention today?"
+      }
+    },
+    {
+      "id": "evt-b02d2de5-6f29-44f8-a917-f2ac20a16aae",
+      "eventId": "evt-6fcaeba8-fe48-45e0-8743-82124447baac",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "message": "Command processed: What needs attention today?",
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e"
+      }
+    },
+    {
+      "id": "evt-7c350c1e-29b1-421b-a160-4a56ae96a859",
+      "eventId": "evt-1dea9a31-9787-43ed-9810-ff56219063e0",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 9
+      }
+    },
+    {
+      "id": "evt-eeb28771-8302-4316-8e19-2927030a30d1",
+      "eventId": "evt-bcc60320-61eb-4192-95a7-18ea3e6dee51",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e",
+        "approvalRequired": false
+      }
+    },
+    {
+      "id": "evt-c07fe591-abfc-42c0-ad2c-9fad10a2a59d",
+      "eventId": "evt-098107a6-6610-4bb9-8818-062fcc6832b8",
+      "timestamp": "2026-05-25T19:20:12.116Z",
+      "type": "command.received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "command": "deploy to production now"
+      }
+    },
+    {
+      "id": "evt-b14b2b3b-47e2-479f-84d9-5a9005e31888",
+      "eventId": "evt-81c3e4c8-dabc-4b3a-8f22-fd990361bc66",
+      "timestamp": "2026-05-25T19:20:12.116Z",
+      "type": "command_received",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "command": "deploy to production now",
+        "summary": "Command received"
+      }
+    },
+    {
+      "id": "evt-67c1212e-875b-461b-a5eb-713feebd8cd3",
+      "eventId": "evt-91116763-f074-4b9e-9e12-38c880f10782",
+      "timestamp": "2026-05-25T19:20:12.116Z",
+      "type": "command.planned",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "plan": [
+          "Validate auth context (owner session or desktop token)",
+          "Classify request risk and enforce Approval Gate",
+          "Fan out mock-safe subtasks to council",
+          "Return operator summary + next recommended actions"
+        ]
+      }
+    },
+    {
+      "id": "evt-8ef03068-a4d9-4278-8b51-7240b212161f",
+      "eventId": "evt-6754a583-d962-4216-bed6-b11c02ba1b05",
+      "timestamp": "2026-05-25T19:20:12.117Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Validate auth context (owner session or desktop token)",
+        "index": 0
+      }
+    },
+    {
+      "id": "evt-1af2ace2-43e6-4b45-8ece-6fdd490fb17f",
+      "eventId": "evt-a4fba406-3f26-4996-9d6e-905a846f136e",
+      "timestamp": "2026-05-25T19:20:12.117Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Classify request risk and enforce Approval Gate",
+        "index": 1
+      }
+    },
+    {
+      "id": "evt-8f45cc56-ca9b-4595-828b-71cc19a7192f",
+      "eventId": "evt-395981f7-b01f-4770-b794-c008e78438ce",
+      "timestamp": "2026-05-25T19:20:12.117Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Fan out mock-safe subtasks to council",
+        "index": 2
+      }
+    },
+    {
+      "id": "evt-ec8ce957-4a28-4a54-b9c8-b9bdc1f54d9a",
+      "eventId": "evt-609f9dfb-78da-41ad-95c0-9b0b7ab25cb6",
+      "timestamp": "2026-05-25T19:20:12.118Z",
+      "type": "plan_generated",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "step": "Return operator summary + next recommended actions",
+        "index": 3
+      }
+    },
+    {
+      "id": "evt-3bfa8fdb-b27a-4bae-b2a6-883daed30170",
+      "eventId": "evt-bdcec15a-2d64-4ef7-a651-d41d650d9c2f",
+      "timestamp": "2026-05-25T19:20:12.119Z",
+      "type": "task.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "taskId": "task-06bdf49d-3872-4cce-9465-a84ea50e25e8",
+        "task": {
+          "id": "task-06bdf49d-3872-4cce-9465-a84ea50e25e8",
+          "title": "Command: deploy to production now",
+          "description": "",
+          "project": "Research Lab",
+          "priority": "High",
+          "status": "Doing",
+          "ownerAgentId": null,
+          "assignedBy": "MISATO",
+          "createdAt": "2026-05-25T19:20:12.119Z",
+          "updatedAt": "2026-05-25T19:20:12.119Z",
+          "dueAt": null,
+          "tags": [],
+          "riskLevel": "High",
+          "approvalRequired": true,
+          "linkedApprovalId": null,
+          "activity": []
+        }
+      },
+      "taskId": "task-06bdf49d-3872-4cce-9465-a84ea50e25e8"
+    },
+    {
+      "id": "evt-a8ba5d69-f57c-4faf-b418-30a1884e24ab",
+      "eventId": "evt-ca7e59af-8a58-492b-90bd-aa4ec604e200",
+      "timestamp": "2026-05-25T19:20:12.119Z",
+      "type": "log.created",
+      "source": "misato.tasks",
+      "severity": "info",
+      "payload": {
+        "message": "Task created: Command: deploy to production now"
+      }
+    },
+    {
+      "id": "evt-9f488722-4bf2-4242-8afc-b647b0212835",
+      "eventId": "evt-b62d5856-f2c4-425d-a632-099b649a61b1",
+      "timestamp": "2026-05-25T19:20:12.120Z",
+      "type": "approval.created",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+        "approval": {
+          "id": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T19:20:12.120Z",
+          "updatedAt": "2026-05-25T19:20:12.120Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71"
+    },
+    {
+      "id": "evt-d4695f90-ca4c-4fef-99f5-f3225bb3b899",
+      "eventId": "evt-accfd9e8-bca8-4df0-b305-2530f739d585",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "type": "approval_requested",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+        "approval": {
+          "id": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+          "title": "Approval required: deploy to production now",
+          "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+          "riskLevel": "High",
+          "requestedByAgentId": "agent-hermes",
+          "affects": [
+            "runtime"
+          ],
+          "status": "Pending",
+          "createdAt": "2026-05-25T19:20:12.120Z",
+          "updatedAt": "2026-05-25T19:20:12.120Z",
+          "actionType": "Protected action",
+          "safeExecutionMode": "manual",
+          "notes": "doesNotAutoExecuteProduction=true",
+          "doesNotAutoExecuteProduction": true
+        }
+      },
+      "approvalId": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71"
+    },
+    {
+      "id": "evt-a227b4ed-9df5-4952-ab4a-b24dd10f03ce",
+      "eventId": "evt-f32f729d-42cd-4981-b828-4910ecdeb671",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "type": "risk_detected",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "command": "deploy to production now",
+        "risks": [
+          "Risky action category detected (deploy/auth/env/data/external action)",
+          "Execution blocked in v1 mock-safe mode"
+        ]
+      }
+    },
+    {
+      "id": "evt-7f257b96-dc47-48a2-a356-17ef45aa23f2",
+      "eventId": "evt-b5c6e1c8-0b25-41af-90e3-905796ead355",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "type": "log.created",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "payload": {
+        "message": "Command processed: deploy to production now",
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1"
+      }
+    },
+    {
+      "id": "evt-310ef272-8518-4e17-b97e-6a2ed1b9dbca",
+      "eventId": "evt-581a6b1e-112d-420f-b954-3e0aa6ed9105",
+      "timestamp": "2026-05-25T19:20:12.122Z",
+      "type": "status_change",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "runtimeStatus": "connected",
+        "approvalsPending": 10
+      }
+    },
+    {
+      "id": "evt-958544c8-3ff4-4236-ac83-63e296101bbb",
+      "eventId": "evt-25902431-f957-4650-8bef-2ba98e36809a",
+      "timestamp": "2026-05-25T19:20:12.122Z",
+      "type": "command.completed",
+      "source": "misato.runtime",
+      "severity": "info",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1",
+        "approvalRequired": true
+      }
+    }
+  ]
+}

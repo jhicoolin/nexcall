@@ -1,0 +1,263 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "agentId": "agent-strategy",
+      "name": "Strategy Agent",
+      "role": "High-level planning",
+      "status": "active",
+      "riskTier": "L1",
+      "permissions": [
+        "Docs",
+        "Planning"
+      ],
+      "blockedActions": [
+        "Production deploy"
+      ],
+      "allowedActions": [
+        "Roadmapping",
+        "Prioritization"
+      ],
+      "approvalRequiredFor": [
+        "Needs approval for execution"
+      ],
+      "currentTaskId": "task-95a89196-bf0a-48f0-a714-f765a7882f00",
+      "currentTask": "Task A",
+      "lastActivityAt": "2026-05-25T16:31:55.100Z"
+    },
+    {
+      "agentId": "agent-ui",
+      "name": "UI Builder Agent",
+      "role": "Interface building",
+      "status": "online",
+      "riskTier": "L1",
+      "permissions": [
+        "React",
+        "Tailwind"
+      ],
+      "blockedActions": [
+        "Auth edits",
+        "Deploy"
+      ],
+      "allowedActions": [
+        "Component design",
+        "Responsive layouts"
+      ],
+      "approvalRequiredFor": [
+        "Needs approval for major redesign"
+      ]
+    },
+    {
+      "agentId": "agent-backend",
+      "name": "Backend Agent",
+      "role": "API and data flows",
+      "status": "online",
+      "riskTier": "L2",
+      "permissions": [
+        "TypeScript",
+        "Next API"
+      ],
+      "blockedActions": [
+        "DB destructive migrations"
+      ],
+      "allowedActions": [
+        "Route handlers",
+        "Validation"
+      ],
+      "approvalRequiredFor": [
+        "Approval for migrations"
+      ]
+    },
+    {
+      "agentId": "agent-security",
+      "name": "Security Agent",
+      "role": "Risk review",
+      "status": "online",
+      "riskTier": "L2",
+      "permissions": [
+        "Audit",
+        "Policy"
+      ],
+      "blockedActions": [
+        "Direct prod changes"
+      ],
+      "allowedActions": [
+        "Threat detection",
+        "Policy checks"
+      ],
+      "approvalRequiredFor": [
+        "Approval for any enforcement change"
+      ]
+    },
+    {
+      "agentId": "agent-qa",
+      "name": "QA Agent",
+      "role": "Validation",
+      "status": "idle",
+      "riskTier": "L1",
+      "permissions": [
+        "Test runner",
+        "Playwright"
+      ],
+      "blockedActions": [
+        "Deploy"
+      ],
+      "allowedActions": [
+        "Test planning",
+        "Regression checks"
+      ],
+      "approvalRequiredFor": [
+        "Approval for production test toggles"
+      ]
+    },
+    {
+      "agentId": "agent-vercel",
+      "name": "Vercel Deploy Agent",
+      "role": "Deployment prep",
+      "status": "online",
+      "riskTier": "L1",
+      "permissions": [
+        "Build logs",
+        "Docs"
+      ],
+      "blockedActions": [
+        "Prod deploy execution",
+        "Env mutation"
+      ],
+      "allowedActions": [
+        "Checklist drafting",
+        "Preview diagnostics"
+      ],
+      "approvalRequiredFor": [
+        "Always approval-gated"
+      ]
+    },
+    {
+      "agentId": "agent-business",
+      "name": "Business Ops Agent",
+      "role": "Operations workflows",
+      "status": "idle",
+      "riskTier": "L1",
+      "permissions": [
+        "Spreadsheets",
+        "Docs"
+      ],
+      "blockedActions": [
+        "Billing changes"
+      ],
+      "allowedActions": [
+        "SOP drafting",
+        "Intake triage"
+      ],
+      "approvalRequiredFor": [
+        "Approval for customer-facing sends"
+      ]
+    },
+    {
+      "agentId": "agent-marketing",
+      "name": "Marketing Agent",
+      "role": "Campaign planning",
+      "status": "idle",
+      "riskTier": "L1",
+      "permissions": [
+        "Copy",
+        "Analytics"
+      ],
+      "blockedActions": [
+        "Live ad publish"
+      ],
+      "allowedActions": [
+        "Messaging",
+        "Funnel planning"
+      ],
+      "approvalRequiredFor": [
+        "Approval for publishing"
+      ]
+    },
+    {
+      "agentId": "agent-finance",
+      "name": "Finance Agent",
+      "role": "Budget analysis",
+      "status": "idle",
+      "riskTier": "L1",
+      "permissions": [
+        "Sheets",
+        "Reporting"
+      ],
+      "blockedActions": [
+        "Payment execution"
+      ],
+      "allowedActions": [
+        "Forecasting",
+        "Cost checks"
+      ],
+      "approvalRequiredFor": [
+        "Approval for payment actions"
+      ]
+    },
+    {
+      "agentId": "agent-research",
+      "name": "Research Agent",
+      "role": "Research synthesis",
+      "status": "online",
+      "riskTier": "L0",
+      "permissions": [
+        "Web research",
+        "Docs"
+      ],
+      "blockedActions": [
+        "External posting"
+      ],
+      "allowedActions": [
+        "Literature scan",
+        "Summary"
+      ],
+      "approvalRequiredFor": [
+        "Approval for outbound publishing"
+      ]
+    },
+    {
+      "agentId": "agent-claude-ui",
+      "name": "Claude UI Agent",
+      "role": "UI polish",
+      "status": "idle",
+      "riskTier": "L1",
+      "permissions": [
+        "Frontend only"
+      ],
+      "blockedActions": [
+        "Auth",
+        "Secrets",
+        "Deploy settings"
+      ],
+      "allowedActions": [
+        "Visual polish",
+        "Interaction tuning"
+      ],
+      "approvalRequiredFor": [
+        "Approval before merge"
+      ]
+    },
+    {
+      "agentId": "agent-hermes-arch",
+      "name": "Hermes Architecture Agent",
+      "role": "Runtime architecture",
+      "status": "online",
+      "riskTier": "L1",
+      "permissions": [
+        "Architecture docs",
+        "Planning"
+      ],
+      "blockedActions": [
+        "Prod execution"
+      ],
+      "allowedActions": [
+        "Agent topology",
+        "Control-room planning"
+      ],
+      "approvalRequiredFor": [
+        "Approval for runtime integration"
+      ]
+    }
+  ]
+}

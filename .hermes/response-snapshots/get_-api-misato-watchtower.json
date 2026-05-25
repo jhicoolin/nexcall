@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "serviceHealth": "healthy",
+  "checkState": "local-runtime",
+  "mode": "local-first",
+  "liveExternalCalls": false,
+  "monitors": [
+    {
+      "id": "local-runtime",
+      "name": "Local Hermes runtime",
+      "status": "up",
+      "target": "http://127.0.0.1:3010/health"
+    },
+    {
+      "id": "command",
+      "name": "Command endpoint",
+      "status": "up",
+      "target": "http://127.0.0.1:3010/api/misato/command"
+    },
+    {
+      "id": "events",
+      "name": "SSE stream",
+      "status": "up",
+      "target": "http://127.0.0.1:3010/api/misato/events/stream"
+    }
+  ]
+}

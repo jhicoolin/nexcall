@@ -1,6 +1,8 @@
+import { NextResponse } from "next/server";
 import { getRecentEvents, subscribeEvents } from "../../../lib/misato/runtime/event-bus";
 import { publishEvent } from "../../../lib/misato/runtime/event-bus";
-import { buildMisatoCorsHeaders, misatoOptionsResponse } from "../../../lib/misato/http/cors";
+import { assertOwnerJson } from "../../../lib/misato/owner-guard";
+import { buildMisatoCorsHeaders, misatoOptionsResponse, withMisatoCors } from "../../../lib/misato/http/cors";
 
 export const runtime = "nodejs";
 
@@ -9,6 +11,9 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const unauthorized = await assertOwnerJson(request);
+  if (unauthorized) return withMisatoCors(unauthorized, request);
+
   const encoder = new TextEncoder();
   const lastEventId = request.headers.get("last-event-id") || undefined;
   let closed = false;

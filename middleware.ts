@@ -31,8 +31,22 @@ function isWebhook(pathname: string) {
   return webhookRoutes.some((route) => pathname.startsWith(route));
 }
 
+const shellReadableAliasRoutes = new Set(["/agents", "/approvals", "/logs"]);
+
 function isProtectedMisatoRoute(pathname: string) {
   return pathname === "/misato" || pathname.startsWith("/misato/");
+}
+
+function isShellReadableAlias(pathname: string) {
+  return shellReadableAliasRoutes.has(pathname);
+}
+
+function wantsJsonRuntimeAlias(request: NextRequest) {
+  const accept = (request.headers.get("accept") || "").toLowerCase();
+  const secFetchDest = (request.headers.get("sec-fetch-dest") || "").toLowerCase();
+  const hasHtmlPreference = accept.includes("text/html") || secFetchDest === "document";
+  if (hasHtmlPreference) return false;
+  return true;
 }
 
 function isProtectedMisatoApi(pathname: string) {
@@ -132,16 +146,33 @@ function limitRequestInMemory(identity: string, config: LimitConfig) {
 }
 
 function isLocalSoloAllowed(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") return false;
   if (process.env.VERCEL) return false;
-  const host = (request.headers.get("host") || "").toLowerCase();
-  const localhost = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  const candidates = [
+    request.headers.get("x-forwarded-host") || "",
+    request.headers.get("host") || "",
+    request.headers.get("origin") || "",
+    request.headers.get("referer") || ""
+  ].map((v) => v.toLowerCase());
+
+  const localhost = candidates.some((raw) => {
+    if (!raw) return false;
+    const normalized = raw.replace(/^https?:\/\//, "").replace(/^tauri:\/\//, "");
+    return normalized.startsWith("localhost") || normalized.startsWith("127.0.0.1") || normalized.startsWith("::1") || normalized.startsWith("tauri.localhost");
+  });
+
   const envEnabled = (process.env.MISATO_LOCAL_SOLO_MODE || "false").toLowerCase() === "true";
   return localhost || envEnabled;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (isShellReadableAlias(pathname) && wantsJsonRuntimeAlias(request)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/misato-runtime${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
   const localSoloAllowed = isProtectedMisatoApi(pathname) && isLocalSoloAllowed(request);
   const desktopTokenAuthenticated = isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname) && hasValidDesktopToken(request);
 
@@ -189,5 +220,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/misato/:path*", "/api/misato/:path*", "/api/:path*"]
+  matcher: ["/misato/:path*"]
 };

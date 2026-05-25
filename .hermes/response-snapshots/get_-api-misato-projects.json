@@ -1,0 +1,70 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "p1",
+      "name": "NexCall",
+      "slug": "nexcall",
+      "description": "AI receptionist operations",
+      "status": "Launch",
+      "priority": "High",
+      "currentObjective": "Increase paying clients",
+      "nextAction": "Finalize outbound sequence",
+      "dueDate": "2026-05-30",
+      "notes": "Focus medspa and dental first",
+      "riskLevel": "Medium"
+    },
+    {
+      "id": "p2",
+      "name": "Bad Genetics",
+      "slug": "bad-genetics",
+      "description": "Brand and drop ops",
+      "status": "Planning",
+      "priority": "High",
+      "currentObjective": "Plan first drop",
+      "nextAction": "Lock supplier shortlist",
+      "dueDate": "2026-06-03",
+      "notes": "Keep MOQ-safe",
+      "riskLevel": "Medium"
+    },
+    {
+      "id": "p3",
+      "name": "Client Sites",
+      "slug": "client-sites",
+      "description": "Client build queue",
+      "status": "Active",
+      "priority": "Medium",
+      "currentObjective": "Reduce blockers",
+      "nextAction": "Prioritize overdue tickets",
+      "dueDate": "2026-05-29",
+      "notes": "Triage by SLA",
+      "riskLevel": "Low"
+    },
+    {
+      "id": "p4",
+      "name": "Personal Ops",
+      "slug": "personal-ops",
+      "description": "Founder systems",
+      "status": "Active",
+      "priority": "Medium",
+      "currentObjective": "Calendar stabilization",
+      "nextAction": "Batch deep-work blocks",
+      "dueDate": "2026-05-28",
+      "notes": "Protect mornings",
+      "riskLevel": "Low"
+    },
+    {
+      "id": "p5",
+      "name": "Research Lab",
+      "slug": "research-lab",
+      "description": "AI experiments",
+      "status": "Exploring",
+      "priority": "Low",
+      "currentObjective": "Evaluate runtime options",
+      "nextAction": "Draft benchmark matrix",
+      "dueDate": "2026-06-06",
+      "notes": "Mock-first",
+      "riskLevel": "Medium"
+    }
+  ]
+}

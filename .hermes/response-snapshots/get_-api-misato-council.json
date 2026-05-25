@@ -1,0 +1,284 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "agent-strategy",
+      "name": "Strategy Agent",
+      "role": "High-level planning",
+      "abilities": [
+        "Roadmapping",
+        "Prioritization"
+      ],
+      "blockedActions": [
+        "Production deploy"
+      ],
+      "allowedTools": [
+        "Docs",
+        "Planning"
+      ],
+      "memoryScope": "Cross-project summaries",
+      "riskLevel": "Medium",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Needs approval for execution"
+      ],
+      "status": "Online"
+    },
+    {
+      "id": "agent-ui",
+      "name": "UI Builder Agent",
+      "role": "Interface building",
+      "abilities": [
+        "Component design",
+        "Responsive layouts"
+      ],
+      "blockedActions": [
+        "Auth edits",
+        "Deploy"
+      ],
+      "allowedTools": [
+        "React",
+        "Tailwind"
+      ],
+      "memoryScope": "UI layer only",
+      "riskLevel": "Low",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Needs approval for major redesign"
+      ],
+      "status": "Online"
+    },
+    {
+      "id": "agent-backend",
+      "name": "Backend Agent",
+      "role": "API and data flows",
+      "abilities": [
+        "Route handlers",
+        "Validation"
+      ],
+      "blockedActions": [
+        "DB destructive migrations"
+      ],
+      "allowedTools": [
+        "TypeScript",
+        "Next API"
+      ],
+      "memoryScope": "Backend only",
+      "riskLevel": "Medium",
+      "permissionLevel": 3,
+      "approvalRules": [
+        "Approval for migrations"
+      ],
+      "status": "Online"
+    },
+    {
+      "id": "agent-security",
+      "name": "Security Agent",
+      "role": "Risk review",
+      "abilities": [
+        "Threat detection",
+        "Policy checks"
+      ],
+      "blockedActions": [
+        "Direct prod changes"
+      ],
+      "allowedTools": [
+        "Audit",
+        "Policy"
+      ],
+      "memoryScope": "Security notes",
+      "riskLevel": "High",
+      "permissionLevel": 3,
+      "approvalRules": [
+        "Approval for any enforcement change"
+      ],
+      "status": "Online"
+    },
+    {
+      "id": "agent-qa",
+      "name": "QA Agent",
+      "role": "Validation",
+      "abilities": [
+        "Test planning",
+        "Regression checks"
+      ],
+      "blockedActions": [
+        "Deploy"
+      ],
+      "allowedTools": [
+        "Test runner",
+        "Playwright"
+      ],
+      "memoryScope": "Test summaries",
+      "riskLevel": "Low",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Approval for production test toggles"
+      ],
+      "status": "Idle"
+    },
+    {
+      "id": "agent-vercel",
+      "name": "Vercel Deploy Agent",
+      "role": "Deployment prep",
+      "abilities": [
+        "Checklist drafting",
+        "Preview diagnostics"
+      ],
+      "blockedActions": [
+        "Prod deploy execution",
+        "Env mutation"
+      ],
+      "allowedTools": [
+        "Build logs",
+        "Docs"
+      ],
+      "memoryScope": "Deployment docs",
+      "riskLevel": "High",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Always approval-gated"
+      ],
+      "status": "Online"
+    },
+    {
+      "id": "agent-business",
+      "name": "Business Ops Agent",
+      "role": "Operations workflows",
+      "abilities": [
+        "SOP drafting",
+        "Intake triage"
+      ],
+      "blockedActions": [
+        "Billing changes"
+      ],
+      "allowedTools": [
+        "Spreadsheets",
+        "Docs"
+      ],
+      "memoryScope": "Business ops",
+      "riskLevel": "Medium",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Approval for customer-facing sends"
+      ],
+      "status": "Idle"
+    },
+    {
+      "id": "agent-marketing",
+      "name": "Marketing Agent",
+      "role": "Campaign planning",
+      "abilities": [
+        "Messaging",
+        "Funnel planning"
+      ],
+      "blockedActions": [
+        "Live ad publish"
+      ],
+      "allowedTools": [
+        "Copy",
+        "Analytics"
+      ],
+      "memoryScope": "Campaign notes",
+      "riskLevel": "Medium",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Approval for publishing"
+      ],
+      "status": "Idle"
+    },
+    {
+      "id": "agent-finance",
+      "name": "Finance Agent",
+      "role": "Budget analysis",
+      "abilities": [
+        "Forecasting",
+        "Cost checks"
+      ],
+      "blockedActions": [
+        "Payment execution"
+      ],
+      "allowedTools": [
+        "Sheets",
+        "Reporting"
+      ],
+      "memoryScope": "Finance scoped",
+      "riskLevel": "High",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Approval for payment actions"
+      ],
+      "status": "Idle"
+    },
+    {
+      "id": "agent-research",
+      "name": "Research Agent",
+      "role": "Research synthesis",
+      "abilities": [
+        "Literature scan",
+        "Summary"
+      ],
+      "blockedActions": [
+        "External posting"
+      ],
+      "allowedTools": [
+        "Web research",
+        "Docs"
+      ],
+      "memoryScope": "Research scoped",
+      "riskLevel": "Low",
+      "permissionLevel": 1,
+      "approvalRules": [
+        "Approval for outbound publishing"
+      ],
+      "status": "Online"
+    },
+    {
+      "id": "agent-claude-ui",
+      "name": "Claude UI Agent",
+      "role": "UI polish",
+      "abilities": [
+        "Visual polish",
+        "Interaction tuning"
+      ],
+      "blockedActions": [
+        "Auth",
+        "Secrets",
+        "Deploy settings"
+      ],
+      "allowedTools": [
+        "Frontend only"
+      ],
+      "memoryScope": "UI-only scope",
+      "riskLevel": "Low",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Approval before merge"
+      ],
+      "status": "Idle"
+    },
+    {
+      "id": "agent-hermes-arch",
+      "name": "Hermes Architecture Agent",
+      "role": "Runtime architecture",
+      "abilities": [
+        "Agent topology",
+        "Control-room planning"
+      ],
+      "blockedActions": [
+        "Prod execution"
+      ],
+      "allowedTools": [
+        "Architecture docs",
+        "Planning"
+      ],
+      "memoryScope": "Architecture scoped",
+      "riskLevel": "Medium",
+      "permissionLevel": 2,
+      "approvalRules": [
+        "Approval for runtime integration"
+      ],
+      "status": "Online"
+    }
+  ]
+}

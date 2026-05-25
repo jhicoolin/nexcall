@@ -1,0 +1,395 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "log-60dd4309-56fb-4bd0-9f5a-f41480cc355c",
+      "timestamp": "2026-05-25T19:20:12.121Z",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "message": "Command processed: deploy to production now",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-10df678c-90b9-40c1-bfb6-5b175d1298b1"
+      }
+    },
+    {
+      "id": "log-3da6906c-255c-4d4c-83da-c06ea618d0ea",
+      "timestamp": "2026-05-25T19:20:12.107Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: What needs attention today?",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-4b65bb76-907e-4ad7-a91e-bee37d7ef11e"
+      }
+    },
+    {
+      "id": "log-c296f680-3022-4e7e-be2c-9e064510d94c",
+      "timestamp": "2026-05-25T19:20:12.091Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: hi bb",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-4ce9d202-08d6-4a08-aa28-965bd1a75085"
+      }
+    },
+    {
+      "id": "log-b2b88682-2272-49cb-8fd3-90565e333b35",
+      "timestamp": "2026-05-25T18:19:28.890Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: hi bb",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-acf5d9a2-781f-483b-b7f5-8c1d2136c79b"
+      }
+    },
+    {
+      "id": "log-95043c52-a40a-429e-9e80-bb816a80a1a4",
+      "timestamp": "2026-05-25T18:19:12.356Z",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "message": "Command processed: deploy to production now",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-af0826f0-f6fc-49dc-b1a8-6fd33620eaf5"
+      }
+    },
+    {
+      "id": "log-7b7a74c0-3795-4d5c-a9c7-f4da29c346b3",
+      "timestamp": "2026-05-25T18:07:39.177Z",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "message": "Command processed: deploy to production now",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-5bd265c3-2fdf-450d-a099-cefe6e10ddb0"
+      }
+    },
+    {
+      "id": "log-c8394406-3aa8-48b1-a147-dc9cba36120b",
+      "timestamp": "2026-05-25T18:07:39.037Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: hi bb",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-63595d78-ff52-4165-91f7-23e40c0db66f"
+      }
+    },
+    {
+      "id": "log-0ccdacb8-7616-417e-acf9-419c1ac78985",
+      "timestamp": "2026-05-25T18:01:36.230Z",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "message": "Command processed: deploy to production now",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-365a6748-163f-4335-9b58-905e180f6f39"
+      }
+    },
+    {
+      "id": "log-c663bf33-b758-484c-b2e4-aedaaa13717e",
+      "timestamp": "2026-05-25T17:10:11.057Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: HI",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-53259571-1f7f-4254-9072-f5dc8c133e81"
+      }
+    },
+    {
+      "id": "log-dd9fc9c7-344f-4e01-937c-1b7dcb6b4255",
+      "timestamp": "2026-05-25T16:36:33.281Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: HI",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-4f12cc2f-29ee-4edc-9a73-b2a4a88d0707"
+      }
+    },
+    {
+      "id": "log-1493a11d-b6da-4f73-a532-9156c0f6ed18",
+      "timestamp": "2026-05-25T16:34:01.896Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: HI",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-ba9bd11c-4fe6-45e8-b89e-81fae4137fc9"
+      }
+    },
+    {
+      "id": "log-a291a077-57da-4bf0-8586-df361c510639",
+      "timestamp": "2026-05-25T16:31:56.545Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval approved: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-7c63332a-6bd1-4906-8372-312545ddfe80",
+      "timestamp": "2026-05-25T16:31:56.476Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval deferred: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-cf2375cf-9f50-4489-b475-6698b99f74e3",
+      "timestamp": "2026-05-25T16:31:55.762Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: Task A",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-680f7d0c-ee3a-46dd-848c-e9a6992072a8",
+      "timestamp": "2026-05-25T16:31:55.101Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Task A to Strategy Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-e0cb6aff-26a4-4c6b-afff-db3eda9ee30c",
+      "timestamp": "2026-05-25T16:31:54.326Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: Task A",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-7107e898-d2b8-4ab7-aa52-4514fef2054c",
+      "timestamp": "2026-05-25T16:31:53.693Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Task A",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-af83a3c0-827c-4b77-9d40-b8bed7c899b8",
+      "timestamp": "2026-05-25T16:31:49.084Z",
+      "source": "misato.runtime",
+      "severity": "warn",
+      "message": "Command processed: deploy to production now",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-48870979-82e9-4303-834a-f1f13cfca878"
+      }
+    },
+    {
+      "id": "log-cc3ed42d-35a0-44a8-bc17-2694639cba19",
+      "timestamp": "2026-05-25T16:31:49.005Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: What needs attention today?",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-a58170e7-f9be-44e5-80d0-8cf5fc5c48d8"
+      }
+    },
+    {
+      "id": "log-41c256a4-8a6f-48e7-aca5-96ec6920103d",
+      "timestamp": "2026-05-25T16:31:48.928Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: HI",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-f3b8bace-2b14-41d4-bd5f-61ffe8657e75"
+      }
+    },
+    {
+      "id": "log-1779726280756",
+      "timestamp": "2026-05-25T16:24:40.756Z",
+      "project": "Research Lab",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Approval Required",
+      "riskLevel": "High",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779726279177",
+      "timestamp": "2026-05-25T16:24:39.177Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779725986174",
+      "timestamp": "2026-05-25T16:19:46.174Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779725935641",
+      "timestamp": "2026-05-25T16:18:55.641Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-0d2da278-7a7a-4104-bbff-061db5aec496",
+      "timestamp": "2026-05-25T16:17:05.674Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: What needs attention today?",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-9986aa72-007f-41cd-a694-d9339bef71c6"
+      }
+    },
+    {
+      "id": "log-1779725664458",
+      "timestamp": "2026-05-25T16:14:24.459Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-7bdbfcca-7155-4b4b-a865-961fb2b0ff65",
+      "timestamp": "2026-05-25T16:14:24.375Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command processed: What needs attention today?",
+      "type": "command.completed",
+      "payload": {
+        "commandId": "cmd-e1328249-174d-4a84-9f97-47f987760430"
+      }
+    },
+    {
+      "id": "log-1779722041057",
+      "timestamp": "2026-05-25T15:14:01.057Z",
+      "project": "Research Lab",
+      "agent": "MISATO Approvals",
+      "action": "Approval resolved",
+      "status": "Approved",
+      "riskLevel": "High",
+      "details": "Approval apr-1779722040832 resolved by misato-desktop"
+    },
+    {
+      "id": "log-1779722040833",
+      "timestamp": "2026-05-25T15:14:00.833Z",
+      "project": "Research Lab",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Approval Required",
+      "riskLevel": "High",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779721866576",
+      "timestamp": "2026-05-25T15:11:06.576Z",
+      "project": "Research Lab",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Approval Required",
+      "riskLevel": "High",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779720648016",
+      "timestamp": "2026-05-25T14:50:48.016Z",
+      "project": "Research Lab",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Approval Required",
+      "riskLevel": "High",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779720397164",
+      "timestamp": "2026-05-25T14:46:37.164Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779720366896",
+      "timestamp": "2026-05-25T14:46:06.896Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779720343603",
+      "timestamp": "2026-05-25T14:45:43.603Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779720012157",
+      "timestamp": "2026-05-25T14:40:12.157Z",
+      "project": "NexCall",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Completed",
+      "riskLevel": "Low",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "log-1779719708011",
+      "timestamp": "2026-05-25T14:35:08.011Z",
+      "project": "Research Lab",
+      "agent": "MISATO Runtime",
+      "action": "Command pipeline",
+      "status": "Approval Required",
+      "riskLevel": "High",
+      "details": "Command processed through local-first runtime"
+    },
+    {
+      "id": "l1",
+      "timestamp": "2026-05-24T11:50:00Z",
+      "project": "NexCall",
+      "agent": "MISATO Core",
+      "action": "Command parsed",
+      "status": "Success",
+      "riskLevel": "Low",
+      "details": "Sanitized mission intent generated"
+    },
+    {
+      "id": "l2",
+      "timestamp": "2026-05-24T11:55:00Z",
+      "project": "NexCall",
+      "agent": "Security Agent",
+      "action": "Risk scan",
+      "status": "Warning",
+      "riskLevel": "Medium",
+      "details": "Deploy keyword detected; approval queued"
+    }
+  ]
+}

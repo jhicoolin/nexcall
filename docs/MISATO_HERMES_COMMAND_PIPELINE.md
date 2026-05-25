@@ -1,33 +1,48 @@
-# MISATO ↔ Hermes Command Pipeline
+# MISATO ↔ Hermes Command Pipeline (Local Runtime)
 
-## Intent routing
-- Input accepted from MISATO.exe command center.
-- Hermes parses command intent and classifies risk level (L0-L4).
-- Specialist council assigned by project and risk profile.
-- Structured contract returned for UI rendering.
+## 1) Intake
+- Desktop sends command to local `/command`
+- Runtime emits `command_received`
+- Command normalized + correlation id attached
 
-## Daily attention command behavior
-For `What needs attention today?`, response includes:
-- NexCall status
-- MISATO connection status
-- Watchtower status
-- Secret Sentinel status
-- Design Library status
-- Claude/Hermes/Codex lane status
-- Pending approvals state
-- Next recommended actions
+## 2) Risk + intent classification
+- Parse target domain (runtime, code, deploy, security, docs)
+- Classify risk level (L0-L4)
+- Emit `risk_detected` when risk > L1
 
-## Risky command behavior
-For risky commands (example: `deploy to production now`):
-- `approvalRequired: true`
-- execution blocked
-- no merge/deploy/DNS/env mutation
+## 3) Agent assignment
+- Select agents by capability + permission matrix
+- Emit `agent_assigned` events per assignment
+- Any blocked action reroutes to approval queue
 
-## Module status requirements
-`moduleStatus` includes:
-- Watchtower (health/check/mode)
-- Design Library (DESIGN.md + guide + checklist)
-- Secret Sentinel (gitleaks + redacted + repo-only)
-- Obsidian mirror (status, writes approval requirement)
-- GitHub/Vercel (branch/preview, production locked)
-- Lanes (Hermes/Codex/Claude/coordinator/owner approval)
+## 4) Plan generation
+- Generate `hermesPlan`, subtasks, feedback
+- Emit `plan_generated`
+
+## 5) Approval gate
+- L0-L2: continue
+- L3-L4: enqueue approval, set `approvalRequired=true`, emit `approval_requested`
+- Resolved approvals emit `approval_resolved`
+
+## 6) Logging + module rollup
+- Write redacted logs
+- Update module summaries: Watchtower, Secret Sentinel, Design Library, Obsidian Mirror, GitHub/Vercel, Lanes
+- Emit `log` and `status_change` where applicable
+
+## 7) Return response
+- Return canonical command response schema
+- Include `moduleStatus` and next recommended actions
+
+## Approval blocked actions
+- Production deploy/merge
+- DNS and billing changes
+- Secret rotation/deletion
+- Destructive file/system actions
+- Live external automation without explicit owner approval
+
+## Event source names
+- `misato.runtime`
+- `misato.orchestrator`
+- `misato.approvals`
+- `misato.watchtower`
+- `misato.secrets`

@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "lane-hermes",
+      "name": "Hermes",
+      "branch": "misato-hermes-live-runtime",
+      "owner": "Hermes",
+      "status": "active",
+      "current": "Runtime orchestration",
+      "next": "Stabilize IPC fallback",
+      "responsibilities": [
+        "runtime",
+        "policy"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "lane-codex",
+      "name": "Codex",
+      "branch": "misato-codex-client-qa",
+      "owner": "Codex",
+      "status": "ready",
+      "current": "Runtime QA",
+      "next": "Desktop smoke",
+      "responsibilities": [
+        "qa",
+        "integration"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "lane-claude",
+      "name": "Claude",
+      "branch": "misato-claude-ui",
+      "owner": "Claude",
+      "status": "ready",
+      "current": "UI consumption",
+      "next": "Adapter verification",
+      "responsibilities": [
+        "ui",
+        "ux"
+      ],
+      "blockers": []
+    }
+  ]
+}

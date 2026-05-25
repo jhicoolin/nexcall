@@ -1,0 +1,172 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "apr-1711f211-eae5-4e9d-9169-1f6b5a576b71",
+      "title": "Approval required: deploy to production now",
+      "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "riskLevel": "High",
+      "requestedByAgentId": "agent-hermes",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T19:20:12.120Z",
+      "updatedAt": "2026-05-25T19:20:12.120Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-92d6f209-792d-4318-84c4-7365b925f11d",
+      "title": "Approval required: deploy to production now",
+      "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "riskLevel": "High",
+      "requestedByAgentId": "agent-hermes",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T18:19:12.354Z",
+      "updatedAt": "2026-05-25T18:19:12.354Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-c2f9ff1a-fb24-4883-bad5-9e9c546c6089",
+      "title": "Approval required: deploy to production now",
+      "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "riskLevel": "High",
+      "requestedByAgentId": "agent-hermes",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T18:07:39.176Z",
+      "updatedAt": "2026-05-25T18:07:39.176Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-77e8f0cd-a853-470e-8c41-0a0f1709b6d5",
+      "title": "Approval required: deploy to production now",
+      "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "riskLevel": "High",
+      "requestedByAgentId": "agent-hermes",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T18:01:36.229Z",
+      "updatedAt": "2026-05-25T18:01:36.229Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-4371fb44-aeea-41db-b814-401186fbed9c",
+      "title": "Approval required: deploy to production now",
+      "description": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "riskLevel": "High",
+      "requestedByAgentId": "agent-hermes",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Approved",
+      "createdAt": "2026-05-25T16:31:49.083Z",
+      "updatedAt": "2026-05-25T16:31:56.544Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-25T16:31:56.544Z",
+      "decisionBy": "owner"
+    },
+    {
+      "id": "apr-1779726280754",
+      "project": "Research Lab",
+      "requestedAgent": "Hermes Orchestrator",
+      "actionType": "Protected action",
+      "reason": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "preview": "deploy to production now",
+      "riskLevel": "High",
+      "status": "Pending",
+      "createdAt": "2026-05-25T16:24:40.754Z"
+    },
+    {
+      "id": "apr-1779722040832",
+      "project": "Research Lab",
+      "requestedAgent": "Hermes Orchestrator",
+      "actionType": "Protected action",
+      "reason": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "preview": "deploy to production now",
+      "riskLevel": "High",
+      "status": "Approved",
+      "createdAt": "2026-05-25T15:14:00.832Z",
+      "resolvedAt": "2026-05-25T15:14:01.057Z",
+      "resolvedBy": "misato-desktop"
+    },
+    {
+      "id": "apr-1779721866575",
+      "project": "Research Lab",
+      "requestedAgent": "Hermes Orchestrator",
+      "actionType": "Protected action",
+      "reason": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "preview": "deploy to production now",
+      "riskLevel": "High",
+      "status": "Pending",
+      "createdAt": "2026-05-25T15:11:06.575Z"
+    },
+    {
+      "id": "apr-1779720648016",
+      "project": "Research Lab",
+      "requestedAgent": "Hermes Orchestrator",
+      "actionType": "Protected action",
+      "reason": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "preview": "deploy to production now",
+      "riskLevel": "High",
+      "status": "Pending",
+      "createdAt": "2026-05-25T14:50:48.016Z"
+    },
+    {
+      "id": "apr-1779719708010",
+      "project": "Research Lab",
+      "requestedAgent": "Hermes Orchestrator",
+      "actionType": "Protected action",
+      "reason": "Requested command falls into a protected action category and requires explicit owner approval before any execution.",
+      "preview": "deploy to production now",
+      "riskLevel": "High",
+      "status": "Pending",
+      "createdAt": "2026-05-25T14:35:08.010Z"
+    },
+    {
+      "id": "ap1",
+      "project": "NexCall",
+      "requestedAgent": "Vercel Deploy Agent",
+      "actionType": "Production deploy",
+      "reason": "Release pending owner review",
+      "preview": "Deploy commit abc123 to production",
+      "riskLevel": "High",
+      "status": "Pending",
+      "createdAt": "2026-05-24T12:00:00Z"
+    },
+    {
+      "id": "ap2",
+      "project": "Client Sites",
+      "requestedAgent": "Backend Agent",
+      "actionType": "Auth config change",
+      "reason": "Route scope update",
+      "preview": "Modify auth middleware paths",
+      "riskLevel": "High",
+      "status": "Pending",
+      "createdAt": "2026-05-24T12:15:00Z"
+    }
+  ],
+  "mode": "approval-gate"
+}

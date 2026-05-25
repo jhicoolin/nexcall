@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasOwnerSession } from "@/lib/misato/auth";
+import { withMisatoCors } from "@/lib/misato/http/cors";
 
 function tokenFromRequest(request?: Request) {
   if (!request) return "";
@@ -20,12 +21,22 @@ function isVercelRuntime() {
 
 function localHostOnly(request?: Request) {
   if (!request) return false;
-  const host = (request.headers.get("host") || "").toLowerCase();
-  return host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  const hostCandidates = [
+    request.headers.get("x-forwarded-host") || "",
+    request.headers.get("host") || "",
+    request.headers.get("origin") || "",
+    request.headers.get("referer") || ""
+  ].map((v) => v.toLowerCase());
+
+  return hostCandidates.some((raw) => {
+    if (!raw) return false;
+    const normalized = raw.replace(/^https?:\/\//, "").replace(/^tauri:\/\//, "");
+    return normalized.startsWith("localhost") || normalized.startsWith("127.0.0.1") || normalized.startsWith("::1") || normalized.startsWith("tauri.localhost");
+  });
 }
 
 export function isLocalSoloMode(request?: Request) {
-  if (isProdRuntime() || isVercelRuntime()) return false;
+  if (isVercelRuntime()) return false;
   const envEnabled = (process.env.MISATO_LOCAL_SOLO_MODE || "false").toLowerCase() === "true";
   return envEnabled || localHostOnly(request);
 }
@@ -53,16 +64,17 @@ function hasValidDesktopToken(request?: Request) {
 }
 
 export async function assertOwnerJson(request?: Request) {
+  if (isLocalSoloMode(request)) return null;
+
   if (isProdRuntime()) {
     return hasValidDesktopToken(request)
       ? null
-      : NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
+      : withMisatoCors(NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 }), request || new Request("http://localhost"));
   }
 
-  if (isLocalSoloMode(request)) return null;
   if (await hasOwnerSession()) return null;
   if (hasValidDesktopToken(request)) return null;
   if (!isDesktopTokenRequired()) return null;
 
-  return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
+  return withMisatoCors(NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 }), request || new Request("http://localhost"));
 }

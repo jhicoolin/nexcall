@@ -1,0 +1,203 @@
+{
+  "ok": true,
+  "items": [
+    {
+      "id": "rt-1779726280754",
+      "projectId": "runtime",
+      "title": "Command: deploy to production now",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T16:54:40.754Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "High",
+      "approvalRequired": true
+    },
+    {
+      "id": "rt-1779726279176",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T16:54:39.176Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779725986173",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T16:49:46.173Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779725935639",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T16:48:55.639Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779725664457",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T16:44:24.457Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779722040831",
+      "projectId": "runtime",
+      "title": "Command: deploy to production now",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:44:00.831Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "High",
+      "approvalRequired": true
+    },
+    {
+      "id": "rt-1779721866574",
+      "projectId": "runtime",
+      "title": "Command: deploy to production now",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:41:06.574Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "High",
+      "approvalRequired": true
+    },
+    {
+      "id": "rt-1779720648015",
+      "projectId": "runtime",
+      "title": "Command: deploy to production now",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:20:48.015Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "High",
+      "approvalRequired": true
+    },
+    {
+      "id": "rt-1779720397163",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:16:37.163Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779720366895",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:16:06.895Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779720343603",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:15:43.603Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779720012156",
+      "projectId": "runtime",
+      "title": "Command: What needs attention today?",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:10:12.156Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "rt-1779719708008",
+      "projectId": "runtime",
+      "title": "Command: deploy to production now",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25T15:05:08.008Z",
+      "assignedAgentId": "agent-hermes-arch",
+      "riskLevel": "High",
+      "approvalRequired": true
+    },
+    {
+      "id": "t1",
+      "projectId": "p1",
+      "title": "Draft dentist campaign",
+      "status": "Doing",
+      "priority": "High",
+      "dueDate": "2026-05-25",
+      "assignedAgentId": "agent-backend",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "t2",
+      "projectId": "p1",
+      "title": "Design approval queue UX",
+      "status": "Idea",
+      "priority": "High",
+      "dueDate": "2026-05-27",
+      "assignedAgentId": "agent-ui",
+      "riskLevel": "Medium",
+      "approvalRequired": false
+    },
+    {
+      "id": "t3",
+      "projectId": "p2",
+      "title": "Supplier outreach",
+      "status": "Blocked",
+      "priority": "High",
+      "dueDate": "2026-05-24",
+      "assignedAgentId": "agent-business",
+      "riskLevel": "Medium",
+      "approvalRequired": false
+    },
+    {
+      "id": "t4",
+      "projectId": "p3",
+      "title": "Fix mobile nav issue",
+      "status": "Done",
+      "priority": "Medium",
+      "dueDate": "2026-05-23",
+      "assignedAgentId": "agent-qa",
+      "riskLevel": "Low",
+      "approvalRequired": false
+    },
+    {
+      "id": "t5",
+      "projectId": "p4",
+      "title": "Prepare deploy checklist",
+      "status": "Idea",
+      "priority": "Medium",
+      "dueDate": "2026-05-30",
+      "assignedAgentId": "agent-vercel",
+      "riskLevel": "High",
+      "approvalRequired": true
+    }
+  ]
+}

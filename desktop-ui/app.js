@@ -120,7 +120,7 @@ const DESIGN_TOKENS = [
 ];
 
 const INTEGRATIONS = [
-  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'localhost:3010 sidecar. /command /agents /tasks /events/stream.',  next:'Start Hermes sidecar, then click Find Hermes' },
+  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'localhost:3000 runtime. /command /agents /tasks /events/stream.',  next:'Start Hermes runtime, then click Find Hermes' },
   { name:'Vercel Preview',      icon:'☁', mode:'active',  desc:'Preview branch connected. Deployment protection bypass enabled.',   next:'Redeploy after CORS fix' },
   { name:'GitHub Handoffs',     icon:'⌥', mode:'ready',   desc:'Branch coordination active. misato-claude-ui ready to push.',     next:'Push + open PR to misato-full-build' },
   { name:'Obsidian Mirror',     icon:'⬡', mode:'planned', desc:'Vault sync not yet configured. Mirror docs exist in repo.',        next:'Set OBSIDIAN_VAULT_PATH, owner approval required' },
@@ -147,8 +147,8 @@ const AGENT_LANES = [
     blockers:'None', next:'Merge all lanes → misato-full-build after review',
     owns:['Council orchestration','Merge gating','Handoff docs'] },
   { id:'owner',  cls:'owner',  name:'Owner Approval Lane',  branch:'main (gate)',            status:'standing by',   statusCls:'badge-blue',
-    currentTask:'Start Hermes sidecar → confirm LOCAL SOLO mode', lastHandoff:'Bypass token generated and saved',
-    blockers:'Production deploy requires owner approval', next:'Run hermes:dev → launch MISATO.exe → click Find Hermes',
+    currentTask:'Start Hermes runtime → confirm LOCAL SOLO mode', lastHandoff:'Bypass token generated and saved',
+    blockers:'Production deploy requires owner approval', next:'Run npm run dev → launch MISATO.exe → click Find Hermes',
     owns:['Production deploys','Env vars','DNS','Risky action approvals'] }
 ];
 
@@ -191,12 +191,18 @@ const storage = {
   set(k, v)    { try { localStorage.setItem(k, v); } catch {} }
 };
 
+function normalizeHermesPort(port) {
+  const value = String(port || '').trim();
+  if (!value || value === '3010') return '3000';
+  return value;
+}
+
 // ── State ──────────────────────────────────────────────────────
 const injectedBase = (window.__MISATO_API_BASE_URL__ || '').trim();
 const state = {
   // ── Hermes connection (primary) ──────────────────────────────
   hermesHost:    storage.get('misato_hermes_host', 'localhost'),
-  hermesPort:    storage.get('misato_hermes_port', '3010'),
+  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', '3000')),
   // 'unknown' | 'finding' | 'connected' | 'not-running' | 'failed'
   hermesState:   'unknown',
   hermesHealth:  null,   // { status, version, uptime, agents, tasks, events }
@@ -330,7 +336,7 @@ function connCls(label) {
 
 // ── Hermes Base URL ────────────────────────────────────────────
 function hermesBase() {
-  return `http://${(state.hermesHost||'localhost').trim()}:${(state.hermesPort||'3010').trim()}`;
+  return `http://${(state.hermesHost||'localhost').trim()}:${(state.hermesPort||'3000').trim()}`;
 }
 
 // ── Discover Hermes (probes /health) ──────────────────────────
@@ -360,7 +366,7 @@ async function discoverHermes() {
 
 function saveHermesHostPort() {
   const h = document.getElementById('cfg-hermes-host')?.value?.trim() || 'localhost';
-  const p = document.getElementById('cfg-hermes-port')?.value?.trim() || '3010';
+  const p = normalizeHermesPort(document.getElementById('cfg-hermes-port')?.value?.trim() || '3000');
   state.hermesHost = h; state.hermesPort = p;
   storage.set('misato_hermes_host', h); storage.set('misato_hermes_port', p);
 }
@@ -369,14 +375,16 @@ function saveHermesHostPort() {
 async function loadAllFromHermes() {
   const base = hermesBase();
   const safeGet = (url) =>
-    fetch(url).then(r => r.ok ? r.json() : Promise.reject()).catch(() => null);
+    fetch(url, { headers: headers() }).then(r => r.ok ? r.json() : Promise.reject()).catch(() => null);
+    // Hermes is a flat runtime — routes have no /api/misato/ prefix.
+  // The /api/misato/* prefix belongs to the Vercel/Next.js side only.
   const [agents, tasks, approvals, logs, watchtower, sentinel] = await Promise.all([
-    safeGet(`${base}/api/misato/agents`),
-    safeGet(`${base}/api/misato/tasks`),
-    safeGet(`${base}/api/misato/approvals`),
-    safeGet(`${base}/api/misato/logs`),
-    safeGet(`${base}/api/misato/watchtower`),
-    safeGet(`${base}/api/misato/secrets`)
+    safeGet(`${base}/agents`),
+    safeGet(`${base}/tasks`),
+    safeGet(`${base}/approvals`),
+    safeGet(`${base}/logs`),
+    safeGet(`${base}/watchtower`),
+    safeGet(`${base}/secrets`)
   ]);
   const normalizedAgents = normalizeItemsResponse(agents).map(normalizeCouncilAgent);
   const normalizedTasks = normalizeItemsResponse(tasks);
@@ -392,15 +400,19 @@ async function loadAllFromHermes() {
 }
 
 // ── SSE Event Subscription ─────────────────────────────────────
-let _sseSource = null;
+let _sseSource    = null;
+let _sseErrCount  = 0;          // consecutive error count
+const SSE_MAX_ERR = 3;          // escalate to discoverHermes after this many
 
 function startSSE() {
   if (_sseSource) { _sseSource.close(); _sseSource = null; }
   state.sseState = 'connecting';
   try {
+    // Hermes runtime: flat path /events/stream (no /api/misato/ prefix)
     _sseSource = new EventSource(`${hermesBase()}/events/stream`);
     _sseSource.onopen = () => {
-      state.sseState = 'connected';
+      state.sseState  = 'connected';
+      _sseErrCount    = 0;
       refreshFeedUI();
       refreshTopBarUI();
     };
@@ -410,29 +422,31 @@ function startSSE() {
         state.feedEvents.unshift(evt);
         if (state.feedEvents.length > 500) state.feedEvents.length = 500;
         // Drive command timeline
-        if (COMMAND_STAGES.find(s => s.type === evt.type)) {
-          processCommandEvent(evt);
-        }
-        // Drive live data updates
-        if (evt.type === 'task_updated'   && evt.payload?.task)       updateLiveTask(evt.payload.task);
-        if (evt.type === 'agent_assigned' && evt.payload?.agent)      updateLiveAgent(evt.payload.agent);
+        if (COMMAND_STAGES.find(s => s.type === evt.type)) processCommandEvent(evt);
+        // Drive live data patches
+        if (evt.type === 'task_updated'       && evt.payload?.task)     updateLiveTask(evt.payload.task);
+        if (evt.type === 'agent_assigned'     && evt.payload?.agent)    updateLiveAgent(evt.payload.agent);
         if (evt.type === 'approval_requested' && evt.payload?.approval) prependLiveApproval(evt.payload.approval);
-        if (!state.feedPaused) {
-          refreshFeedUI();
-        } else {
-          state.newWhilePaused++;
-          refreshFeedPauseBadge();
-        }
+        if (!state.feedPaused) refreshFeedUI();
+        else { state.newWhilePaused++; refreshFeedPauseBadge(); }
       } catch {}
     };
     _sseSource.onerror = () => {
       state.sseState = 'error';
+      _sseErrCount++;
       if (_sseSource) { _sseSource.close(); _sseSource = null; }
       refreshFeedUI(); refreshTopBarUI();
-      setTimeout(() => { if (state.hermesState === 'connected') startSSE(); }, 8000);
+      if (_sseErrCount >= SSE_MAX_ERR) {
+        // Hermes may have gone down — re-probe /health rather than blindly retrying SSE
+        _sseErrCount = 0;
+        setTimeout(() => { if (state.hermesState === 'connected') discoverHermes(); }, 5000);
+      } else {
+        setTimeout(() => { if (state.hermesState === 'connected') startSSE(); }, 8000);
+      }
     };
   } catch {
     state.sseState = 'error';
+    _sseErrCount++;
     setTimeout(() => { if (state.hermesState === 'connected') startSSE(); }, 8000);
   }
 }
@@ -582,7 +596,7 @@ function buildTimelineHTML() {
 
 // ── Network layer — Preview / token path (unchanged contract) ──
 function headers() {
-  const h = { 'content-type': 'application/json' };
+  const h = { 'content-type': 'application/json', accept: 'application/json' };
   if (state.token)       h['x-misato-desktop-token']     = state.token;
   if (state.bypassToken) h['x-vercel-protection-bypass'] = state.bypassToken;
   return h;
@@ -808,7 +822,7 @@ function renderSectionHeader(title, meta='', actions='') {
 // ── Hermes Setup Card — shown on Overview when offline ─────────
 function renderHermesSetupCard() {
   const host = esc(state.hermesHost || 'localhost');
-  const port = esc(state.hermesPort || '3010');
+  const port = esc(state.hermesPort || '3000');
   return `
     <div class="setup-card">
       <div class="setup-card-icon">⬡</div>
@@ -817,7 +831,7 @@ function renderHermesSetupCard() {
         <div class="setup-card-sub">Start your local AI runtime to activate MISATO · ${host}:${port}</div>
         <div class="setup-steps">
           <div class="setup-step"><span class="setup-step-num">1</span><span>Open a terminal in your <code>nexcall</code> project folder</span></div>
-          <div class="setup-step"><span class="setup-step-num">2</span><span>Run: <code>npm run hermes:dev</code></span></div>
+          <div class="setup-step"><span class="setup-step-num">2</span><span>Run: <code>npm run dev</code></span></div>
           <div class="setup-step"><span class="setup-step-num">3</span><span>Come back here — MISATO will auto-connect</span></div>
         </div>
         <div class="setup-card-actions">
@@ -831,7 +845,7 @@ function renderHermesSetupCard() {
 // ── Settings panel — Local Hermes first ────────────────────────
 function renderHermesStatusInline() {
   const h  = esc(state.hermesHost || 'localhost');
-  const p  = esc(state.hermesPort || '3010');
+  const p  = esc(state.hermesPort || '3000');
   const st = state.hermesState;
   if (st === 'connected') return `
     <div class="hermes-inline found">
@@ -845,15 +859,15 @@ function renderHermesStatusInline() {
     <div class="hermes-inline not-found">
       <span>⚠</span>
       <div class="hermes-inline-steps">
-        <div><strong>Hermes not found at ${h}:${p}</strong> — start the sidecar then click Find Hermes</div>
+        <div><strong>Hermes not found at ${h}:${p}</strong> — start the runtime then click Find Hermes</div>
         <div class="inline-steps-row">
           <span>1. <code>cd nexcall</code></span>
-          <span>2. <code>npm run hermes:dev</code></span>
+          <span>2. <code>npm run dev</code></span>
           <span>3. Click Find Hermes above</span>
         </div>
       </div>
     </div>`;
-  return `<div class="hermes-inline idle"><span>—</span><span>Click Find Hermes to discover your local sidecar</span></div>`;
+  return `<div class="hermes-inline idle"><span>—</span><span>Click Find Hermes to discover your local runtime</span></div>`;
 }
 
 function renderConfigPanel() {
@@ -870,7 +884,7 @@ function renderConfigPanel() {
             </div>
             <div class="input-group" style="width:90px">
               <label class="input-label" for="cfg-hermes-port">Port</label>
-              <input class="input input-mono" id="cfg-hermes-port" type="text" placeholder="3010" value="${esc(state.hermesPort||'3010')}" />
+              <input class="input input-mono" id="cfg-hermes-port" type="text" placeholder="3000" value="${esc(state.hermesPort||'3000')}" />
             </div>
           </div>
           <div class="row gap-8 mb-8">
@@ -988,8 +1002,12 @@ function renderOverview() {
       <div class="grid-3">
         <div class="card">
           <div class="card-header"><span class="card-title">Recent Alerts</span><button class="btn btn-ghost btn-sm" data-nav="logs">Logs →</button></div>
-          ${MOCK_LOGS.filter(l=>l.sev==='warn'||l.sev==='error').slice(0,4).map(l=>`
-            <div class="wt-service-row"><span class="log-ts">${esc(l.ts)}</span><span class="log-src">${esc(l.src)}</span><span class="log-msg" style="flex:1;font-size:11px">${esc(l.action.substring(0,50))}</span></div>`).join('')}
+          ${(state.logs || MOCK_LOGS).filter(l=>{
+              const sev = (l.sev||l.level||l.severity||'').toLowerCase();
+              return sev==='warn'||sev==='warning'||sev==='error';
+            }).slice(0,4).map(l=>`
+            <div class="wt-service-row"><span class="log-ts">${esc(l.ts||fmtTime(l.timestamp))}</span><span class="log-src">${esc(l.src||l.source||'')}</span><span class="log-msg" style="flex:1;font-size:11px">${esc((l.action||l.message||l.msg||'').substring(0,50))}</span></div>`).join('')
+          || '<div style="padding:12px;font-size:12px;color:var(--accent-teal)">◉ No recent alerts</div>'}
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Approval Backlog</span><button class="btn btn-ghost btn-sm" data-nav="approvals">Review →</button></div>
@@ -1164,9 +1182,30 @@ function renderAgentDex() {
 }
 
 // ── Screen 4: Schedule ─────────────────────────────────────────
+function normalizeScheduleItems(tasks) {
+  // Try to use live tasks that have scheduledAt / time fields.
+  // Hermes may emit tasks with scheduledAt (ISO) or time (string range).
+  if (!tasks) return null;
+  const scheduled = tasks.filter(t => t.scheduledAt || t.time || t.scheduledFor);
+  if (!scheduled.length) return null;
+  return scheduled.map(t => ({
+    time:     t.time || (t.scheduledAt ? new Date(t.scheduledAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'),
+    title:    t.title || t.name || '—',
+    agent:    t.agent || t.assignee || '—',
+    priority: t.priority || 'Medium',
+    status:   t.status || 'Scheduled',
+    live:     !!(t.liveAt || t.status === 'Doing')
+  }));
+}
+
 function renderSchedule() {
-  const items = (state.tasks?.filter(t=>t.scheduledAt) || MOCK_SCHEDULE).map ? MOCK_SCHEDULE : MOCK_SCHEDULE;
-  const isMock = !state.tasks;
+  // Prefer live scheduled tasks; fall back to MOCK_SCHEDULE
+  const liveItems = normalizeScheduleItems(state.tasks);
+  const items     = liveItems || MOCK_SCHEDULE;
+  const isMock    = !liveItems;
+  // Schedule requires a /schedule or scheduled-task fields from Hermes.
+  // If Hermes returns tasks without scheduledAt, we still show mock.
+  const hermesHasSchedule = isHermesConnected() && !!liveItems;
   return `
     ${renderSectionHeader('Schedule','Today · Agenda view',`
       <div class="schedule-view-toggle">
@@ -1174,13 +1213,13 @@ function renderSchedule() {
       </div>
       <button class="btn btn-primary btn-sm" style="margin-left:8px">+ New Task</button>`)}
     <div class="workspace-body">
-      ${isMock ? mockBanner('schedule from Hermes when connected') : ''}
+      ${isMock ? mockBanner(isHermesConnected() ? 'no scheduledAt fields in tasks — add /schedule endpoint to Hermes' : 'connect Hermes for live schedule') : ''}
       <div class="card">
         <div class="card-header">
           <span class="card-title">Today — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
-          <span class="badge badge-blue">${MOCK_SCHEDULE.length} tasks</span>
+          <span class="badge ${hermesHasSchedule?'badge-teal':'badge-blue'}">${items.length} tasks${hermesHasSchedule?' · LIVE':''}</span>
         </div>
-        ${MOCK_SCHEDULE.map(s=>`
+        ${items.map(s=>`
           <div class="agenda-item">
             <div class="agenda-time">${esc(s.time)}</div>
             <div class="agenda-body">
@@ -1239,7 +1278,7 @@ function renderWatchtower() {
   const isMock  = !state.watchtower;
 
   const tiles = [
-    { label:'Hermes',       value: hermes?'Connected':'Offline',           sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Start hermes:dev',       cls: hermes?'ok':'bad'  },
+    { label:'Hermes',       value: hermes?'Connected':'Offline',           sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Start npm run dev',       cls: hermes?'ok':'bad'  },
     { label:'SSE Stream',   value: state.sseState==='connected'?'Live':state.sseState==='connecting'?'Connecting':'Offline', sub: state.sseState==='connected'?`${state.feedEvents.length} events`:'No stream',  cls: state.sseState==='connected'?'ok':''  },
     { label:'Auth Gate',    value: state.token?'Configured':'Not set',     sub: 'x-misato-desktop-token',                                                        cls: state.token?'ok':'' },
     { label:'Queue Depth',  value: tasks.filter(t=>t.status==='Doing').length, sub:`${tasks.filter(t=>t.status==='Blocked').length} blocked`,                   cls: tasks.filter(t=>t.status==='Blocked').length?'warn':'' },
@@ -1285,21 +1324,33 @@ function renderWatchtower() {
       </div>
       <div class="card" style="padding:0">
         <div class="card-header" style="padding:12px 14px"><span class="card-title">Recent Incidents</span></div>
-        ${(state.feedEvents.filter(e=>e.type==='risk_detected').slice(0,6).length
-          ? state.feedEvents.filter(e=>e.type==='risk_detected').slice(0,6).map(e=>`
-            <div class="wt-service-row">
-              <span class="log-ts">${esc(fmtTime(e.timestamp))}</span>
-              <span class="badge badge-red">RISK</span>
-              <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(e.payload?.message||'')}</span>
-            </div>`)
-          : MOCK_LOGS.filter(l=>l.sev==='warn'||l.sev==='error').map(l=>`
-            <div class="wt-service-row">
-              <span class="log-ts">${esc(l.ts)}</span>
-              <span class="badge ${l.sev==='error'?'badge-red':'badge-amber'}">${l.sev.toUpperCase()}</span>
-              <span class="log-src">${esc(l.src)}</span>
-              <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(l.action)}</span>
-            </div>`)
-        ).join('')}
+        ${(() => {
+          // Priority: SSE risk_detected events → live logs → mock logs
+          const sseRisks = state.feedEvents.filter(e=>e.type==='risk_detected').slice(0,6);
+          if (sseRisks.length) {
+            return sseRisks.map(e=>`
+              <div class="wt-service-row">
+                <span class="log-ts">${esc(fmtTime(e.timestamp))}</span>
+                <span class="badge badge-red">RISK</span>
+                <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(e.payload?.message||e.payload?.action||'')}</span>
+              </div>`).join('');
+          }
+          const fallbackLogs = (state.logs || MOCK_LOGS);
+          const incidents    = fallbackLogs.filter(l=>{
+            const sev = (l.sev||l.level||l.severity||'').toLowerCase();
+            return sev==='warn'||sev==='warning'||sev==='error';
+          }).slice(0,6);
+          return incidents.map(l=>{
+            const sev = (l.sev||l.level||l.severity||'info').toLowerCase();
+            return `
+              <div class="wt-service-row">
+                <span class="log-ts">${esc(l.ts||fmtTime(l.timestamp))}</span>
+                <span class="badge ${sev==='error'?'badge-red':'badge-amber'}">${sev.toUpperCase()}</span>
+                <span class="log-src">${esc(l.src||l.source||'')}</span>
+                <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(l.action||l.message||l.msg||'')}</span>
+              </div>`;
+          }).join('') || '<div style="padding:12px;font-size:12px;color:var(--accent-teal)">◉ No recent incidents</div>';
+        })()}
       </div>
     </div>`;
 }
@@ -1353,14 +1404,18 @@ function renderSentinel() {
 function renderLogs() {
   const logs   = state.logs || MOCK_LOGS;
   const isMock = !state.logs;
-  const rows   = logs.map(l=>`
+  const rows   = logs.map(l=>{
+    // Normalize severity: Hermes may emit level/severity; MOCK_LOGS uses sev
+    const sev = (l.sev||l.level||l.severity||'info').toLowerCase();
+    return `
     <tr>
       <td class="log-ts">${esc(l.ts||fmtTime(l.timestamp))}</td>
       <td class="log-src">${esc(l.src||l.source||'—')}</td>
-      <td><span class="badge ${l.sev==='error'?'badge-red':l.sev==='warn'?'badge-amber':'badge-slate'} sev-${esc(l.sev||'info')}">${(l.sev||'info').toUpperCase()}</span></td>
+      <td><span class="badge ${sev==='error'?'badge-red':sev==='warn'||sev==='warning'?'badge-amber':'badge-slate'} sev-${esc(sev)}">${sev.toUpperCase()}</span></td>
       <td style="font-size:11px;color:var(--text-secondary)">${esc(l.agent||'—')}</td>
-      <td class="log-msg">${esc(l.action||l.message||'')}</td>
-    </tr>`).join('');
+      <td class="log-msg">${esc(l.action||l.message||l.msg||'')}</td>
+    </tr>`;
+  }).join('');
   return `
     ${renderSectionHeader('Logs',`${logs.length} entries`,`<button class="btn btn-secondary btn-sm">Export</button>`)}
     <div class="workspace-body" style="padding:0">
@@ -1378,12 +1433,49 @@ function renderLogs() {
 }
 
 // ── Screen 9: Integrations ─────────────────────────────────────
+function buildLiveIntegrations() {
+  const hermes    = isHermesConnected();
+  const h         = state.hermesHealth;
+  const sseUp     = state.sseState === 'connected';
+  const tokenSet  = !!state.token;
+  const bypassSet = !!state.bypassToken;
+  // Build a live-aware copy of the integrations list
+  return INTEGRATIONS.map(i => {
+    if (i.name === 'Local Hermes Bridge') {
+      return {
+        ...i,
+        mode: hermes ? 'active' : 'planned',
+        desc: hermes
+          ? `Connected · ${state.hermesHost}:${state.hermesPort}${h?.version ? ' · v' + h.version : ''}${h?.uptime != null ? ' · ↑' + fmtUptime(h.uptime) : ''}. SSE ${sseUp ? 'live' : 'reconnecting'}.`
+          : `Not running · Start with npm run dev at ${state.hermesHost}:${state.hermesPort}`,
+        next: hermes ? 'Running — no action needed' : 'Start Hermes runtime, then click Find Hermes'
+      };
+    }
+    if (i.name === 'Vercel Preview') {
+      const previewState = state.connTest.label;
+      const isPreviewUp  = previewState === 'Connected';
+      return {
+        ...i,
+        mode: isPreviewUp ? 'active' : (tokenSet || bypassSet ? 'ready' : 'planned'),
+        desc: isPreviewUp
+          ? `Preview connected · ${state.baseUrl}`
+          : tokenSet
+            ? `Token configured · Last test: ${previewState}`
+            : 'Not configured — see Advanced in Settings.',
+        next: isPreviewUp ? 'Connected · optional when Hermes is local' : previewState !== 'Not configured' ? `Fix: ${state.connTest.nextFix || previewState}` : 'Open Settings → Advanced to configure'
+      };
+    }
+    return i;
+  });
+}
+
 function renderIntegrations() {
+  const items = buildLiveIntegrations();
   const modeBadge = m => {
     const map = { active:'badge-teal', ready:'badge-blue', mock:'badge-slate', planned:'badge-amber' };
     return `<span class="badge ${map[m]||'badge-slate'}">${m.toUpperCase()}</span>`;
   };
-  const cards = INTEGRATIONS.map(i=>`
+  const cards = items.map(i=>`
     <div class="integration-card">
       <div class="integration-card-top">
         <div class="row gap-8"><span class="integration-icon">${i.icon}</span><div class="integration-name">${esc(i.name)}</div></div>
@@ -1396,14 +1488,42 @@ function renderIntegrations() {
         ${i.mode==='active'?`<button class="btn btn-ghost btn-sm">Test</button>`:''}
       </div>
     </div>`).join('');
+  const activeCount = items.filter(i=>i.mode==='active').length;
   return `
-    ${renderSectionHeader('Integrations',`${INTEGRATIONS.filter(i=>i.mode==='active').length} active`,`<button class="btn btn-primary btn-sm">+ Add</button>`)}
+    ${renderSectionHeader('Integrations',`${activeCount} active`,`<button class="btn btn-primary btn-sm">+ Add</button>`)}
     <div class="workspace-body"><div class="grid-2">${cards}</div></div>`;
 }
 
 // ── Screen 10: Lanes ───────────────────────────────────────────
+function buildLiveLanes() {
+  // If Hermes provides agent data with branch/lane info, prefer it.
+  // Otherwise fall back to the static AGENT_LANES manifest.
+  // Hermes agents with a 'branch' field can be mapped to lane cards.
+  if (state.agents && state.agents.length) {
+    const hermesBranchAgents = state.agents.filter(a => a.branch || a.lane);
+    if (hermesBranchAgents.length) {
+      return hermesBranchAgents.map(a => ({
+        id:          a.id,
+        cls:         a.id,
+        name:        a.name,
+        branch:      a.branch || a.lane || '—',
+        status:      a.state || 'unknown',
+        statusCls:   a.state==='active'?'badge-teal':a.state==='blocked'?'badge-red':a.state==='thinking'?'badge-blue':'badge-slate',
+        currentTask: a.feedback || '—',
+        blockers:    a.blockers || 'None',
+        next:        a.nextAction || '—',
+        owns:        Array.isArray(a.owns) ? a.owns : [a.role||a.specialty||'—']
+      }));
+    }
+  }
+  return null; // fall back to static
+}
+
 function renderLanes() {
-  const cards = AGENT_LANES.map(l=>`
+  const liveLanes  = buildLiveLanes();
+  const lanes      = liveLanes || AGENT_LANES;
+  const isMock     = !liveLanes;
+  const cards = lanes.map(l=>`
     <div class="lane-card ${l.cls}">
       <div class="row-between">
         <div><div class="lane-name">${esc(l.name)}</div><div class="lane-branch">${esc(l.branch)}</div></div>
@@ -1411,14 +1531,17 @@ function renderLanes() {
       </div>
       <div class="col gap-4">
         <div class="lane-task"><span style="color:var(--text-tertiary);font-size:10px;font-weight:600;text-transform:uppercase">Current</span><br>${esc(l.currentTask)}</div>
-        ${l.blockers!=='None'?`<div style="font-size:11px;color:var(--accent-amber)">⚠ ${esc(l.blockers)}</div>`:''}
+        ${l.blockers && l.blockers!=='None'?`<div style="font-size:11px;color:var(--accent-amber)">⚠ ${esc(l.blockers)}</div>`:''}
         <div style="font-size:11px;color:var(--text-secondary)">Next: ${esc(l.next)}</div>
       </div>
-      <div class="lane-owns">${l.owns.map(o=>`<span class="lane-owns-tag">${esc(o)}</span>`).join('')}</div>
+      <div class="lane-owns">${(l.owns||[]).map(o=>`<span class="lane-owns-tag">${esc(o)}</span>`).join('')}</div>
     </div>`).join('');
   return `
-    ${renderSectionHeader('Lanes',`${AGENT_LANES.length} active lanes`)}
-    <div class="workspace-body"><div class="grid-2">${cards}</div></div>`;
+    ${renderSectionHeader('Lanes',`${lanes.length} lanes${isMock?' · MOCK':' · live'}`)}
+    <div class="workspace-body">
+      ${isMock ? mockBanner(isHermesConnected() ? 'no branch/lane fields in agent registry — Hermes can add them' : 'connect Hermes for live lane state') : ''}
+      <div class="grid-2">${cards}</div>
+    </div>`;
 }
 
 // ── Screen 11: Approvals ───────────────────────────────────────
@@ -1674,6 +1797,34 @@ function bind() {
   if (msgs) msgs.scrollTop = msgs.scrollHeight;
 }
 
+// ── Hermes health polling — catch mid-session disconnection ─────
+async function hermesHealthPing() {
+  if (state.hermesState !== 'connected') return;
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 3000);
+    const res  = await fetch(`${hermesBase()}/health`, { method:'GET', signal:ctrl.signal });
+    clearTimeout(tid);
+    if (res.ok) {
+      try { state.hermesHealth = await res.json(); } catch {}
+      refreshTopBarUI();
+    } else {
+      // Hermes answered but not OK — treat as offline
+      state.hermesState = 'not-running';
+      state.hermesHealth = null;
+      stopSSE();
+      render();
+    }
+  } catch {
+    // Network error — Hermes went away
+    state.hermesState = 'not-running';
+    state.hermesHealth = null;
+    stopSSE();
+    render();
+  }
+}
+setInterval(hermesHealthPing, 30_000); // every 30 s
+
 // ── Boot ───────────────────────────────────────────────────────
 render();            // paint shell immediately
-discoverHermes();    // probe localhost:3010 — silent, no blocking
+discoverHermes();    // probe localhost:3000 — silent, no blocking

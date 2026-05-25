@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const desktopSchemes = ["tauri://localhost", "http://tauri.localhost"];
+const desktopSchemes = ["tauri://localhost", "http://tauri.localhost", "http://localhost:1420", "http://127.0.0.1:1420"];
 
 function normalizeOrigin(origin: string | null) {
   return (origin || "").trim();
@@ -13,8 +13,8 @@ export function buildMisatoCorsHeaders(request: Request) {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "content-type,x-misato-desktop-token,x-vercel-protection-bypass",
-    "Access-Control-Max-Age": "600",
+    "Access-Control-Allow-Headers": "content-type,authorization,x-misato-desktop-token,x-vercel-protection-bypass",
+    "Access-Control-Max-Age": "86400",
     "Vary": "Origin",
     // narrow CORP override for desktop/MISATO API only
     "Cross-Origin-Resource-Policy": "cross-origin"
