@@ -1,37 +1,28 @@
 # MISATO Persistence Mode Audit
 
 ## Branch
-- `misato-claude-ui`
+- `misato-codex-live-ui-qa`
 
-## What Was Verified
+## Verified Behavior
 
-### Local runtime persistence
-- `lib/misato/runtime/store.ts` uses filesystem persistence locally
-- Store path: `.misato-runtime/state.json`
-- Event log path: `.misato-runtime/events.jsonl`
-- Local runtime exposes `persistenceMode: "filesystem"` in `/api/misato/status`
-
-### Cloud safety
-- When `process.env.VERCEL` is present, the runtime falls back to in-memory state
-- In-memory mode reports `persistence: "memory"` in runtime paths
-- This prevents read-only filesystem failures in serverless/cloud environments
-
-## Why This Matters
-- Local-first desktop use stays durable and fast
-- Cloud/prod does not rely on writable local disk
-- Risky operations still require approval and do not auto-execute
-
-## Evidence
-- `GET /api/misato/status` locally returned:
+### Local-first runtime
+- Runtime store uses filesystem persistence when not in Vercel/serverless mode.
+- Paths:
+  - `.misato-runtime/state.json`
+  - `.misato-runtime/events.jsonl`
+- `/api/misato/status` reports:
   - `persistenceMode: "filesystem"`
   - `paths.persistence: "filesystem"`
-- Build and desktop build completed successfully
 
-## Remaining Constraint
-- Cloud persistence is intentionally memory-backed in this branch
-- If the product later needs durable cloud state, it should move to a managed store
+### Cloud/serverless safety
+- Runtime switches to in-memory persistence when `VERCEL` is set.
+- In-memory mode avoids write attempts to read-only filesystems.
 
-## 2026-05-25 Follow-up
-- Re-verified that route-level status reports persistence mode from runtime paths.
-- Local runtime reports filesystem persistence.
-- Cloud/serverless safety remains protected by in-memory fallback when `VERCEL` is present.
+## Result
+- Local desktop usage is durable.
+- Cloud/serverless mode avoids write-crash behavior.
+- No persistence-related crash reproduced in this verification pass.
+
+## Remaining Risk
+- Cloud mode is intentionally non-durable in this branch (memory-only).
+- If long-lived cloud state is required, Hermes should move runtime persistence to a managed DB/KV layer.
