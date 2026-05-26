@@ -39,3 +39,7 @@ Thumbs.db
 .security/
 gitleaks-report*.json
 *.sarif
+
+
+# Backup files
+*.bak
