@@ -1,18 +1,26 @@
 /* ================================================================
-   MISATO Mission Control · app.js  v5
+   MISATO Mission Control · app.js  v6.3
    Branch: misato-claude-ui
    Local Hermes runtime is the primary daily path.
    Cloud preview and API tokens are Advanced / fallback only.
    API contracts unchanged. No secrets logged. No auth modified.
-   v5: hermesMutate, resolveApproval, createTask, updateTask, deleteTask,
+   v6: port 3010 canonical, /api/misato/ prefix on all data routes,
+       correct mutation shapes, hermesMutate, resolveApproval, createTask,
+       updateTask (honest offline), deleteTask (honest failure, approval gate),
        modal system, runtime status bar, wired approval/kanban actions
-   v5.1: live feed fix (state.logs fallback, no fake MOCK when Hermes up),
-         SSE polling fallback (15s), deleteTask with approval gate,
-         Sentinel Scan Now, refreshTopBarUI full-right update,
-         sendCommand not-connected message, Command Center runtime strip
-   v5.2: quick prompts route through sendCommand (not-connected handled inline),
-         Logs screen severity filter wired (state.logFilter), Refresh on Logs,
-         all static display-only filter buttons now functional
+   v6.1: live feed fix, SSE polling fallback (15s), Sentinel Scan Now,
+         refreshTopBarUI, sendCommand not-connected message
+   v6.2: 127.0.0.1 canonical (not localhost), content-type guards on all
+         fetch boundaries, SSE dot-notation normalization, normalizeCouncilAgent
+         agentId/riskTier/lastActivityAt, loadAllFromHermes → /api/misato/status,
+         sendCommand auto-refresh after success, apiGet HTML reject at any status,
+         hermesMutate content-type check on success, pollLogsFallback CT guard
+   v6.3: testConnection HTML check at any status (not just !res.ok),
+         updateLiveAgent normalizes through normalizeCouncilAgent,
+         sendCommand handles text/plain responses safely,
+         dead loadAll() removed, auto-retry discovery every 60s when not-running,
+         setup card text corrected (no false "auto-connect" claim),
+         runtimeCtx.mode wired into runtimeStatus()
    ================================================================ */
 
 // ── Mock / Fallback data (labeled _MOCK to make origin clear) ──
@@ -564,8 +572,13 @@ function updateLiveTask(task) {
 }
 function updateLiveAgent(agent) {
   if (!state.agents) state.agents = [];
-  const idx = state.agents.findIndex(a => a.id === agent.id);
-  if (idx >= 0) state.agents[idx] = { ...state.agents[idx], ...agent };
+  // Normalize through the same pipeline as loadAllFromHermes so agentId → id
+  // and riskTier/lastActivityAt are always mapped correctly.
+  const normalized = normalizeCouncilAgent(agent);
+  const idx = state.agents.findIndex(a => a.id === normalized.id);
+  if (idx >= 0) state.agents[idx] = { ...state.agents[idx], ...normalized };
+  // If agent is unknown (new to this session), prepend so it's visible immediately
+  else if (normalized.id) state.agents.unshift(normalized);
 }
 function prependLiveApproval(approval) {
   if (!state.approvals) state.approvals = [];
@@ -882,14 +895,20 @@ function runtimeStatus() {
   const hermesUp  = isHermesConnected();
   const sseUp     = state.sseState === 'connected';
   const previewUp = state.connTest.label === 'Connected';
+  // state.runtimeCtx is populated from GET /api/misato/status.
+  // Use it to enrich the runtime label when Hermes reports a specific mode.
+  const ctx = state.runtimeCtx || {};
+  const hermesMode = ctx.mode || ctx.runtimeMode || null;
   return {
-    runtimeMode:          hermesUp ? 'LOCAL SOLO' : previewUp ? 'VERCEL PREVIEW' : 'DISCONNECTED',
+    runtimeMode:          hermesUp ? (hermesMode || 'LOCAL SOLO') : previewUp ? 'VERCEL PREVIEW' : 'DISCONNECTED',
     hermesConnected:      hermesUp,
     localSoloMode:        hermesUp,
     sseAvailable:         sseUp,
     persistenceMode:      hermesUp ? 'Hermes local' : 'none',
     authMode:             hermesUp ? 'none required' : state.token ? 'desktop token' : 'no auth',
-    allowedMutationMode:  hermesUp ? 'full CRUD' : 'read-only',
+    allowedMutationMode:  hermesUp ? (ctx.mutationMode || 'full CRUD') : 'read-only',
+    agentCount:           ctx.agentCount ?? ctx.agents ?? null,
+    taskCount:            ctx.taskCount  ?? ctx.tasks  ?? null,
     desktopTokenRequired: !hermesUp && !!state.baseUrl,
     productionLocked:     true
   };
@@ -908,7 +927,8 @@ async function testConnection() {
     const res = await fetch(url, { method:'GET', headers:headers() });
     const ct  = res.headers.get('content-type') || '';
     const ts  = now();
-    if (ct.includes('text/html') && !res.ok)      state.connTest = { label:'Vercel Protected', cls:'protected',    httpStatus:res.status, checkedAt:ts, error:'Vercel SSO wall blocking API access.',              nextFix:'Add the Vercel bypass token in Advanced.' };
+    // Reject HTML at any HTTP status — a 200 SSO page must not be shown as Connected
+    if (ct.includes('text/html'))                  state.connTest = { label:'Vercel Protected', cls:'protected',    httpStatus:res.status, checkedAt:ts, error:'Vercel SSO wall detected (HTML response).',       nextFix:'Add the Vercel bypass token in Advanced.' };
     else if (res.status === 401 || res.status === 403) state.connTest = { label:'Unauthorized',    cls:'unauthorized', httpStatus:res.status, checkedAt:ts, error:'Backend rejected the desktop token.',              nextFix:'Check Desktop Auth Token matches Vercel env.' };
     else if (res.status === 404)                   state.connTest = { label:'404 / Wrong URL',  cls:'not-found',   httpStatus:404,        checkedAt:ts, error:'Route not found at this URL.',                    nextFix:'Verify API Base URL includes the correct path.' };
     else if (res.ok)                               state.connTest = { label:'Connected',         cls:'connected',   httpStatus:200,        checkedAt:ts, error:'', nextFix:'' };
@@ -918,25 +938,6 @@ async function testConnection() {
     if (e.isVercelSso) state.connTest = { label:'Vercel Protected', cls:'protected', httpStatus:e.status, checkedAt:ts, error:'Vercel SSO wall detected.', nextFix:'Add the Vercel bypass token in Advanced.' };
     else               state.connTest = { label:'Failed',           cls:'failed',    httpStatus:null,    checkedAt:ts, error:e.message||'Network error',   nextFix:'Check MISATO API Base URL and your connection.' };
   }
-  render();
-}
-
-async function loadAll() {
-  try {
-    const [agents,tasks,approvals,logs,watchtower,sentinel] = await Promise.allSettled([
-      apiGet('council'), apiGet('tasks'), apiGet('approvals'), apiGet('logs'), apiGet('watchtower/status'), apiGet('secrets/status')
-    ]);
-    const normalizedAgents = normalizeItemsResponse(agents.status === 'fulfilled' ? agents.value : null).map(normalizeCouncilAgent);
-    const normalizedTasks = normalizeItemsResponse(tasks.status === 'fulfilled' ? tasks.value : null);
-    const normalizedApprovals = normalizeItemsResponse(approvals.status === 'fulfilled' ? approvals.value : null);
-    const normalizedLogs = normalizeItemsResponse(logs.status === 'fulfilled' ? logs.value : null);
-    if (normalizedAgents.length)    state.agents    = normalizedAgents;
-    if (normalizedTasks.length)     state.tasks     = normalizedTasks;
-    if (normalizedApprovals.length) state.approvals = normalizedApprovals;
-    if (normalizedLogs.length)      state.logs      = normalizedLogs;
-    if (watchtower.status === 'fulfilled' && watchtower.value) state.watchtower = normalizeWatchtower(watchtower.value);
-    if (sentinel.status === 'fulfilled' && sentinel.value)     state.sentinel   = sentinel.value;
-  } catch {}
   render();
 }
 
@@ -961,11 +962,23 @@ async function sendCommand(cmd) {
     });
     if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { url });
     const ct = res.headers.get('content-type') || '';
+    if (ct.includes('text/html')) {
+      console.warn(`[MISATO] sendCommand got HTML from ${url} — Vercel SSO or wrong route`);
+      throw Object.assign(new Error('Got HTML — Vercel SSO wall or wrong route'), { url });
+    }
+    // Accept application/json (primary) and text/plain (some Hermes responses)
     if (!ct.includes('application/json') && !ct.includes('text/plain')) {
       console.warn(`[MISATO] sendCommand expected JSON from ${url} — got ${ct.split(';')[0].trim()}`);
       throw Object.assign(new Error(`Not JSON: ${ct.split(';')[0].trim()}`), { url });
     }
-    const data = await res.json();
+    // Parse safely — text/plain responses become { message: rawText }
+    let data = {};
+    if (ct.includes('application/json')) {
+      try { data = await res.json(); } catch { data = {}; }
+    } else {
+      const rawText = await res.text().catch(() => '');
+      data = { message: rawText };
+    }
     // Canonical: { ok, commandId, mode, missionSummary, hermesPlan, … }
     if (data.commandId) state.activeCommandId = data.commandId;
     const text = data.missionSummary || data.response || data.message || data.output || JSON.stringify(data);
@@ -1131,7 +1144,7 @@ function renderHermesSetupCard() {
         <div class="setup-steps">
           <div class="setup-step"><span class="setup-step-num">1</span><span>Open a terminal in your <code>nexcall</code> project folder</span></div>
           <div class="setup-step"><span class="setup-step-num">2</span><span>Run: <code>npm run dev</code></span></div>
-          <div class="setup-step"><span class="setup-step-num">3</span><span>Come back here — MISATO will auto-connect</span></div>
+          <div class="setup-step"><span class="setup-step-num">3</span><span>Click <strong>Try Again</strong> below — or wait up to 60 s for auto-connect</span></div>
         </div>
         <div class="setup-card-actions">
           <button class="btn btn-primary" id="btn-retry-hermes">Try Again</button>
@@ -2353,6 +2366,16 @@ async function hermesHealthPing() {
   }
 }
 setInterval(hermesHealthPing, 30_000); // every 30 s
+
+// ── Auto-reconnect when not-running ───────────────────────────
+// When Hermes is known to be offline, silently retry discovery every 60s.
+// This catches the common case of: launch MISATO → start Hermes → app connects
+// without requiring the user to click Find Hermes.
+// Does NOT run when hermesState is 'connected' (health ping handles that) or
+// 'finding' (already in-flight). Only retries from the 'not-running' state.
+setInterval(() => {
+  if (state.hermesState === 'not-running') discoverHermes();
+}, 60_000);
 
 // ── Boot ───────────────────────────────────────────────────────
 render();            // paint shell immediately
