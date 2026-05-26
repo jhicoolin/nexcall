@@ -1,16 +1,15 @@
 #!/usr/bin/env pwsh
 Set-Location $PSScriptRoot
-git add desktop-ui/app.js docs/audits/MISATO_UI_WIRING_MATRIX.md commit-v6.ps1
-git commit -m "fix(desktop-ui): app.js v6.2 - completeness pass, all gaps closed
+git add .gitignore desktop-ui/app.js docs/audits/MISATO_UI_WIRING_MATRIX.md app/api/misato/tasks/update/route.ts lib/misato/runtime/ai-gateway.ts lib/misato/runtime/service.ts commit-v6.ps1
+git commit -m "fix(misato): v6.4 audit — responseText, task update contract, AI schema guard, dead code removal
 
-- apiGet: reject HTML at any status (was: only rejecting HTML when !res.ok)
-- hermesMutate: content-type check on success response before json parse
-- pollLogsFallback: content-type check before json parse
-- SSE onmessage: normalize dot-notation event types (task.updated -> task_updated)
-- SSE: trigger loadAllFromHermes on approval_resolved event
-- normalizeCouncilAgent: agentId/riskTier/lastActivityAt/currentTaskId mapped
-- loadAllFromHermes: fetch /api/misato/status -> state.runtimeCtx
-- sendCommand: loadAllFromHermes 1.5s after successful command
-- INTEGRATIONS desc: localhost:3010 -> 127.0.0.1:3010"
-git push origin misato-claude-ui
-Write-Host "Pushed to misato-claude-ui." -ForegroundColor Green
+- desktop-ui/app.js: sendCommand reads data.responseText (priority chain)
+- tasks/update: fix { taskId, payload } extraction (was passing raw body giving task_not_found)
+- ai-gateway: sanitizeAiClassification() validates model output shape before command pipeline
+- service.ts: remove dead createApprovalForCommand() and runMisatoMockCommand import
+- .gitignore: add .misato-runtime/ (runtime state files, not source)
+- commit-v6.ps1: use dynamic branch detection instead of hardcoded misato-claude-ui
+- wiring matrix: update version to v6.4, branch to misato-codex-live-ui-qa"
+$branch = git branch --show-current
+git push origin $branch
+Write-Host "Pushed to $branch." -ForegroundColor Green

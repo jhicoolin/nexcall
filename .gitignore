@@ -41,5 +41,8 @@ gitleaks-report*.json
 *.sarif
 
 
+# MISATO runtime state (generated data, not source)
+.misato-runtime/
+
 # Backup files
 *.bak

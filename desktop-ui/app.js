@@ -1,6 +1,6 @@
 /* ================================================================
-   MISATO Mission Control · app.js  v6.3
-   Branch: misato-claude-ui
+   MISATO Mission Control · app.js  v6.4
+   Branch: misato-codex-live-ui-qa
    Local Hermes runtime is the primary daily path.
    Cloud preview and API tokens are Advanced / fallback only.
    API contracts unchanged. No secrets logged. No auth modified.
@@ -21,6 +21,15 @@
          dead loadAll() removed, auto-retry discovery every 60s when not-running,
          setup card text corrected (no false "auto-connect" claim),
          runtimeCtx.mode wired into runtimeStatus()
+   v6.4: sendCommand reads data.responseText (Hermes canonical field — was falling
+         through to JSON.stringify(data) and dumping raw CommandResult to chat).
+         Final fallback is 'Command sent.' — raw JSON never reaches chat output.
+         tasks/update route extracts { taskId, payload } correctly (was passing
+         raw body to updateTask() which looks for .id — every task update silently
+         returned task_not_found). ai-gateway: added sanitizeAiClassification()
+         — raw model output now schema-checked before entering command pipeline
+         (agentsRequired/planSteps enforced as arrays, riskLevel enum-validated,
+         invalid shape falls back to deterministic classifier).
    ================================================================ */
 
 // ── Mock / Fallback data (labeled _MOCK to make origin clear) ──
@@ -979,9 +988,18 @@ async function sendCommand(cmd) {
       const rawText = await res.text().catch(() => '');
       data = { message: rawText };
     }
-    // Canonical: { ok, commandId, mode, missionSummary, hermesPlan, … }
+    // Canonical response shape from executeCommand():
+    // { ok, commandId, responseText, intent, riskLevel, planSteps, commandStatus, … }
+    // responseText is the primary human-readable field from Hermes.
+    // Priority chain: responseText → missionSummary → response → message → output
+    //   → [intent] commandStatus label (if shape is recognisable CommandResult)
+    //   → 'Command sent.' (last resort — never dump raw JSON to chat)
     if (data.commandId) state.activeCommandId = data.commandId;
-    const text = data.missionSummary || data.response || data.message || data.output || JSON.stringify(data);
+    const humanText = data.responseText || data.missionSummary || data.response || data.message || data.output;
+    const text = humanText
+      || (data.intent   ? `[${data.intent}] ${data.commandStatus || 'received'}` : '')
+      || (data.ok === true ? 'Command sent.' : '')
+      || 'Command sent.';
     state.messages.push({ role:'misato', text, ts:now() });
     // Refresh live state — commands can trigger task/agent/approval changes on Hermes
     if (isHermesConnected()) setTimeout(() => loadAllFromHermes(), 1500);

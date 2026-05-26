@@ -1,7 +1,7 @@
 # MISATO UI Wiring Matrix
 
-**Version:** app.js v6.3 (production hardening pass)
-**Branch:** misato-claude-ui
+**Version:** app.js v6.4 (release audit — contract fixes)
+**Branch:** misato-codex-live-ui-qa
 **Date:** 2026-05-26
 
 This matrix documents every interactive control in the MISATO Mission Control desktop UI, what it calls, and whether it is live-wired or a no-op.

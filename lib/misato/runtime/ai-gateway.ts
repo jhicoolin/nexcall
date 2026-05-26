@@ -149,6 +149,48 @@ function deterministicClassify(command: string): AiClassification {
   };
 }
 
+const VALID_INTENTS = new Set(["greeting", "daily_summary", "assign_agent", "ask_ai", "deploy", "config_change", "query", "unknown"]);
+const VALID_RISK_LEVELS = new Set(["L0", "L1", "L2", "L3", "L4"]);
+
+/**
+ * Sanitize and validate raw model output before trusting it as AiClassification.
+ * Returns null if the output is structurally broken — caller must fall back to deterministic.
+ *
+ * Guards against:
+ * - agentsRequired / planSteps being non-arrays (causes .map() / .forEach() crash in command-machine)
+ * - riskLevel being an invalid value (could influence approval gate logic)
+ * - Missing required fields that would throw downstream
+ */
+function sanitizeAiClassification(raw: unknown): AiClassification | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+
+  // Required string fields
+  const intent = VALID_INTENTS.has(String(r.intent || "")) ? String(r.intent) as AiClassification["intent"] : null;
+  if (!intent) return null; // intent is load-bearing — bail without it
+
+  const riskLevel = VALID_RISK_LEVELS.has(String(r.riskLevel || "")) ? String(r.riskLevel) as AiClassification["riskLevel"] : "L0";
+
+  // Arrays — command-machine calls .map() and .forEach() on these without null checks
+  const agentsRequired = Array.isArray(r.agentsRequired)
+    ? (r.agentsRequired as unknown[]).filter(x => typeof x === "string") as string[]
+    : [];
+  const planSteps = Array.isArray(r.planSteps)
+    ? (r.planSteps as unknown[]).filter(x => typeof x === "string") as string[]
+    : ["Classify intent", "Route to handler"];
+
+  return {
+    intent,
+    project:       typeof r.project === "string" ? r.project : "MISATO",
+    confidence:    typeof r.confidence === "number" ? r.confidence : 0.5,
+    agentsRequired,
+    riskLevel,
+    planSteps,
+    responseText:  typeof r.responseText === "string" ? r.responseText : "Command received.",
+    approvalReason: typeof r.approvalReason === "string" ? r.approvalReason : null
+  };
+}
+
 export async function classifyCommand(command: string): Promise<AiClassification> {
   const key = getApiKey();
   if (!key) return deterministicClassify(command);
@@ -182,7 +224,7 @@ export async function classifyCommand(command: string): Promise<AiClassification
     });
 
     if (!response.ok) {
-      console.warn(`AI gateway returned ${response.status}, falling back to deterministic`);
+      console.warn(`[MISATO] AI gateway returned ${response.status} — falling back to deterministic`);
       return deterministicClassify(command);
     }
 
@@ -190,12 +232,27 @@ export async function classifyCommand(command: string): Promise<AiClassification
     const content = data?.choices?.[0]?.message?.content || "";
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]) as AiClassification;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch {
+        console.warn("[MISATO] AI gateway response JSON parse failed — falling back to deterministic");
+        return deterministicClassify(command);
+      }
+
+      // Validate and sanitize before trusting — raw model output must not reach
+      // command-machine without shape verification (agentsRequired.map etc. will crash otherwise)
+      const sanitized = sanitizeAiClassification(parsed);
+      if (!sanitized) {
+        console.warn("[MISATO] AI gateway classification failed schema check — falling back to deterministic", parsed);
+        return deterministicClassify(command);
+      }
+      return sanitized;
     }
 
     return deterministicClassify(command);
   } catch (err) {
-    console.warn("AI gateway call failed, falling back to deterministic:", err);
+    console.warn("[MISATO] AI gateway call failed, falling back to deterministic:", err);
     return deterministicClassify(command);
   }
 }

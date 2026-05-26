@@ -1,11 +1,8 @@
-import { runMisatoMockCommand } from "../mock/data";
 import { appendEventJsonl, loadStore, readEventLog, runtimePaths, saveStore } from "./store";
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { executeCommand } from "./command-machine";
-import { isAiConfigured, getActiveModel, getFallbackModel } from "./ai-gateway";
+import { getActiveModel, getFallbackModel } from "./ai-gateway";
 import { CANONICAL_BASE_URL } from "./config";
-
-const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|billing|payment|secret|rotate|external|automation|merge)/i;
 
 function rid(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `${prefix}-${crypto.randomUUID()}`;
@@ -350,28 +347,6 @@ export function dispatchAgent(payload: any) {
     missionId: mission?.id || null,
     handoffNote
   };
-}
-
-function createApprovalForCommand(store: any, command: string, reason: string) {
-  const approval = {
-    id: rid("apr"),
-    title: `Approval required: ${command.slice(0, 50)}`,
-    description: reason,
-    riskLevel: "High",
-    requestedByAgentId: "agent-hermes",
-    affects: ["runtime"],
-    status: "Pending",
-    createdAt: nowIso(),
-    updatedAt: nowIso(),
-    actionType: "Protected action",
-    safeExecutionMode: "manual",
-    notes: "doesNotAutoExecuteProduction=true",
-    doesNotAutoExecuteProduction: true
-  };
-  store.approvals.unshift(approval);
-  refreshApprovalCount(store);
-  emit("approval.created", "misato.approvals", { approvalId: approval.id, approval }, "warn");
-  return approval;
 }
 
 export function approvalAction(payload: any) {
