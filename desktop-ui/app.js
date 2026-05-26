@@ -531,7 +531,10 @@ async function pollLogsFallback() {
     const res = await fetch(hermesApi('logs'), { headers: { accept: 'application/json' } });
     if (!res.ok) return;
     const ct = res.headers.get('content-type') || '';
-    if (!ct.includes('application/json')) return; // skip HTML / page-route responses silently
+    if (!ct.includes('application/json')) {
+      console.warn(`[MISATO] pollLogsFallback expected JSON from ${hermesApi('logs')} — got ${ct.split(';')[0].trim()} (page route fallthrough — skipping poll)`);
+      return;
+    }
     const data = await res.json();
     const logs = normalizeItemsResponse(data);
     if (!logs.length) return;
