@@ -91,8 +91,8 @@
         "Approval for any enforcement change"
       ],
       "currentTaskId": null,
-      "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-26T01:18:15.696Z"
+      "currentTask": "Command: delete all tasks",
+      "lastActivityAt": "2026-05-26T05:35:13.323Z"
     },
     {
       "agentId": "agent-qa",
@@ -140,8 +140,8 @@
         "Always approval-gated"
       ],
       "currentTaskId": null,
-      "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-26T01:18:15.696Z"
+      "currentTask": "Command: delete all tasks",
+      "lastActivityAt": "2026-05-26T05:35:13.323Z"
     },
     {
       "agentId": "agent-business",
@@ -273,11 +273,42 @@
         "Approval for runtime integration"
       ],
       "currentTaskId": null,
-      "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-26T01:18:15.697Z"
+      "currentTask": "Command: delete all tasks",
+      "lastActivityAt": "2026-05-26T05:35:13.324Z"
     }
   ],
   "tasks": [
+    {
+      "id": "task-d759ce5c-df73-41b0-93e6-1c36eb1bd22a",
+      "dedupeKey": "dedupe:NexCall:command: delete all tasks",
+      "sourceCommandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb",
+      "title": "Command: delete all tasks",
+      "description": "Deploy commands require explicit owner approval. Creating approval card now.",
+      "project": "NexCall",
+      "priority": "Urgent",
+      "status": "Blocked",
+      "ownerAgentId": "agent-vercel",
+      "assignedAgentId": "agent-vercel",
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-26T05:35:13.325Z",
+      "updatedAt": "2026-05-26T05:35:13.327Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "deploy",
+        "NexCall"
+      ],
+      "riskLevel": "L4",
+      "approvalRequired": true,
+      "linkedApprovalId": "apr-fc564b19-3bcb-47ea-a0d6-93974a525f22",
+      "activity": [
+        {
+          "at": "2026-05-26T05:35:13.325Z",
+          "event": "task.created",
+          "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+        }
+      ]
+    },
     {
       "id": "task-535f0683-7bcf-4361-82a1-9010e6475ef1",
       "dedupeKey": "dedupe:MISATO:command: hi",
@@ -525,7 +556,7 @@
       "assignedAgentId": "agent-vercel",
       "assignedBy": "MISATO Hermes",
       "createdAt": "2026-05-25T23:13:02.380Z",
-      "updatedAt": "2026-05-26T01:18:15.698Z",
+      "updatedAt": "2026-05-26T05:35:13.232Z",
       "scheduledAt": null,
       "dueAt": null,
       "tags": [
@@ -585,6 +616,11 @@
           "at": "2026-05-26T01:18:15.698Z",
           "event": "command.repeated",
           "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+        },
+        {
+          "at": "2026-05-26T05:35:13.232Z",
+          "event": "command.repeated",
+          "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
         }
       ]
     },
@@ -1000,6 +1036,44 @@
   ],
   "approvals": [
     {
+      "id": "apr-fc564b19-3bcb-47ea-a0d6-93974a525f22",
+      "title": "Approval required: delete all tasks",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-26T05:35:13.327Z",
+      "updatedAt": "2026-05-26T05:35:13.327Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-b548b87f-18a7-4c60-8292-36454fd5bdc8",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Approved",
+      "createdAt": "2026-05-26T05:35:13.235Z",
+      "updatedAt": "2026-05-26T05:35:13.291Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-26T05:35:13.291Z",
+      "decisionBy": "owner"
+    },
+    {
       "id": "apr-f56b57d3-3923-492d-ba8f-9395d328ee7a",
       "title": "Approval required: deploy to production now",
       "description": "Protected action category detected. Explicit owner approval required before any execution.",
@@ -1376,6 +1450,169 @@
     }
   ],
   "logs": [
+    {
+      "id": "log-b1eef18a-34b6-4467-a91d-5bc7636baad4",
+      "timestamp": "2026-05-26T05:35:13.326Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-df0e663e-c818-4631-abec-f61191e032a6",
+      "timestamp": "2026-05-26T05:35:13.325Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: delete all tasks",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-ef191ad1-469f-4828-a0a3-d044171691bd",
+      "timestamp": "2026-05-26T05:35:13.324Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-73131517-e82a-446e-8c9e-b03d41eaba6b",
+      "timestamp": "2026-05-26T05:35:13.323Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-46cb890a-6211-42fd-af1f-feb522d5d141",
+      "timestamp": "2026-05-26T05:35:13.322Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-3114247f-303b-442d-a275-de5b4fe09540",
+      "timestamp": "2026-05-26T05:35:13.320Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-6117b39e-d141-4823-b2fe-74e92fe76e1a",
+      "timestamp": "2026-05-26T05:35:13.319Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: delete all tasks",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-be789ea2-9de4-4094-a339-2de91555d5eb"
+      }
+    },
+    {
+      "id": "log-bfce3ee5-ae85-4b05-ada1-14afd7f98708",
+      "timestamp": "2026-05-26T05:35:13.291Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval approved: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-83b373a9-8b0a-4390-af49-64cdf6290a15",
+      "timestamp": "2026-05-26T05:35:13.234Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
+    {
+      "id": "log-6dec75d1-1639-486a-b89d-1e3411317065",
+      "timestamp": "2026-05-26T05:35:13.233Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
+    {
+      "id": "log-61e01dc1-9124-4a5c-a24a-1ea65054ca2e",
+      "timestamp": "2026-05-26T05:35:13.232Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
+    {
+      "id": "log-2aa3d893-b266-432d-94cb-4c202e2a4c1b",
+      "timestamp": "2026-05-26T05:35:13.230Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
+    {
+      "id": "log-13a6ff37-5791-430d-9cd1-63c3d8bdb35a",
+      "timestamp": "2026-05-26T05:35:13.230Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
+    {
+      "id": "log-1bbe9644-f03c-49ff-a024-3765ece34d90",
+      "timestamp": "2026-05-26T05:35:13.227Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
+    {
+      "id": "log-97d22338-8b31-44d3-89f2-d520206d3ece",
+      "timestamp": "2026-05-26T05:35:13.226Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5b9d8104-c859-4ca8-900e-2622de1a67db"
+      }
+    },
     {
       "id": "log-a2617c9d-d5d8-4ff1-80e4-e007eb61373b",
       "timestamp": "2026-05-26T01:18:17.801Z",
@@ -4195,7 +4432,7 @@
     "mode": "local-first",
     "runtimeStatus": "connected",
     "lastCommandAt": "2026-05-26T01:18:17.801Z",
-    "approvalsPending": 15
+    "approvalsPending": 16
   },
   "missions": [
     {

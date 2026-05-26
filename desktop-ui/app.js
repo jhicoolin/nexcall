@@ -194,6 +194,13 @@ const COMMAND_STAGES = [
   { type:'status_change',      label:'Complete',           icon:'◎' }
 ];
 
+// ── Canonical runtime origin ───────────────────────────────────
+// Single source of truth for the local Hermes default.
+// 127.0.0.1 is used explicitly — 'localhost' can resolve to ::1 (IPv6) on
+// Windows, causing "Failed to fetch" even when Hermes is listening on IPv4.
+const HERMES_DEFAULT_HOST = '127.0.0.1';
+const HERMES_DEFAULT_PORT = '3010';
+
 // ── Storage ────────────────────────────────────────────────────
 const storage = {
   get(k, d='') { try { return localStorage.getItem(k) || d; } catch { return d; } },
@@ -211,8 +218,8 @@ function normalizeHermesPort(port) {
 const injectedBase = (window.__MISATO_API_BASE_URL__ || '').trim();
 const state = {
   // ── Hermes connection (primary) ──────────────────────────────
-  hermesHost:    storage.get('misato_hermes_host', 'localhost'),
-  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', '3010')),
+  hermesHost:    storage.get('misato_hermes_host', HERMES_DEFAULT_HOST),
+  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', HERMES_DEFAULT_PORT)),
   // 'unknown' | 'finding' | 'connected' | 'not-running' | 'failed'
   hermesState:   'unknown',
   hermesHealth:  null,   // { status, version, uptime, agents, tasks, events }
@@ -352,8 +359,8 @@ function connCls(label) {
 
 // ── Hermes Base URL ────────────────────────────────────────────
 function hermesBase() {
-  // Port 3010 is canonical per Hermes handoff. Fallback guards against empty state.
-  return `http://${(state.hermesHost||'localhost').trim()}:${(state.hermesPort||'3010').trim()}`;
+  // 127.0.0.1:3010 is canonical. Fallback guards against empty state after storage clear.
+  return `http://${(state.hermesHost||HERMES_DEFAULT_HOST).trim()}:${(state.hermesPort||HERMES_DEFAULT_PORT).trim()}`;
 }
 // Prefixed helper for all Hermes data/mutation routes (/api/misato/*)
 // Exception: /health stays flat — it is the unauthenticated discovery probe.
@@ -371,24 +378,35 @@ async function discoverHermes() {
     const res  = await fetch(`${hermesBase()}/health`, { method:'GET', signal:ctrl.signal });
     clearTimeout(tid);
     if (res.ok) {
-      let health = {};
-      try { health = await res.json(); } catch {}
-      state.hermesHealth = health;
-      state.hermesState  = 'connected';
-      startSSE();
-      loadAllFromHermes();
+      // Verify the response is actually JSON — a 200 HTML page (e.g. Next.js error page
+      // at /health) must not be treated as a live Hermes connection.
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        console.warn(`[MISATO] /health returned ${ct.split(';')[0].trim()} — not a JSON runtime`);
+        state.hermesState = 'not-running';
+      } else {
+        let health = {};
+        try { health = await res.json(); } catch {}
+        state.hermesHealth = health;
+        state.hermesState  = 'connected';
+        startSSE();
+        loadAllFromHermes();
+      }
     } else {
       state.hermesState = 'not-running';
     }
-  } catch {
+  } catch (e) {
+    // Surface connection refused vs other errors so dead ports are identifiable
+    const isRefused = e?.message?.includes('fetch') || e?.name === 'AbortError';
+    console.warn(`[MISATO] discoverHermes failed: ${e?.message || e} (target: ${hermesBase()}/health)`);
     state.hermesState = state.hermesState === 'finding' ? 'not-running' : state.hermesState;
   }
   render();
 }
 
 function saveHermesHostPort() {
-  const h = document.getElementById('cfg-hermes-host')?.value?.trim() || 'localhost';
-  const p = normalizeHermesPort(document.getElementById('cfg-hermes-port')?.value?.trim() || '3010');
+  const h = document.getElementById('cfg-hermes-host')?.value?.trim() || HERMES_DEFAULT_HOST;
+  const p = normalizeHermesPort(document.getElementById('cfg-hermes-port')?.value?.trim() || HERMES_DEFAULT_PORT);
   const changed = h !== state.hermesHost || p !== state.hermesPort;
   state.hermesHost = h; state.hermesPort = p;
   storage.set('misato_hermes_host', h); storage.set('misato_hermes_port', p);
@@ -403,7 +421,17 @@ async function loadAllFromHermes() {
   // Only /health is flat — it is the unauthenticated boot discovery probe.
   const h = { accept: 'application/json' };
   const safeGet = (url) =>
-    fetch(url, { headers: h }).then(r => r.ok ? r.json() : Promise.reject()).catch(() => null);
+    fetch(url, { headers: h }).then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      // Reject HTML responses — Next.js page routes can return 200 HTML for missing API paths,
+      // making them indistinguishable from a real 404 without this check.
+      const ct = r.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        console.warn(`[MISATO] Expected JSON from ${url} — got ${ct.split(';')[0].trim()} (page route fallthrough?)`);
+        throw new Error(`Not JSON: ${ct}`);
+      }
+      return r.json();
+    }).catch(() => null);
   const [agents, tasks, approvals, logs, watchtower, sentinel] = await Promise.all([
     safeGet(hermesApi('agents')),
     safeGet(hermesApi('tasks')),
@@ -1063,7 +1091,7 @@ function renderSectionHeader(title, meta='', actions='') {
 
 // ── Hermes Setup Card — shown on Overview when offline ─────────
 function renderHermesSetupCard() {
-  const host = esc(state.hermesHost || 'localhost');
+  const host = esc(state.hermesHost || HERMES_DEFAULT_HOST);
   const port = esc(state.hermesPort || '3000');
   return `
     <div class="setup-card">
@@ -1086,8 +1114,8 @@ function renderHermesSetupCard() {
 
 // ── Settings panel — Local Hermes first ────────────────────────
 function renderHermesStatusInline() {
-  const h  = esc(state.hermesHost || 'localhost');
-  const p  = esc(state.hermesPort || '3010');
+  const h  = esc(state.hermesHost || HERMES_DEFAULT_HOST);
+  const p  = esc(state.hermesPort || HERMES_DEFAULT_PORT);
   const st = state.hermesState;
   if (st === 'connected') return `
     <div class="hermes-inline found">
@@ -1122,7 +1150,7 @@ function renderConfigPanel() {
           <div class="row gap-8 mb-10">
             <div class="input-group" style="flex:1">
               <label class="input-label" for="cfg-hermes-host">Host</label>
-              <input class="input input-mono" id="cfg-hermes-host" type="text" placeholder="localhost" value="${esc(state.hermesHost||'localhost')}" />
+              <input class="input input-mono" id="cfg-hermes-host" type="text" placeholder="127.0.0.1" value="${esc(state.hermesHost||HERMES_DEFAULT_HOST)}" />
             </div>
             <div class="input-group" style="width:90px">
               <label class="input-label" for="cfg-hermes-port">Port</label>
@@ -2267,8 +2295,18 @@ async function hermesHealthPing() {
     const res  = await fetch(`${hermesBase()}/health`, { method:'GET', signal:ctrl.signal });
     clearTimeout(tid);
     if (res.ok) {
-      try { state.hermesHealth = await res.json(); } catch {}
-      refreshTopBarUI();
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        // 200 HTML at /health means the wrong server answered (Next.js page route, proxy, etc.)
+        console.warn(`[MISATO] health ping got ${ct.split(';')[0].trim()} — treating as offline`);
+        state.hermesState = 'not-running';
+        state.hermesHealth = null;
+        stopSSE();
+        render();
+      } else {
+        try { state.hermesHealth = await res.json(); } catch {}
+        refreshTopBarUI();
+      }
     } else {
       // Hermes answered but not OK — treat as offline
       state.hermesState = 'not-running';
@@ -2276,8 +2314,9 @@ async function hermesHealthPing() {
       stopSSE();
       render();
     }
-  } catch {
-    // Network error — Hermes went away
+  } catch (e) {
+    // Network error — Hermes went away or port is dead
+    console.warn(`[MISATO] health ping failed: ${e?.message} (target: ${hermesBase()}/health)`);
     state.hermesState = 'not-running';
     state.hermesHealth = null;
     stopSSE();
@@ -2288,4 +2327,4 @@ setInterval(hermesHealthPing, 30_000); // every 30 s
 
 // ── Boot ───────────────────────────────────────────────────────
 render();            // paint shell immediately
-discoverHermes();    // probe localhost:3000 — silent, no blocking
+discoverHermes();    // probe 127.0.0.1:3010 (canonical) — silent, non-blocking

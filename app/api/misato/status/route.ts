@@ -4,6 +4,7 @@ import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
 import { getEvents, getHealth, getRuntimeSnapshot } from "@/lib/misato/runtime/service";
 import { isDesktopTokenRequired, isLocalSoloMode, misatoRuntimeMode } from "@/lib/misato/owner-guard";
 import { getActiveModel, getFallbackModel } from "@/lib/misato/runtime/ai-gateway";
+import { CANONICAL_BASE_URL, getRuntimeTargetInfo, validateCanonicalPort } from "@/lib/misato/runtime/config";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,15 @@ export async function OPTIONS(request: Request) {
 export async function GET(request: Request) {
   const unauthorized = await assertOwnerJson(request);
   if (unauthorized) return withMisatoCors(unauthorized, request);
+
+  // Runtime-health gate: fail loud if runtime is unavailable
+  const portCheck = validateCanonicalPort();
+  if (!portCheck.ok) {
+    return withMisatoCors(
+      NextResponse.json({ ok: false, error: portCheck.message, baseUrl: CANONICAL_BASE_URL }, { status: 503 }),
+      request
+    );
+  }
 
   const health = getHealth();
   const snapshot = getRuntimeSnapshot();
@@ -36,7 +46,7 @@ export async function GET(request: Request) {
       hermesConnected: health.runtimeStatus === "connected",
       runtimeConnected: health.ok === true && health.status === "ok",
       eventStreamAvailable: true,
-      baseUrl: `http://127.0.0.1:3010`,
+      baseUrl: CANONICAL_BASE_URL,
       connectionMode: health.runtimeStatus === "connected" ? "local-runtime" : "not-connected",
       activeModel: getActiveModel(),
       fallbackModel: getFallbackModel(),
