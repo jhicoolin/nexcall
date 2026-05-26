@@ -50,7 +50,7 @@ PORT=3010 npm run start  # Starts on :3010
          v
 ┌─────────────────────┐
 │  Next.js Prod Build │  npm run build + npm run start
-│  localhost:3010     │
+│  127.0.0.1:3010     │
 ├─────────────────────┤
 │ lib/misato/         │
 │  ├─ owner-guard.ts  │  Auth: local-solo bypass in local

@@ -11,8 +11,8 @@
 ## What Claude UI did in v4
 
 - Delivered `desktop-ui/app.js` v4 and `desktop-ui/styles.css` v4.
-- Local Hermes Bridge is the **primary daily path**. Boot probes `localhost:3010/health` within 4 s; no token required for local mode.
-- SSE at `localhost:3010/events/stream` drives live feed, command timeline, and incremental data patches.
+- Local Hermes Bridge is the **primary daily path**. Boot probes `127.0.0.1:3010/health` within 4 s; no token required for local mode.
+- SSE at `127.0.0.1:3010/events/stream` drives live feed, command timeline, and incremental data patches.
 - All 13 screens show live runtime data when Hermes is connected; MOCK fallback is always labeled with an orange banner.
 - Persistent SSE failure (3 consecutive errors) escalates to `discoverHermes()` to re-probe `/health`.
 - 30-second health ping updates the top bar and detects mid-session Hermes shutdown.
@@ -23,7 +23,7 @@
 ## Hermes routes the UI calls
 
 All routes are **flat** — no `/api/misato/` prefix. That prefix belongs to the Next.js / Vercel side only.
-Base: `http://localhost:3010` (configurable in Settings).
+Base: `http://127.0.0.1:3010` (configurable in Settings).
 
 | Method | Path | Used for |
 |--------|------|---------|
@@ -114,7 +114,7 @@ Accepts bare array OR `{ items: [...] }`.
 ```json
 {
   "services": [
-    { "name": "Hermes Local Bridge", "meta": "localhost:3010", "ok": true }
+    { "name": "Hermes Local Bridge", "meta": "127.0.0.1:3010", "ok": true }
   ]
 }
 ```

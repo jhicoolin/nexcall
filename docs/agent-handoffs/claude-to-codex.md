@@ -22,14 +22,14 @@ All 13 screens now use live Hermes data when connected, with clearly labeled MOC
 
 `loadAllFromHermes()` now calls **flat paths** (no `/api/misato/` prefix):
 ```
-GET localhost:3010/agents
-GET localhost:3010/tasks
-GET localhost:3010/approvals
-GET localhost:3010/logs
-GET localhost:3010/watchtower
-GET localhost:3010/secrets
-GET localhost:3010/events/stream   (SSE)
-POST localhost:3010/command
+GET 127.0.0.1:3010/agents
+GET 127.0.0.1:3010/tasks
+GET 127.0.0.1:3010/approvals
+GET 127.0.0.1:3010/logs
+GET 127.0.0.1:3010/watchtower
+GET 127.0.0.1:3010/secrets
+GET 127.0.0.1:3010/events/stream   (SSE)
+POST 127.0.0.1:3010/command
 ```
 **Verify:** Are these the actual Hermes sidecar routes? If Hermes uses a different prefix or path alias, the UI must be updated. The `hermesBase()` function in app.js returns `http://${host}:${port}`.
 
@@ -86,7 +86,7 @@ The top bar shows `version` and `agents.active`. If these fields are missing, th
 
 ### 6. SSE event stream
 
-`startSSE()` connects to `localhost:3010/events/stream`. Each message must be valid JSON on `event.data`.
+`startSSE()` connects to `127.0.0.1:3010/events/stream`. Each message must be valid JSON on `event.data`.
 
 **Verify:**
 - Does the SSE endpoint send `data: {...}\n\n` format (standard EventSource)?
