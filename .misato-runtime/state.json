@@ -20,9 +20,9 @@
       "approvalRequiredFor": [
         "Needs approval for execution"
       ],
-      "currentTaskId": null,
-      "currentTask": "Command: What needs attention today?",
-      "lastActivityAt": "2026-05-25T23:32:53.863Z"
+      "currentTaskId": "task-2fca5b06-bcc6-43df-bd92-9ff3dab959ff",
+      "currentTask": "Test task",
+      "lastActivityAt": "2026-05-25T23:35:06.035Z"
     },
     {
       "agentId": "agent-ui",
@@ -92,7 +92,7 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-25T23:32:53.887Z"
+      "lastActivityAt": "2026-05-26T01:18:15.696Z"
     },
     {
       "agentId": "agent-qa",
@@ -114,9 +114,9 @@
       "approvalRequiredFor": [
         "Approval for production test toggles"
       ],
-      "currentTaskId": "task-d90b2b91-8cec-40f1-be55-5c8392d328d8",
-      "currentTask": "qa-wire-check",
-      "lastActivityAt": "2026-05-25T23:32:53.912Z"
+      "currentTaskId": "task-72c00913-ec95-4abb-92cf-9bf732506e9f",
+      "currentTask": "qa temp3",
+      "lastActivityAt": "2026-05-25T23:40:33.906Z"
     },
     {
       "agentId": "agent-vercel",
@@ -141,7 +141,7 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-25T23:32:53.887Z"
+      "lastActivityAt": "2026-05-26T01:18:15.696Z"
     },
     {
       "agentId": "agent-business",
@@ -274,10 +274,213 @@
       ],
       "currentTaskId": null,
       "currentTask": "Command: deploy to production now",
-      "lastActivityAt": "2026-05-25T23:32:53.888Z"
+      "lastActivityAt": "2026-05-26T01:18:15.697Z"
     }
   ],
   "tasks": [
+    {
+      "id": "task-535f0683-7bcf-4361-82a1-9010e6475ef1",
+      "dedupeKey": "dedupe:MISATO:command: hi",
+      "sourceCommandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa",
+      "title": "Command: hi",
+      "description": "MISATO is online. Hermes is connected. What do you want to run?",
+      "project": "MISATO",
+      "priority": "Normal",
+      "status": "Done",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-26T01:18:17.797Z",
+      "updatedAt": "2026-05-26T01:18:17.798Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "greeting",
+        "MISATO"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-26T01:18:17.798Z",
+          "event": "task.created",
+          "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+        }
+      ]
+    },
+    {
+      "id": "task-72c00913-ec95-4abb-92cf-9bf732506e9f",
+      "dedupeKey": "dedupe:runtime:qa temp3",
+      "sourceCommandId": null,
+      "title": "qa temp3",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Idea",
+      "ownerAgentId": "agent-qa",
+      "assignedAgentId": "agent-qa",
+      "assignedBy": "MISATO",
+      "scheduledAt": null,
+      "createdAt": "2026-05-25T23:40:33.710Z",
+      "updatedAt": "2026-05-25T23:40:33.906Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:40:33.710Z",
+          "event": "task.created"
+        }
+      ],
+      "agent": "QA Agent"
+    },
+    {
+      "id": "task-18136916-e10f-41e4-ac4a-f000a65bece3",
+      "dedupeKey": "dedupe:runtime:qa temp2",
+      "sourceCommandId": null,
+      "title": "qa temp2",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Idea",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO",
+      "scheduledAt": null,
+      "createdAt": "2026-05-25T23:40:12.043Z",
+      "updatedAt": "2026-05-25T23:40:12.043Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:40:12.043Z",
+          "event": "task.created"
+        }
+      ]
+    },
+    {
+      "id": "task-a6563bd5-2f01-47ce-88d5-e81ded158eb0",
+      "dedupeKey": "dedupe:runtime:tmp qa",
+      "sourceCommandId": null,
+      "title": "tmp qa",
+      "description": "tmp",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Idea",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO",
+      "scheduledAt": null,
+      "createdAt": "2026-05-25T23:39:17.108Z",
+      "updatedAt": "2026-05-25T23:39:17.108Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:39:17.108Z",
+          "event": "task.created"
+        }
+      ]
+    },
+    {
+      "id": "task-148fc468-8291-4cef-8abf-71d5175b2268",
+      "dedupeKey": "dedupe:MISATO:command: hi",
+      "sourceCommandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd",
+      "title": "Command: hi",
+      "description": "MISATO is online. Hermes is connected. What do you want to run?",
+      "project": "MISATO",
+      "priority": "Normal",
+      "status": "Done",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:35:19.463Z",
+      "updatedAt": "2026-05-25T23:35:19.463Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "greeting",
+        "MISATO"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:35:19.463Z",
+          "event": "task.created",
+          "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+        }
+      ]
+    },
+    {
+      "id": "task-2fca5b06-bcc6-43df-bd92-9ff3dab959ff",
+      "dedupeKey": "dedupe:runtime:test task",
+      "sourceCommandId": null,
+      "title": "Test task",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Doing",
+      "ownerAgentId": "agent-strategy",
+      "assignedAgentId": "agent-strategy",
+      "assignedBy": "MISATO",
+      "scheduledAt": null,
+      "createdAt": "2026-05-25T23:35:06.031Z",
+      "updatedAt": "2026-05-25T23:35:06.035Z",
+      "dueAt": null,
+      "tags": [],
+      "riskLevel": "Low",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:35:06.031Z",
+          "event": "task.created"
+        }
+      ],
+      "agent": "Strategy Agent"
+    },
+    {
+      "id": "task-437ae496-3bf0-4c85-864e-bded9a71f922",
+      "dedupeKey": "dedupe:MISATO:command: hi",
+      "sourceCommandId": "cmd-041181f0-a381-4275-908a-8737b8909276",
+      "title": "Command: hi",
+      "description": "MISATO is online. Hermes is connected. What do you want to run?",
+      "project": "MISATO",
+      "priority": "Normal",
+      "status": "Done",
+      "ownerAgentId": null,
+      "assignedAgentId": null,
+      "assignedBy": "MISATO Hermes",
+      "createdAt": "2026-05-25T23:35:05.974Z",
+      "updatedAt": "2026-05-25T23:35:05.974Z",
+      "scheduledAt": null,
+      "dueAt": null,
+      "tags": [
+        "greeting",
+        "MISATO"
+      ],
+      "riskLevel": "L0",
+      "approvalRequired": false,
+      "linkedApprovalId": null,
+      "activity": [
+        {
+          "at": "2026-05-25T23:35:05.974Z",
+          "event": "task.created",
+          "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+        }
+      ]
+    },
     {
       "id": "task-d388674a-e600-4102-b455-827b897fbfed",
       "dedupeKey": "dedupe:MISATO:command: hi",
@@ -322,7 +525,7 @@
       "assignedAgentId": "agent-vercel",
       "assignedBy": "MISATO Hermes",
       "createdAt": "2026-05-25T23:13:02.380Z",
-      "updatedAt": "2026-05-25T23:32:53.889Z",
+      "updatedAt": "2026-05-26T01:18:15.698Z",
       "scheduledAt": null,
       "dueAt": null,
       "tags": [
@@ -347,6 +550,41 @@
           "at": "2026-05-25T23:32:53.889Z",
           "event": "command.repeated",
           "commandId": "cmd-95fe5f7d-971b-4c00-8bbf-be997ddab09e"
+        },
+        {
+          "at": "2026-05-25T23:35:05.989Z",
+          "event": "command.repeated",
+          "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+        },
+        {
+          "at": "2026-05-25T23:36:05.591Z",
+          "event": "command.repeated",
+          "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+        },
+        {
+          "at": "2026-05-25T23:39:43.881Z",
+          "event": "command.repeated",
+          "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+        },
+        {
+          "at": "2026-05-25T23:39:59.209Z",
+          "event": "command.repeated",
+          "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+        },
+        {
+          "at": "2026-05-25T23:40:50.977Z",
+          "event": "command.repeated",
+          "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+        },
+        {
+          "at": "2026-05-26T01:08:58.019Z",
+          "event": "command.repeated",
+          "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+        },
+        {
+          "at": "2026-05-26T01:18:15.698Z",
+          "event": "command.repeated",
+          "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
         }
       ]
     },
@@ -762,6 +1000,138 @@
   ],
   "approvals": [
     {
+      "id": "apr-f56b57d3-3923-492d-ba8f-9395d328ee7a",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-26T01:18:15.701Z",
+      "updatedAt": "2026-05-26T01:18:15.701Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-bb7c382c-aae5-4340-b2fc-b8a2fdbe38d3",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Approved",
+      "createdAt": "2026-05-26T01:08:58.024Z",
+      "updatedAt": "2026-05-26T01:08:58.058Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-26T01:08:58.058Z",
+      "decisionBy": "owner"
+    },
+    {
+      "id": "apr-aabcfaa9-6a29-488c-8ce9-60953a8a6328",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Deferred",
+      "createdAt": "2026-05-25T23:40:50.979Z",
+      "updatedAt": "2026-05-25T23:40:51.109Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-25T23:40:51.109Z",
+      "decisionBy": "owner"
+    },
+    {
+      "id": "apr-8eea1555-6b72-4377-b9b6-8a7168bd0119",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Deferred",
+      "createdAt": "2026-05-25T23:39:59.211Z",
+      "updatedAt": "2026-05-25T23:40:12.623Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true,
+      "decisionAt": "2026-05-25T23:40:12.623Z",
+      "decisionBy": "owner"
+    },
+    {
+      "id": "apr-e9b95322-9fb2-4e00-a0d1-2df843716b18",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T23:39:43.884Z",
+      "updatedAt": "2026-05-25T23:39:43.884Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-bb02f604-5217-439a-a6ca-4d1ebf8caa27",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T23:36:05.593Z",
+      "updatedAt": "2026-05-25T23:36:05.593Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
+      "id": "apr-7b692559-71f8-408c-9706-186e6e386261",
+      "title": "Approval required: deploy to production now",
+      "description": "Protected action category detected. Explicit owner approval required before any execution.",
+      "riskLevel": "L4",
+      "requestedByAgentId": "agent-hermes",
+      "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc",
+      "affects": [
+        "runtime"
+      ],
+      "status": "Pending",
+      "createdAt": "2026-05-25T23:35:05.992Z",
+      "updatedAt": "2026-05-25T23:35:05.992Z",
+      "actionType": "Protected action",
+      "safeExecutionMode": "manual",
+      "notes": "doesNotAutoExecuteProduction=true",
+      "doesNotAutoExecuteProduction": true
+    },
+    {
       "id": "apr-85078fb5-4719-447a-91bc-3cf205953382",
       "title": "Approval required: deploy to production now",
       "description": "Protected action category detected. Explicit owner approval required before any execution.",
@@ -1006,6 +1376,932 @@
     }
   ],
   "logs": [
+    {
+      "id": "log-a2617c9d-d5d8-4ff1-80e4-e007eb61373b",
+      "timestamp": "2026-05-26T01:18:17.801Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+      }
+    },
+    {
+      "id": "log-2f097632-25c0-4452-9a92-65f997c07bb2",
+      "timestamp": "2026-05-26T01:18:17.800Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+      }
+    },
+    {
+      "id": "log-22760f42-3c87-4db9-9420-01d98cf020a9",
+      "timestamp": "2026-05-26T01:18:17.798Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+      }
+    },
+    {
+      "id": "log-040fbe21-24e1-451b-a3f2-407fee2b201d",
+      "timestamp": "2026-05-26T01:18:17.796Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for greeting",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+      }
+    },
+    {
+      "id": "log-59a539aa-66bf-4cf4-84ce-2e1902d9ace9",
+      "timestamp": "2026-05-26T01:18:17.795Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: greeting (MISATO, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+      }
+    },
+    {
+      "id": "log-e8e186c4-0cf9-45b7-a306-166943fd74e6",
+      "timestamp": "2026-05-26T01:18:17.794Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-4f03aea2-d80b-4bdc-b474-e24743dfe2fa"
+      }
+    },
+    {
+      "id": "log-1cec0ce0-ee61-4add-8138-d8dbf9afc986",
+      "timestamp": "2026-05-26T01:18:17.739Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: Cleanup Test",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-4c6864c1-52ed-42b9-ab43-71bf4eb39c77",
+      "timestamp": "2026-05-26T01:18:15.700Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-6bd9be08-8b9c-43e8-a65e-b112b36736ce",
+      "timestamp": "2026-05-26T01:18:15.699Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-8ad5d0c7-7052-4a76-9e77-fba69e1925e2",
+      "timestamp": "2026-05-26T01:18:15.698Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-8df58871-aea2-458b-83ac-838e17dbd3fd",
+      "timestamp": "2026-05-26T01:18:15.695Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-fc8bb121-d742-4887-98d6-21326b324b92",
+      "timestamp": "2026-05-26T01:18:15.694Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-de3a815d-bb63-4dc3-8813-2631a1ce4748",
+      "timestamp": "2026-05-26T01:18:15.690Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-19ea41cc-0cdd-41f1-8a63-f3277550246b",
+      "timestamp": "2026-05-26T01:18:15.688Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-387a7fe6-bbbe-4d84-b67e-df3d6faf9640"
+      }
+    },
+    {
+      "id": "log-29d76cbe-87fd-4afc-89c7-ca7ff3676949",
+      "timestamp": "2026-05-26T01:08:58.059Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval approved: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-d19bbaa0-1286-43b8-93e1-32ca17de82a2",
+      "timestamp": "2026-05-26T01:08:58.023Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-889564d2-b08a-4891-adaf-b98953f3d9ab",
+      "timestamp": "2026-05-26T01:08:58.020Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-bd256bb4-b7ab-43af-8fb2-de58d7c28b59",
+      "timestamp": "2026-05-26T01:08:58.018Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-e8a6db2b-7c57-4b8f-961c-a68a08573459",
+      "timestamp": "2026-05-26T01:08:58.013Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-5c44d73c-b91f-4e11-b572-c691eaea03b6",
+      "timestamp": "2026-05-26T01:08:58.012Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-23dc0868-abc8-428a-9682-70164b133fda",
+      "timestamp": "2026-05-26T01:08:58.006Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-5c10d0ce-e5ed-4c83-855a-ae369af9e7d1",
+      "timestamp": "2026-05-26T01:08:58.002Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-3ad70137-84da-47f6-ac62-56f38b471833"
+      }
+    },
+    {
+      "id": "log-fbeff6c4-ba84-49ad-9cf8-89a2e9213ed6",
+      "timestamp": "2026-05-25T23:40:51.110Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval deferred: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-79420aae-3e18-48e2-aba7-87998f62ea46",
+      "timestamp": "2026-05-25T23:40:50.978Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-e6f482da-2ae4-466d-8b5e-f213546706e5",
+      "timestamp": "2026-05-25T23:40:50.977Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-9ac804dd-4287-4cc6-ae70-364307ec48df",
+      "timestamp": "2026-05-25T23:40:50.976Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-d3c77028-d1f7-473a-a05e-14fa36d36b09",
+      "timestamp": "2026-05-25T23:40:50.974Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-d9d00a60-bbdf-4097-bb52-f600734606ff",
+      "timestamp": "2026-05-25T23:40:50.973Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-cee0c644-7c30-4298-a2cf-03d1c42cf67d",
+      "timestamp": "2026-05-25T23:40:50.971Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-ab10c7eb-2412-4776-8032-59226cc8e7bd",
+      "timestamp": "2026-05-25T23:40:50.970Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-bdd10f3a-af2e-4ef5-9939-9885cdb45192"
+      }
+    },
+    {
+      "id": "log-7d0e7575-a834-4d33-961c-9db7dcf57a81",
+      "timestamp": "2026-05-25T23:40:43.018Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: qa mission3",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-5b621d31-2191-4417-b4b2-28b037acada1",
+      "timestamp": "2026-05-25T23:40:33.908Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned qa temp3 to QA Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-ae0f7905-cdcf-404a-a9ac-74dec9161959",
+      "timestamp": "2026-05-25T23:40:33.710Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: qa temp3",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-ce392c98-acd6-41d0-8c73-3d13f01596c0",
+      "timestamp": "2026-05-25T23:40:12.624Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Approval deferred: Approval required: deploy to production now",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-98e84bb8-79df-4039-81ae-2819f2add938",
+      "timestamp": "2026-05-25T23:40:12.371Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: qa mission2",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-80f1eb4a-ca38-4299-8605-f172623d50bc",
+      "timestamp": "2026-05-25T23:40:12.044Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: qa temp2",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-12e75ffb-2a15-4eb5-9231-c65c3c9582de",
+      "timestamp": "2026-05-25T23:39:59.210Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-fa3fc010-e4de-4639-b5fc-a1e3f2f85c10",
+      "timestamp": "2026-05-25T23:39:59.209Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-6f3545cb-1fcc-4fff-9519-c0f4b2f884a4",
+      "timestamp": "2026-05-25T23:39:59.208Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-e7b57540-ed80-4f49-8d57-d98e57beffcc",
+      "timestamp": "2026-05-25T23:39:59.206Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-60b95d69-60e3-4b4f-887e-89115fba5bb0",
+      "timestamp": "2026-05-25T23:39:59.205Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-46186d7c-d156-4b82-a569-379c231afa36",
+      "timestamp": "2026-05-25T23:39:59.202Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-ef32d399-5aed-4967-8cb5-321e2c9d98a4",
+      "timestamp": "2026-05-25T23:39:59.200Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-6160d53d-90de-48da-a907-4394feffdbe5"
+      }
+    },
+    {
+      "id": "log-cfee9ca2-26bc-4b4d-be87-ce6b24b28434",
+      "timestamp": "2026-05-25T23:39:44.530Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: qa temp",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-da69da3b-ed7a-4361-b6c8-7917a8ad6ded",
+      "timestamp": "2026-05-25T23:39:43.969Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: qa mission",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-4e0c88df-3074-46bb-9b11-18871015a8e8",
+      "timestamp": "2026-05-25T23:39:43.883Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-c3182a64-fdbe-45fe-a68d-e4745d19acad",
+      "timestamp": "2026-05-25T23:39:43.881Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-2d98c00e-d960-4584-977e-d3447d45a9b9",
+      "timestamp": "2026-05-25T23:39:43.880Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-88532312-7847-4c37-87dd-d6a300ac5fff",
+      "timestamp": "2026-05-25T23:39:43.878Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-2a8cb5d4-8e02-4ec4-8ebe-594ce6653a42",
+      "timestamp": "2026-05-25T23:39:43.876Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-a73b3cd1-8349-4eb6-962f-8caccfd45aad",
+      "timestamp": "2026-05-25T23:39:43.873Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-dbcd8769-1170-433e-bb92-acf094a86d9e",
+      "timestamp": "2026-05-25T23:39:43.871Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-46d76aed-0c25-4196-b661-749afbef5e24"
+      }
+    },
+    {
+      "id": "log-ce09c43e-33bc-48b6-ab35-1bab06d9d717",
+      "timestamp": "2026-05-25T23:39:42.913Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: qa temp",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-6bb9cd41-8ab3-4339-be73-382521c1d9d8",
+      "timestamp": "2026-05-25T23:39:18.227Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: m",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-e02ceeda-ec6c-4775-8bc3-550d3338b013",
+      "timestamp": "2026-05-25T23:39:17.109Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: tmp qa",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-5fa7417e-26b5-4a79-b0b5-e8f16430894f",
+      "timestamp": "2026-05-25T23:36:05.628Z",
+      "source": "misato.tasks",
+      "severity": "warn",
+      "message": "Task deleted: Codex QA temp task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-f83df6db-f0f3-4836-bd3f-088bd7f60101",
+      "timestamp": "2026-05-25T23:36:05.610Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: Codex temp mission",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-868f915b-f6f5-404c-9648-da2f052b7144",
+      "timestamp": "2026-05-25T23:36:05.593Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-5483f272-944d-4a35-a0fd-693880e71fd5",
+      "timestamp": "2026-05-25T23:36:05.591Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-c4069cbb-df5f-475d-817b-256a8ff694f0",
+      "timestamp": "2026-05-25T23:36:05.590Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-eb181190-6ffd-4c56-b9e0-e66156388a4c",
+      "timestamp": "2026-05-25T23:36:05.588Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-db6e2c33-b5c8-4217-a518-6f4847558e3b",
+      "timestamp": "2026-05-25T23:36:05.587Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-456c6a73-0b17-46b5-b5c3-5e397931dd9c",
+      "timestamp": "2026-05-25T23:36:05.583Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-c048b0a3-4902-4ee6-8a6e-86f31d66d4cb",
+      "timestamp": "2026-05-25T23:36:05.582Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-ed11e802-709c-4837-84fc-51958f7329b3"
+      }
+    },
+    {
+      "id": "log-35e0163b-e35a-43d7-a050-f0320fc64602",
+      "timestamp": "2026-05-25T23:36:05.574Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated: Codex QA temp task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-5dbffce8-64b6-4a0d-88b5-f2b0d5200680",
+      "timestamp": "2026-05-25T23:36:05.354Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Codex QA temp task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-a3e8ad6d-fe75-4b50-b347-d22f22a2371e",
+      "timestamp": "2026-05-25T23:35:19.466Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+      }
+    },
+    {
+      "id": "log-11681927-4131-4298-b024-973c4213811e",
+      "timestamp": "2026-05-25T23:35:19.465Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+      }
+    },
+    {
+      "id": "log-e2be250b-5caf-4360-9743-bcfb78c757e4",
+      "timestamp": "2026-05-25T23:35:19.464Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+      }
+    },
+    {
+      "id": "log-fc713fee-f1a1-4b39-a243-1fefdbc697f2",
+      "timestamp": "2026-05-25T23:35:19.462Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for greeting",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+      }
+    },
+    {
+      "id": "log-ab4d3ec7-1957-4c69-90c4-b01237df0080",
+      "timestamp": "2026-05-25T23:35:19.461Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: greeting (MISATO, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+      }
+    },
+    {
+      "id": "log-59cef12f-a6a5-4b6c-b1e0-b7b90880f787",
+      "timestamp": "2026-05-25T23:35:19.460Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-5db469c4-ada8-4690-bc9d-3ea729a70acd"
+      }
+    },
+    {
+      "id": "log-d630a2b9-9733-4664-83fd-72ad117ec160",
+      "timestamp": "2026-05-25T23:35:06.035Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Assigned Test task to Strategy Agent",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-a1ebecea-ff34-4554-903f-785c2c5d2a5e",
+      "timestamp": "2026-05-25T23:35:06.032Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Test task",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-64fb0412-5d43-4354-806c-06d969bafc72",
+      "timestamp": "2026-05-25T23:35:06.001Z",
+      "source": "misato.agents",
+      "severity": "info",
+      "message": "Mission created: Test",
+      "type": "log.created",
+      "payload": {}
+    },
+    {
+      "id": "log-26cda449-4792-47d6-b420-860affc78292",
+      "timestamp": "2026-05-25T23:35:05.991Z",
+      "source": "misato.approvals",
+      "severity": "warn",
+      "message": "Risk scan: 3 risk(s) found",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-93fa07ae-19b1-4a06-a57a-5d39c85b6d16",
+      "timestamp": "2026-05-25T23:35:05.990Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task updated (repeated command): Command: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-1e5dc512-1477-4ca8-baa5-20b237ec831a",
+      "timestamp": "2026-05-25T23:35:05.989Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Assigned 3 agent(s) to command",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-f11fbfee-dc18-4334-bd23-866002ba4068",
+      "timestamp": "2026-05-25T23:35:05.987Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Selected 3 agents: Vercel Deploy Agent, Security Agent, Hermes Architecture Agent",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-92f3eecc-fb58-4d67-9273-ec2e57bd0b56",
+      "timestamp": "2026-05-25T23:35:05.986Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 4 plan steps for deploy",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-a0087371-2fe4-4c0b-887f-03d441794f69",
+      "timestamp": "2026-05-25T23:35:05.984Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: deploy (NexCall, L4)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-d22816f5-cf11-414c-8fcf-e877c73ce824",
+      "timestamp": "2026-05-25T23:35:05.983Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: deploy to production now",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-1fdc3652-62f1-4656-ba6b-f26944711dfc"
+      }
+    },
+    {
+      "id": "log-d82e745c-63d3-4a9b-8b9d-c3dcbe639a64",
+      "timestamp": "2026-05-25T23:35:05.976Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command completed: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+      }
+    },
+    {
+      "id": "log-b15a823a-744e-48ea-9c48-ecf49d1d2296",
+      "timestamp": "2026-05-25T23:35:05.975Z",
+      "source": "misato.approvals",
+      "severity": "info",
+      "message": "Risk scan: safe",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+      }
+    },
+    {
+      "id": "log-4c3e15f5-2e9d-4139-9837-8e6162533660",
+      "timestamp": "2026-05-25T23:35:05.974Z",
+      "source": "misato.tasks",
+      "severity": "info",
+      "message": "Task created: Command: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+      }
+    },
+    {
+      "id": "log-9af5c3d0-b6a6-469f-ace2-228dcbb86f87",
+      "timestamp": "2026-05-25T23:35:05.973Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Generated 2 plan steps for greeting",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+      }
+    },
+    {
+      "id": "log-e1ffbd8c-24bc-427e-8a1f-f401620e4536",
+      "timestamp": "2026-05-25T23:35:05.972Z",
+      "source": "misato.orchestrator",
+      "severity": "info",
+      "message": "Classified: greeting (MISATO, L0)",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+      }
+    },
+    {
+      "id": "log-86a3d7ac-9043-4461-a50e-478ecfb5e6a5",
+      "timestamp": "2026-05-25T23:35:05.971Z",
+      "source": "misato.runtime",
+      "severity": "info",
+      "message": "Command received: hi",
+      "type": "log.created",
+      "payload": {
+        "commandId": "cmd-041181f0-a381-4275-908a-8737b8909276"
+      }
+    },
     {
       "id": "log-8218cd55-9336-4bfb-a6f6-1b41568ba516",
       "timestamp": "2026-05-25T23:32:53.993Z",
@@ -2898,8 +4194,8 @@
   "runtime": {
     "mode": "local-first",
     "runtimeStatus": "connected",
-    "lastCommandAt": "2026-05-25T23:32:53.868Z",
-    "approvalsPending": 11
+    "lastCommandAt": "2026-05-26T01:18:17.801Z",
+    "approvalsPending": 15
   },
   "missions": [
     {
@@ -2969,6 +4265,122 @@
       "createdBy": "MISATO",
       "createdAt": "2026-05-25T23:32:53.964Z",
       "updatedAt": "2026-05-25T23:32:53.976Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-6a0e9bc0-a3fb-4080-a693-9f6ab889d420",
+      "title": "Test",
+      "description": "",
+      "project": "NexCall",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "Hermes",
+      "createdAt": "2026-05-25T23:35:06.000Z",
+      "updatedAt": "2026-05-25T23:35:06.000Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-2eaa0167-63c1-4545-b818-5fd8d07e53aa",
+      "title": "Codex temp mission",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T23:36:05.609Z",
+      "updatedAt": "2026-05-25T23:36:05.609Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-74f77304-3b5a-4791-8ee1-297566f46e6b",
+      "title": "m",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T23:39:18.226Z",
+      "updatedAt": "2026-05-25T23:39:18.226Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-f0a6b0d1-f988-41fe-8cef-f0ea04af7bc1",
+      "title": "qa mission",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T23:39:43.968Z",
+      "updatedAt": "2026-05-25T23:39:43.968Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-85ff9dce-ea1e-4743-8435-58d9f460396a",
+      "title": "qa mission2",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": null,
+      "assignedAgentName": null,
+      "taskIds": [],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T23:40:12.370Z",
+      "updatedAt": "2026-05-25T23:40:12.370Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-70de3f25-1e0a-4dc9-a082-4ce2bcae4c3a",
+      "title": "qa mission3",
+      "description": "",
+      "project": "runtime",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": "agent-hermes-arch",
+      "assignedAgentName": "Hermes Architecture Agent",
+      "taskIds": [
+        "task-99298aee-33b2-4596-8ce2-c75dac653288"
+      ],
+      "createdBy": "MISATO",
+      "createdAt": "2026-05-25T23:40:43.018Z",
+      "updatedAt": "2026-05-25T23:40:43.222Z",
+      "completedAt": null,
+      "handoffNote": null
+    },
+    {
+      "id": "msn-bbc53a52-4299-4933-bee5-11c866a0ef48",
+      "title": "Cleanup Test",
+      "description": "",
+      "project": "NexCall",
+      "priority": "Medium",
+      "status": "Pending",
+      "assignedAgentId": "agent-strategy",
+      "assignedAgentName": "Strategy Agent",
+      "taskIds": [
+        "task-9056ab8a-7a1f-454e-bbd8-a18c61db1f04"
+      ],
+      "createdBy": "Test",
+      "createdAt": "2026-05-26T01:18:17.738Z",
+      "updatedAt": "2026-05-26T01:18:17.750Z",
       "completedAt": null,
       "handoffNote": null
     }

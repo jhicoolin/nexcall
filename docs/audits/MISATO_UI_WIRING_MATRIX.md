@@ -1,8 +1,8 @@
 # MISATO UI Wiring Matrix
 
-**Version:** app.js v5.1  
-**Branch:** misato-claude-ui  
-**Date:** 2026-05-25  
+**Version:** app.js v6 (audit pass)
+**Branch:** misato-claude-ui
+**Date:** 2026-05-25
 
 This matrix documents every interactive control in the MISATO Mission Control desktop UI, what it calls, and whether it is live-wired or a no-op.
 
@@ -26,7 +26,7 @@ This matrix documents every interactive control in the MISATO Mission Control de
 |---------|---------|-------|
 | Nav items | `data-nav` → `render()` | ✅ All 13 screens |
 | Settings toggle | `data-nav="config"` | ✅ |
-| Find Hermes | `discoverHermes()` | ✅ Probes `/health` |
+| Find Hermes | `discoverHermes()` | ✅ Probes flat `/health` |
 | Disconnect Hermes | `stopSSE()` + state reset | ✅ |
 | Feed filter pills | `state.feedFilter` + `refreshFeedUI()` | ✅ |
 | Pause / Follow Live | `state.feedPaused` toggle | ✅ |
@@ -37,7 +37,7 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Host / Port inputs | `saveHermesHostPort()` | ✅ persists to localStorage |
+| Host / Port inputs | `saveHermesHostPort()` | ✅ persists to localStorage; restarts SSE if target changed |
 | Find Hermes button | `discoverHermes()` | ✅ |
 | Save Config (Advanced) | `saveConfig()` | ✅ token guard active |
 | Test Connection | `testConnection()` | ✅ Vercel path |
@@ -48,7 +48,7 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Refresh button | `loadAllFromHermes()` | ✅ (v5 fix — was calling discoverHermes) |
+| Refresh button | `loadAllFromHermes()` | ✅ |
 | Agent Status → View all | `data-nav="agentdex"` | ✅ |
 | Active Work → Kanban | `data-nav="kanban"` | ✅ |
 | Recent Alerts → Logs | `data-nav="logs"` | ✅ |
@@ -62,7 +62,7 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Send button | `sendCommand()` | ✅ POST /command — error shows URL |
+| Send button | `sendCommand()` | ✅ POST /api/misato/command when Hermes up; Vercel path otherwise |
 | Ctrl+Enter | `sendCommand()` | ✅ |
 | Quick action buttons | `sendCommand(prompt)` | ✅ |
 | Clear messages | `state.messages = []` | ✅ |
@@ -78,8 +78,8 @@ This matrix documents every interactive control in the MISATO Mission Control de
 | Filter pills (all/active/etc.) | `state.agentFilter` + `render()` | ✅ |
 | Agent card click | Opens agent drawer | ✅ |
 | Close drawer | `state.selectedAgent = null` | ✅ |
-| + Assign Task | Opens modal `assign-task` | ✅ (v5) |
-| Modal confirm | `createTask()` → POST /tasks | ✅ (v5) |
+| + Assign Task | Opens modal `assign-task` | ✅ |
+| Modal confirm | `createTask()` → POST /api/misato/tasks/create | ✅ |
 
 ---
 
@@ -87,7 +87,7 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| + New Task | `id="btn-add-task"` → modal | ❌ Missing id on Schedule header button |
+| + New Task | `id="btn-add-task"` → modal | ✅ |
 | View toggle (Day/Agenda/Week) | No handler | ❌ No-op |
 | Live schedule items | `normalizeScheduleItems()` | 🔒 Hermes needs `scheduledAt` field |
 
@@ -97,10 +97,10 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| + Add Task | `id="btn-add-task"` → modal | ✅ (v5) |
-| Card → status cycle | `data-task-status` → `updateTask()` | ✅ (v5) optimistic |
-| Card → priority cycle | `data-task-priority` → `updateTask()` | ✅ (v5) optimistic |
-| PATCH /tasks/:id | `hermesMutate('PATCH')` | 🔒 Hermes must implement PATCH /tasks/:id |
+| + Add Task | `id="btn-add-task"` → modal | ✅ |
+| Card → status cycle | `data-task-status` → `updateTask()` | ✅ POST /api/misato/tasks/update |
+| Card → priority cycle | `data-task-priority` → `updateTask()` | ✅ POST /api/misato/tasks/update |
+| Card → delete | `data-task-delete` → `deleteTask()` | ✅ POST /api/misato/tasks/delete; high-risk → approval gate |
 
 ---
 
@@ -108,8 +108,8 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Refresh | `loadAllFromHermes()` | ✅ (v5 fix) |
-| Data source | `/watchtower` Hermes or MOCK | ⚠️ Falls back to mock |
+| Refresh | `loadAllFromHermes()` | ✅ |
+| Data source | `/api/misato/watchtower` Hermes or MOCK | ⚠️ Falls back to mock |
 
 ---
 
@@ -117,8 +117,8 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Scan Now | No handler | ❌ No-op (Hermes endpoint needed) |
-| Findings display | `state.sentinel` or MOCK | ✅ No raw secrets rendered |
+| Scan Now | `hermesMutate('POST', 'api/misato/sentinel/scan')` | ✅ wired, 🔒 Hermes must implement endpoint |
+| Findings display | `state.sentinel` or MOCK | ✅ No raw secrets rendered; remediation normalized to array |
 
 ---
 
@@ -126,9 +126,10 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
+| Refresh | `loadAllFromHermes()` | ✅ |
 | Export | No handler | ❌ No-op |
-| Severity filters (ALL/INFO/WARN/ERROR) | No handler | ❌ Display only |
-| Log entries | `state.logs` or MOCK | ✅ normalizes sev/level/severity |
+| Severity filters (ALL/INFO/WARN/ERROR) | `state.logFilter` + `render()` | ✅ |
+| Log entries | `state.logs` via `/api/misato/logs` or MOCK | ✅ |
 
 ---
 
@@ -146,7 +147,7 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Lane cards | Display only | ✅ Live if Hermes has branch/lane fields |
+| Lane cards | Display only | ✅ Live if Hermes agents have branch/lane fields |
 
 ---
 
@@ -154,11 +155,11 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 | Control | Handler | Notes |
 |---------|---------|-------|
-| Approve | `resolveApproval(id, 'approve')` | ✅ (v5) POST /approvals/:id/approve |
-| Reject | `resolveApproval(id, 'reject')` | ✅ (v5) POST /approvals/:id/reject |
-| Defer | `resolveApproval(id, 'defer')` | ✅ (v5) POST /approvals/:id/defer |
-| Optimistic removal | On approve/reject, removes from list | ✅ |
-| Live data | `state.approvals` from `/approvals` | ✅ |
+| Approve | `resolveApproval(id, 'approve')` | ✅ POST /api/misato/approvals/action {approvalId, action} |
+| Reject | `resolveApproval(id, 'reject')` | ✅ |
+| Defer | `resolveApproval(id, 'defer')` | ✅ |
+| Optimistic removal | On approve/reject, removes from list; refreshes in background | ✅ |
+| Live data | `state.approvals` from `/api/misato/approvals` | ✅ |
 
 ---
 
@@ -179,27 +180,40 @@ This matrix documents every interactive control in the MISATO Mission Control de
 
 ---
 
-## Mutation API Summary (v5)
+## Mutation API Summary (v6)
 
-All Hermes write operations go through `hermesMutate(method, path, body)`:
+All Hermes write operations go through `hermesMutate(method, path, body)`.
+The `api/misato/` prefix is included in the path argument; `hermesMutate` prepends `hermesBase()`.
 
-| Operation | Method | Path | Status |
-|-----------|--------|------|--------|
-| Send command | POST | `/command` | ✅ shows URL on error |
-| Approve | POST | `/approvals/:id/approve` | ✅ wired, 🔒 Hermes endpoint |
-| Reject | POST | `/approvals/:id/reject` | ✅ wired, 🔒 Hermes endpoint |
-| Defer | POST | `/approvals/:id/defer` | ✅ wired, 🔒 Hermes endpoint |
-| Create task | POST | `/tasks` | ✅ wired, 🔒 Hermes endpoint |
-| Update task | PATCH | `/tasks/:id` | ✅ optimistic + Hermes sync |
-| Delete task (low risk) | DELETE | `/tasks/:id` | ✅ optimistic, 🔒 Hermes endpoint |
-| Delete task (high risk) | — | creates approval record | ✅ approval gate |
-| Sentinel scan | POST | `/sentinel/scan` | ✅ wired, 🔒 Hermes endpoint |
+| Operation | Method | Path | Body | Status |
+|-----------|--------|------|------|--------|
+| Send command | POST | `api/misato/command` | `{ command }` | ✅ |
+| Approve | POST | `api/misato/approvals/action` | `{ approvalId, action:'approve' }` | ✅ |
+| Reject | POST | `api/misato/approvals/action` | `{ approvalId, action:'reject' }` | ✅ |
+| Defer | POST | `api/misato/approvals/action` | `{ approvalId, action:'defer' }` | ✅ |
+| Create task | POST | `api/misato/tasks/create` | `{ title, project, priority, status, agent }` | ✅ |
+| Update task | POST | `api/misato/tasks/update` | `{ taskId, payload }` | ✅ |
+| Delete task (low risk) | POST | `api/misato/tasks/delete` | `{ taskId }` | ✅ |
+| Delete task (high risk) | — | creates local approval record | — | ✅ approval gate |
+| Sentinel scan | POST | `api/misato/sentinel/scan` | `{}` | ✅ wired, 🔒 Hermes endpoint needed |
 
-All mutations surface `Attempted: <url>` on error. No tokens logged.
+All mutations surface `Attempted: <url>` on error. No tokens in URLs or logs.
 
 ---
 
-## Runtime Status (v5)
+## URL Construction (v6)
+
+| Helper | URL produced | Used for |
+|--------|-------------|---------|
+| `hermesBase()` | `http://{host}:{port}` | Base — never used raw |
+| `hermesApi(path)` | `http://{host}:{port}/api/misato/{path}` | All data + mutation routes |
+| `/health` (direct) | `http://{host}:{port}/health` | Boot discovery, health ping (flat, unauthenticated) |
+
+Port 3010 is canonical. `hermesBase()` and `normalizeHermesPort()` both default to 3010. Stored `3000`/`3020` values are upgraded to `3010` at boot.
+
+---
+
+## Runtime Status (v6)
 
 `runtimeStatus()` returns:
 
@@ -211,20 +225,39 @@ All mutations surface `Attempted: <url>` on error. No tokens logged.
 | `allowedMutationMode` | `full CRUD` when Hermes up, `read-only` otherwise |
 | `productionLocked` | always `true` |
 
-Displayed as badge in topbar. Color: teal = LOCAL SOLO, blue = VERCEL PREVIEW, slate = DISCONNECTED.
+---
+
+## Live Feed Strategy (v6)
+
+Priority chain: SSE events → polled `/api/misato/logs` (when Hermes up, SSE down) → MOCK_LOGS (fully offline).
+
+- SSE connected → badge `● LIVE`
+- SSE error, Hermes up → `pollLogsFallback()` every 15 s, badge `● POLLING`
+- Hermes up, no SSE events yet → `state.logs` shown (not mock), badge `● HERMES`
+- Fully disconnected → MOCK_LOGS dimmed, badge `● MOCK`
+
+Feed entries with no human-readable field show `[event-type]` placeholder — never raw JSON.
 
 ---
 
-## Live Feed Strategy (v5.1)
+## SSE Reconnect / Target Drift (v6)
 
-Priority chain: SSE events → polled `/logs` (when Hermes up, SSE down) → MOCK_LOGS (fully offline).
+- `saveHermesHostPort()` restarts SSE immediately if host or port changes while connected.
+- SSE errors escalate after 3 failures: `discoverHermes()` re-probes `/health`.
+- Health ping every 30 s detects mid-session Hermes shutdown.
 
-- SSE connected: feed shows real-time events, badge = `● LIVE`
-- SSE error, Hermes up: `pollLogsFallback()` runs every 15 s, badge = `● POLLING`
-- Hermes up, no SSE events yet: feed shows `state.logs` entries (not mock), badge = `● HERMES`
-- Fully disconnected: feed shows MOCK_LOGS dimmed, badge = `● MOCK`
+---
 
-Feed entries from `state.logs` use `logToFeedEvent()` (not flagged `_mock`, not dimmed).
+## Honesty Contracts (v6)
+
+| Scenario | UI behaviour |
+|----------|-------------|
+| DELETE task fails | Task stays in list — failure toast with URL |
+| UPDATE task offline | Applied locally — "not persisted" warning |
+| DELETE task offline | Removed locally — "will reappear on reconnect" warning |
+| Command unreachable | Inline error in thread with attempted URL |
+| Approval action fails | Toast with HTTP status + URL |
+| Sentinel scan fails | Toast with URL; background refresh triggered anyway |
 
 ---
 
@@ -232,10 +265,8 @@ Feed entries from `state.logs` use `logToFeedEvent()` (not flagged `_mock`, not 
 
 | Gap | Screen | What Hermes needs |
 |-----|--------|-------------------|
-| POST /approvals/:id/approve|reject|defer | Approvals | Implement approval resolution endpoints |
-| PATCH /tasks/:id | Kanban | Implement task update endpoint |
-| POST /tasks | Kanban / AgentDex | Implement task creation endpoint |
+| POST /api/misato/sentinel/scan | Sentinel | Implement on-demand scan trigger |
 | /schedule or scheduledAt fields | Schedule | Add scheduling data to tasks |
 | branch/lane fields on agents | Lanes | Add branch/lane to agent registry |
-| POST /sentinel/scan | Sentinel | Implement on-demand scan trigger |
 | Tauri shell → Open Obsidian | Obsidian | Wire via Tauri invoke |
+| Integrations Configure/Test buttons | Integrations | Wire per-integration config endpoints |

@@ -302,6 +302,16 @@ export async function executeCommand(command: string): Promise<CommandResult> {
         return { approval: null, blocked: false };
       }
       const approval = createApprovalRecord(store, command, commandId, classification.approvalReason || "Protected action requires owner approval.", classification.riskLevel);
+
+      // Link approval to blocking task
+      const blockingTask = store.tasks.find((t: any) => t.sourceCommandId === commandId);
+      if (blockingTask) {
+        blockingTask.linkedApprovalId = approval.id;
+        blockingTask.status = "Blocked";
+        blockingTask.updatedAt = nowIso();
+        emit("task.updated", "misato.tasks", { commandId, taskId: blockingTask.id, task: blockingTask }, "info");
+      }
+
       emit("command.blocked", "misato.runtime", { commandId, command, approvalId: approval.id, reason: "Awaiting owner approval" }, "warn");
       timeline.push({ stage: "approval.queued", status: "completed", timestamp: nowIso(), detail: `Approval ${approval.id} created` });
       timeline.push({ stage: "command.completed", status: "blocked", timestamp: nowIso(), detail: "Blocked by approval gate" });

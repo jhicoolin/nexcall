@@ -129,7 +129,7 @@ const DESIGN_TOKENS = [
 ];
 
 const INTEGRATIONS = [
-  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'localhost:3000 runtime. /command /agents /tasks /events/stream.',  next:'Start Hermes runtime, then click Find Hermes' },
+  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'localhost:3010 runtime (configurable). Primary local AI runtime bridge.',  next:'Start Hermes runtime, then click Find Hermes' },
   { name:'Vercel Preview',      icon:'☁', mode:'active',  desc:'Preview branch connected. Deployment protection bypass enabled.',   next:'Redeploy after CORS fix' },
   { name:'GitHub Handoffs',     icon:'⌥', mode:'ready',   desc:'Branch coordination active. misato-claude-ui ready to push.',     next:'Push + open PR to misato-full-build' },
   { name:'Obsidian Mirror',     icon:'⬡', mode:'planned', desc:'Vault sync not yet configured. Mirror docs exist in repo.',        next:'Set OBSIDIAN_VAULT_PATH, owner approval required' },
@@ -352,7 +352,13 @@ function connCls(label) {
 
 // ── Hermes Base URL ────────────────────────────────────────────
 function hermesBase() {
-  return `http://${(state.hermesHost||'localhost').trim()}:${(state.hermesPort||'3000').trim()}`;
+  // Port 3010 is canonical per Hermes handoff. Fallback guards against empty state.
+  return `http://${(state.hermesHost||'localhost').trim()}:${(state.hermesPort||'3010').trim()}`;
+}
+// Prefixed helper for all Hermes data/mutation routes (/api/misato/*)
+// Exception: /health stays flat — it is the unauthenticated discovery probe.
+function hermesApi(path) {
+  return `${hermesBase()}/api/misato/${path.replace(/^\/+/, '')}`;
 }
 
 // ── Discover Hermes (probes /health) ──────────────────────────
@@ -382,25 +388,29 @@ async function discoverHermes() {
 
 function saveHermesHostPort() {
   const h = document.getElementById('cfg-hermes-host')?.value?.trim() || 'localhost';
-  const p = normalizeHermesPort(document.getElementById('cfg-hermes-port')?.value?.trim() || '3000');
+  const p = normalizeHermesPort(document.getElementById('cfg-hermes-port')?.value?.trim() || '3010');
+  const changed = h !== state.hermesHost || p !== state.hermesPort;
   state.hermesHost = h; state.hermesPort = p;
   storage.set('misato_hermes_host', h); storage.set('misato_hermes_port', p);
+  // If target changed while SSE is open, restart the stream to the new endpoint.
+  // Without this, mutations go to the new host:port but SSE events still come from the old one.
+  if (changed && state.hermesState === 'connected') { stopSSE(); startSSE(); }
 }
 
 // ── Load all data from Hermes ──────────────────────────────────
 async function loadAllFromHermes() {
-  const base = hermesBase();
+  // All Hermes data routes use /api/misato/* prefix (confirmed hermes-to-claude.md 2026-05-25).
+  // Only /health is flat — it is the unauthenticated boot discovery probe.
+  const h = { accept: 'application/json' };
   const safeGet = (url) =>
-    fetch(url, { headers: headers() }).then(r => r.ok ? r.json() : Promise.reject()).catch(() => null);
-    // Hermes is a flat runtime — routes have no /api/misato/ prefix.
-  // The /api/misato/* prefix belongs to the Vercel/Next.js side only.
+    fetch(url, { headers: h }).then(r => r.ok ? r.json() : Promise.reject()).catch(() => null);
   const [agents, tasks, approvals, logs, watchtower, sentinel] = await Promise.all([
-    safeGet(`${base}/agents`),
-    safeGet(`${base}/tasks`),
-    safeGet(`${base}/approvals`),
-    safeGet(`${base}/logs`),
-    safeGet(`${base}/watchtower`),
-    safeGet(`${base}/secrets`)
+    safeGet(hermesApi('agents')),
+    safeGet(hermesApi('tasks')),
+    safeGet(hermesApi('approvals')),
+    safeGet(hermesApi('logs')),
+    safeGet(hermesApi('watchtower')),
+    safeGet(hermesApi('secrets'))
   ]);
   const normalizedAgents = normalizeItemsResponse(agents).map(normalizeCouncilAgent);
   const normalizedTasks = normalizeItemsResponse(tasks);
@@ -424,8 +434,7 @@ function startSSE() {
   if (_sseSource) { _sseSource.close(); _sseSource = null; }
   state.sseState = 'connecting';
   try {
-    // Hermes runtime: flat path /events/stream (no /api/misato/ prefix)
-    _sseSource = new EventSource(`${hermesBase()}/events/stream`);
+    _sseSource = new EventSource(hermesApi('events/stream'));
     _sseSource.onopen = () => {
       state.sseState  = 'connected';
       _sseErrCount    = 0;
@@ -480,7 +489,7 @@ async function pollLogsFallback() {
   if (!isHermesConnected()) return;
   if (state.sseState === 'connected') return; // SSE is working — skip
   try {
-    const res = await fetch(`${hermesBase()}/logs`, { headers: { accept: 'application/json' } });
+    const res = await fetch(hermesApi('logs'), { headers: { accept: 'application/json' } });
     if (!res.ok) return;
     const data = await res.json();
     const logs = normalizeItemsResponse(data);
@@ -646,9 +655,10 @@ function buildFeedEntriesHTML() {
     const meta   = EVENT_META[e.type] || EVENT_META.log;
     const ts     = fmtTime(e.timestamp);
     const src    = e.source || '';
+    // Never render raw JSON — if no human-readable field exists, show a typed placeholder.
     const msg    = e.payload?.message || e.payload?.action || e.payload?.summary ||
                    (typeof e.payload === 'string' ? e.payload : '') ||
-                   JSON.stringify(e.payload||{}).substring(0,80);
+                   `[${e.type || 'event'}]`;
     return `
       <div class="feed-entry ${isMock?'feed-entry-mock':''}">
         <div class="feed-entry-header">
@@ -718,9 +728,10 @@ async function hermesMutate(method, path, body) {
 // ── Approval resolution ────────────────────────────────────────
 async function resolveApproval(id, action) {
   // action: 'approve' | 'reject' | 'defer'
+  // Contract: POST /api/misato/approvals/action { approvalId, action }
   if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
   try {
-    await hermesMutate('POST', `approvals/${id}/${action}`, {});
+    await hermesMutate('POST', 'api/misato/approvals/action', { approvalId: id, action });
     // Optimistic: remove from local list
     if (action !== 'defer') {
       state.approvals = (state.approvals || []).filter(a => a.id !== id);
@@ -737,9 +748,16 @@ async function resolveApproval(id, action) {
 
 // ── Task CRUD ──────────────────────────────────────────────────
 async function createTask(data) {
+  // Contract: POST /api/misato/tasks/create { title, project, priority, status, agent }
   if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
   try {
-    const task = await hermesMutate('POST', 'tasks', data);
+    const task = await hermesMutate('POST', 'api/misato/tasks/create', {
+      title:    data.title,
+      project:  data.project  || 'NexCall',
+      priority: data.priority || 'Medium',
+      status:   data.status   || 'Idea',
+      agent:    data.agent    || ''
+    });
     updateLiveTask(task.id ? task : { ...data, id: `local-${Date.now()}` });
     showToast('Task created.', '◉');
     state.modal = null;
@@ -750,24 +768,25 @@ async function createTask(data) {
 }
 
 async function updateTask(id, patch) {
+  // Contract: POST /api/misato/tasks/update { taskId, payload }
   if (!isHermesConnected()) {
-    // Optimistic update only — label as local edit when offline
+    // Optimistic update only — there is no sync queue, so this is local-only until page reload
     if (state.tasks) {
       const idx = state.tasks.findIndex(t => t.id === id);
       if (idx >= 0) { state.tasks[idx] = { ...state.tasks[idx], ...patch }; render(); }
     }
-    showToast('Task updated (offline — will sync when Hermes connects).', '◎');
+    showToast('Task updated locally — changes are not persisted (Hermes offline).', '◎');
     return;
   }
   try {
-    await hermesMutate('PATCH', `tasks/${id}`, patch);
+    await hermesMutate('POST', 'api/misato/tasks/update', { taskId: id, payload: patch });
     updateLiveTask({ id, ...patch });
     render();
   } catch (e) {
-    // Still apply optimistic update for status/priority cycles
+    // Still apply optimistic update for status/priority cycles so the board stays responsive
     updateLiveTask({ id, ...patch });
     render();
-    showToast(e.url ? `Sync failed: ${e.message}` : e.message, '⚠');
+    showToast(e.url ? `Sync failed: ${e.message} — ${e.url}` : e.message, '⚠');
   }
 }
 
@@ -790,22 +809,21 @@ async function deleteTask(id) {
     return;
   }
   if (!isHermesConnected()) {
-    // Optimistic local removal
+    // Optimistic local removal only — will re-appear on next Hermes sync
     state.tasks = (state.tasks || []).filter(t => t.id !== id);
-    showToast('Task removed locally (offline).', '◎');
+    showToast('Task removed locally (Hermes offline — will reappear on reconnect).', '◎');
     render();
     return;
   }
+  // Contract: POST /api/misato/tasks/delete { taskId }
   try {
-    await hermesMutate('DELETE', `tasks/${id}`, undefined);
+    await hermesMutate('POST', 'api/misato/tasks/delete', { taskId: id });
     state.tasks = (state.tasks || []).filter(t => t.id !== id);
     showToast('Task deleted.', '✕');
     render();
   } catch (e) {
-    // Optimistic remove anyway — Hermes may not have DELETE yet
-    state.tasks = (state.tasks || []).filter(t => t.id !== id);
-    render();
-    showToast(e.url ? `Delete sent — sync pending: ${e.message}` : e.message, '⚠');
+    // Do NOT remove locally on failure — task is still live on Hermes, removing here is a lie.
+    showToast(e.url ? `Delete failed — task not removed: ${e.message} (${e.url})` : `Delete failed: ${e.message}`, '⚠');
   }
 }
 
@@ -884,7 +902,8 @@ async function sendCommand(cmd) {
   state.activeCommandId = null;
   state.messages.push({ role:'user', text:cmd, ts:now() });
   render();
-  const url = endpoint('command');
+  // Hermes: POST /api/misato/command — Vercel: POST baseUrl/command
+  const url = isHermesConnected() ? hermesApi('command') : endpoint('command');
   try {
     const res = await fetch(url, {
       method:'POST', headers:headers(),
@@ -1051,7 +1070,7 @@ function renderHermesSetupCard() {
       <div class="setup-card-icon">⬡</div>
       <div class="setup-card-body">
         <div class="setup-card-title">Hermes is not running</div>
-        <div class="setup-card-sub">Start your local AI runtime to activate MISATO · ${host}:${port}</div>
+        <div class="setup-card-sub">Start your local AI runtime to activate MISATO · ${host}:${port || '3010'}</div>
         <div class="setup-steps">
           <div class="setup-step"><span class="setup-step-num">1</span><span>Open a terminal in your <code>nexcall</code> project folder</span></div>
           <div class="setup-step"><span class="setup-step-num">2</span><span>Run: <code>npm run dev</code></span></div>
@@ -1068,7 +1087,7 @@ function renderHermesSetupCard() {
 // ── Settings panel — Local Hermes first ────────────────────────
 function renderHermesStatusInline() {
   const h  = esc(state.hermesHost || 'localhost');
-  const p  = esc(state.hermesPort || '3000');
+  const p  = esc(state.hermesPort || '3010');
   const st = state.hermesState;
   if (st === 'connected') return `
     <div class="hermes-inline found">
@@ -1107,7 +1126,7 @@ function renderConfigPanel() {
             </div>
             <div class="input-group" style="width:90px">
               <label class="input-label" for="cfg-hermes-port">Port</label>
-              <input class="input input-mono" id="cfg-hermes-port" type="text" placeholder="3000" value="${esc(state.hermesPort||'3000')}" />
+              <input class="input input-mono" id="cfg-hermes-port" type="text" placeholder="3010" value="${esc(state.hermesPort||'3010')}" />
             </div>
           </div>
           <div class="row gap-8 mb-8">
@@ -1597,8 +1616,14 @@ function renderWatchtower() {
 function renderSentinel() {
   const data   = state.sentinel || MOCK_SENTINEL;
   const isMock = !state.sentinel;
-  const { findings, remediation, lastScanAt } = data;
-  const done   = (remediation||[]).filter(c=>c.done).length;
+  const { findings, lastScanAt } = data;
+  // Hermes may return remediation as a string or array — normalize defensively.
+  const remediation = Array.isArray(data.remediation)
+    ? data.remediation
+    : typeof data.remediation === 'string'
+      ? [{ label: data.remediation, done: false }]
+      : (data.remediation ? [] : []);
+  const done = remediation.filter(c => c.done).length;
   return `
     ${renderSectionHeader('Secret Sentinel','Security scan and remediation',`<button class="btn btn-secondary btn-sm" id="btn-scan-now">Scan Now</button>`)}
     <div class="workspace-body">
@@ -2199,7 +2224,7 @@ function bind() {
     if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
     showToast('Scan requested…', '◆');
     try {
-      const result = await hermesMutate('POST', 'sentinel/scan', {});
+      const result = await hermesMutate('POST', 'api/misato/sentinel/scan', {});
       if (result?.findings !== undefined) { state.sentinel = result; render(); showToast('Scan complete.', '◉'); }
       else { loadAllFromHermes(); }
     } catch (e) {

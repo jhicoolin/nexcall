@@ -36,6 +36,8 @@ export async function GET(request: Request) {
       hermesConnected: health.runtimeStatus === "connected",
       runtimeConnected: health.ok === true && health.status === "ok",
       eventStreamAvailable: true,
+      baseUrl: `http://127.0.0.1:3010`,
+      connectionMode: health.runtimeStatus === "connected" ? "local-runtime" : "not-connected",
       activeModel: getActiveModel(),
       fallbackModel: getFallbackModel(),
       persistenceMode: health.paths?.persistence || "filesystem",

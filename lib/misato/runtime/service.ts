@@ -253,6 +253,18 @@ export function deleteTask(taskId: string) {
   const idx = store.tasks.findIndex((t: any) => t.id === taskId);
   if (idx < 0) return { ok: false, error: "task_not_found" as const };
   const [task] = store.tasks.splice(idx, 1);
+  
+  // Clean up mission references
+  if (store.missions && task.id) {
+    for (const mission of store.missions) {
+      const tidx = (mission.taskIds || []).indexOf(String(task.id || ""));
+      if (tidx >= 0) {
+        mission.taskIds.splice(tidx, 1);
+        mission.updatedAt = nowIso();
+      }
+    }
+  }
+  
   emit("task.deleted", "misato.tasks", { taskId, task }, "warn");
   logEvent(store, `Task deleted: ${task.title}`, "misato.tasks", "warn");
   saveStore(store);
