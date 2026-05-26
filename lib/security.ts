@@ -100,7 +100,14 @@ export function getSafeSiteOrigin(request: Request) {
     return origin.replace(/\/$/, "");
   }
 
-  return "http://localhost:3000";
+  // Use the request's own host as fallback before reaching for a hardcoded default.
+  const host = request.headers.get("host") || "";
+  if (host) {
+    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+    return `${proto}://${host}`;
+  }
+
+  return `http://127.0.0.1:3010`;
 }
 
 export function validationResponse(error: unknown) {

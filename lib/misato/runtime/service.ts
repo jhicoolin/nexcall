@@ -3,6 +3,7 @@ import { appendEventJsonl, loadStore, readEventLog, runtimePaths, saveStore } fr
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { executeCommand } from "./command-machine";
 import { isAiConfigured, getActiveModel, getFallbackModel } from "./ai-gateway";
+import { CANONICAL_BASE_URL } from "./config";
 
 const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|billing|payment|secret|rotate|external|automation|merge)/i;
 
@@ -101,9 +102,9 @@ export function getWatchtower() {
     mode: "local-first",
     liveExternalCalls: false,
     monitors: [
-      { id: "local-runtime", name: "Local Hermes runtime", status: "up", target: "http://127.0.0.1:3010/health" },
-      { id: "command", name: "Command endpoint", status: "up", target: "http://127.0.0.1:3010/api/misato/command" },
-      { id: "events", name: "SSE stream", status: "up", target: "http://127.0.0.1:3010/api/misato/events/stream" }
+      { id: "local-runtime", name: "Local Hermes runtime", status: "up", target: `${CANONICAL_BASE_URL}/health` },
+      { id: "command", name: "Command endpoint", status: "up", target: `${CANONICAL_BASE_URL}/api/misato/command` },
+      { id: "events", name: "SSE stream", status: "up", target: `${CANONICAL_BASE_URL}/api/misato/events/stream` }
     ]
   };
 }

@@ -129,7 +129,7 @@ const DESIGN_TOKENS = [
 ];
 
 const INTEGRATIONS = [
-  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'localhost:3010 runtime (configurable). Primary local AI runtime bridge.',  next:'Start Hermes runtime, then click Find Hermes' },
+  { name:'Local Hermes Bridge', icon:'⬡', mode:'active',  desc:'127.0.0.1:3010 runtime (configurable). Primary local AI runtime bridge.',  next:'Start Hermes runtime, then click Find Hermes' },
   { name:'Vercel Preview',      icon:'☁', mode:'active',  desc:'Preview branch connected. Deployment protection bypass enabled.',   next:'Redeploy after CORS fix' },
   { name:'GitHub Handoffs',     icon:'⌥', mode:'ready',   desc:'Branch coordination active. misato-claude-ui ready to push.',     next:'Push + open PR to misato-full-build' },
   { name:'Obsidian Mirror',     icon:'⬡', mode:'planned', desc:'Vault sync not yet configured. Mirror docs exist in repo.',        next:'Set OBSIDIAN_VAULT_PATH, owner approval required' },
@@ -309,7 +309,7 @@ function normalizeCouncilAgent(agent) {
   const blockedActions = Array.isArray(agent?.blockedActions) ? agent.blockedActions : [];
   const allowedTools = Array.isArray(agent?.allowedTools) ? agent.allowedTools : [];
   const rawStatus = String(agent?.status || agent?.state || "").toLowerCase();
-  const state =
+  const agentState =
     rawStatus.includes("online") || rawStatus.includes("active") ? "active" :
     rawStatus.includes("think") || rawStatus.includes("pending") ? "thinking" :
     rawStatus.includes("block") || rawStatus.includes("fail") ? "blocked" :
@@ -317,15 +317,20 @@ function normalizeCouncilAgent(agent) {
 
   return {
     ...agent,
-    state,
-    risk: agent?.risk || agent?.riskLevel || "Low",
+    // Normalize agentId → id so card clicks, drawer, and event matching all work
+    id:   agent?.id || agent?.agentId || agent?.agent_id,
+    state: agentState,
+    risk: agent?.risk || agent?.riskTier || agent?.riskLevel || "Low",
     perm: agent?.perm || (typeof agent?.permissionLevel === "number" ? `L${agent.permissionLevel}` : agent?.permissionLevel || "Advisory"),
     specialty: agent?.specialty || abilities.join(", ") || agent?.memoryScope || allowedTools.join(", ") || "Council operations",
     feedback:
       agent?.feedback ||
       agent?.summary ||
+      agent?.currentTask ||
       agent?.status ||
-      `${abilities.slice(0, 2).join(" · ") || "Standing by"}${blockedActions.length ? ` · Blocked: ${blockedActions.slice(0, 2).join(", ")}` : ""}`
+      `${abilities.slice(0, 2).join(" · ") || "Standing by"}${blockedActions.length ? ` · Blocked: ${blockedActions.slice(0, 2).join(", ")}` : ""}`,
+    lastActivityAt: agent?.lastActivityAt || agent?.updatedAt || null,
+    currentTaskId:  agent?.currentTaskId  || agent?.taskId  || null
   };
 }
 
@@ -432,24 +437,26 @@ async function loadAllFromHermes() {
       }
       return r.json();
     }).catch(() => null);
-  const [agents, tasks, approvals, logs, watchtower, sentinel] = await Promise.all([
+  const [agents, tasks, approvals, logs, watchtower, sentinel, runtimeCtx] = await Promise.all([
     safeGet(hermesApi('agents')),
     safeGet(hermesApi('tasks')),
     safeGet(hermesApi('approvals')),
     safeGet(hermesApi('logs')),
     safeGet(hermesApi('watchtower')),
-    safeGet(hermesApi('secrets'))
+    safeGet(hermesApi('secrets')),
+    safeGet(hermesApi('status'))   // runtime context: mode, counts, localSoloMode, etc.
   ]);
   const normalizedAgents = normalizeItemsResponse(agents).map(normalizeCouncilAgent);
   const normalizedTasks = normalizeItemsResponse(tasks);
   const normalizedApprovals = normalizeItemsResponse(approvals);
   const normalizedLogs = normalizeItemsResponse(logs);
-  if (normalizedAgents.length)    state.agents    = normalizedAgents;
-  if (normalizedTasks.length)     state.tasks     = normalizedTasks;
-  if (normalizedApprovals.length) state.approvals = normalizedApprovals;
-  if (normalizedLogs.length)      state.logs      = normalizedLogs;
-  if (watchtower)                 state.watchtower = normalizeWatchtower(watchtower);
-  if (sentinel)                   state.sentinel   = sentinel;
+  if (normalizedAgents.length)    state.agents     = normalizedAgents;
+  if (normalizedTasks.length)     state.tasks      = normalizedTasks;
+  if (normalizedApprovals.length) state.approvals  = normalizedApprovals;
+  if (normalizedLogs.length)      state.logs       = normalizedLogs;
+  if (watchtower)                 state.watchtower  = normalizeWatchtower(watchtower);
+  if (sentinel)                   state.sentinel    = sentinel;
+  if (runtimeCtx)                 state.runtimeCtx  = runtimeCtx;
   render();
 }
 
@@ -472,6 +479,9 @@ function startSSE() {
     _sseSource.onmessage = (e) => {
       try {
         const evt = JSON.parse(e.data);
+        // Normalize dot-notation types (task.updated) to underscore (task_updated).
+        // Hermes emits both variants — normalize here so all downstream logic uses one form.
+        if (evt.type) evt.type = evt.type.replace(/\./g, '_');
         state.feedEvents.unshift(evt);
         if (state.feedEvents.length > 500) state.feedEvents.length = 500;
         // Drive command timeline
@@ -480,6 +490,7 @@ function startSSE() {
         if (evt.type === 'task_updated'       && evt.payload?.task)     updateLiveTask(evt.payload.task);
         if (evt.type === 'agent_assigned'     && evt.payload?.agent)    updateLiveAgent(evt.payload.agent);
         if (evt.type === 'approval_requested' && evt.payload?.approval) prependLiveApproval(evt.payload.approval);
+        if (evt.type === 'approval_resolved') loadAllFromHermes(); // resync after approval
         if (!state.feedPaused) refreshFeedUI();
         else { state.newWhilePaused++; refreshFeedPauseBadge(); }
       } catch {}
@@ -519,6 +530,8 @@ async function pollLogsFallback() {
   try {
     const res = await fetch(hermesApi('logs'), { headers: { accept: 'application/json' } });
     if (!res.ok) return;
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) return; // skip HTML / page-route responses silently
     const data = await res.json();
     const logs = normalizeItemsResponse(data);
     if (!logs.length) return;
@@ -732,7 +745,8 @@ function endpoint(path) {
 async function apiGet(path) {
   const res = await fetch(endpoint(path), { method:'GET', headers:headers() });
   const ct = res.headers.get('content-type') || '';
-  if (ct.includes('text/html') && !res.ok) throw Object.assign(new Error('Vercel Protected'), { isVercelSso:true, status:res.status });
+  // Reject HTML at any status — a 200 SSO page must not be parsed as JSON data
+  if (ct.includes('text/html')) throw Object.assign(new Error('Vercel Protected'), { isVercelSso:true, status:res.status });
   if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status:res.status });
   return res.json();
 }
@@ -749,6 +763,11 @@ async function hermesMutate(method, path, body) {
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw Object.assign(new Error(`HTTP ${res.status} — ${text.substring(0, 120)}`), { url });
+  }
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    console.warn(`[MISATO] hermesMutate expected JSON from ${url} — got ${ct.split(';')[0].trim()}`);
+    throw Object.assign(new Error(`Not JSON: ${ct.split(';')[0].trim()}`), { url });
   }
   try { return await res.json(); } catch { return {}; }
 }
@@ -938,11 +957,18 @@ async function sendCommand(cmd) {
       body: JSON.stringify({ command:cmd })
     });
     if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { url });
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json') && !ct.includes('text/plain')) {
+      console.warn(`[MISATO] sendCommand expected JSON from ${url} — got ${ct.split(';')[0].trim()}`);
+      throw Object.assign(new Error(`Not JSON: ${ct.split(';')[0].trim()}`), { url });
+    }
     const data = await res.json();
     // Canonical: { ok, commandId, mode, missionSummary, hermesPlan, … }
     if (data.commandId) state.activeCommandId = data.commandId;
     const text = data.missionSummary || data.response || data.message || data.output || JSON.stringify(data);
     state.messages.push({ role:'misato', text, ts:now() });
+    // Refresh live state — commands can trigger task/agent/approval changes on Hermes
+    if (isHermesConnected()) setTimeout(() => loadAllFromHermes(), 1500);
   } catch (e) {
     const attempted = e.url || url;
     state.messages.push({ role:'misato', text:`Error: ${e.message}\nAttempted: ${attempted}`, ts:now(), error:true });
@@ -1092,7 +1118,7 @@ function renderSectionHeader(title, meta='', actions='') {
 // ── Hermes Setup Card — shown on Overview when offline ─────────
 function renderHermesSetupCard() {
   const host = esc(state.hermesHost || HERMES_DEFAULT_HOST);
-  const port = esc(state.hermesPort || '3000');
+  const port = esc(state.hermesPort || '3010');
   return `
     <div class="setup-card">
       <div class="setup-card-icon">⬡</div>
