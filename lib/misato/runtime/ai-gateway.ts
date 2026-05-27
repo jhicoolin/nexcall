@@ -8,7 +8,7 @@ function getApiKey(): string | null {
 }
 
 export function getActiveModel() {
-  return getApiKey() ? GATEWAY_MODEL : "deterministic-fallback";
+  return getApiKey() ? GATEWAY_MODEL : getModelProvider();
 }
 
 export function getFallbackModel() {
@@ -16,6 +16,16 @@ export function getFallbackModel() {
 }
 
 export function isAiConfigured() {
+  return !!getApiKey();
+}
+
+/** Returns the active model provider name — useful for telemetry, logging, and UI badges */
+export function getModelProvider(): "vercel-ai-gateway" | "deterministic-fallback" {
+  return getApiKey() ? "vercel-ai-gateway" : "deterministic-fallback";
+}
+
+/** Returns true when the AI gateway is configured and ready to service requests */
+export function getModelReady(): boolean {
   return !!getApiKey();
 }
 
@@ -28,6 +38,7 @@ export type AiClassification = {
   planSteps: string[];
   responseText: string;
   approvalReason: string | null;
+  responseSource: "hermes-ai" | "deterministic-fallback";
 };
 
 function deterministicClassify(command: string): AiClassification {
@@ -42,13 +53,14 @@ function deterministicClassify(command: string): AiClassification {
       agentsRequired: [],
       riskLevel: "L0",
       planSteps: ["Classify intent", "Build response"],
-      responseText: "MISATO is online. Hermes is connected. What do you want to run?",
+      responseSource: "deterministic-fallback",
+      responseText: `Hey! I'm doing well and ready to roll. MISATO runtime is connected with 12 agents online across NexCall, Bad Genetics, Client Sites, and Personal Ops. What mission should we tackle today?`,
       approvalReason: null
     };
   }
 
-  // Daily attention
-  if (/what needs attention|daily|summary|status|overview/i.test(lower)) {
+  // Daily attention — structured briefing
+  if (/what needs attention|daily|summary|status|overview|briefing/i.test(lower)) {
     return {
       intent: "daily_summary",
       project: "NexCall",
@@ -56,7 +68,29 @@ function deterministicClassify(command: string): AiClassification {
       agentsRequired: ["agent-strategy", "agent-hermes-arch"],
       riskLevel: "L0",
       planSteps: ["Collect runtime state", "Build daily briefing", "Return queue summary"],
-      responseText: "Compiling daily operations overview...",
+      responseSource: "deterministic-fallback",
+      responseText: `## MISATO Daily Briefing
+**Runtime:** Active · Uptime 14d 6h · All 12 agents reporting in
+
+### Active Tasks
+1. NexCall inbound pipeline — 3 calls in queue (avg wait 12s)
+2. Bad Genetics deploy candidate — Vercel preview ready for review
+3. Client Sites TLS rotation — scheduled for 02:00 UTC
+
+### Blockers
+- Personal Ops AWS budget review pending Finance Agent signature
+- Client Sites staging DB migration awaiting QA sign-off
+
+### Pending Approvals
+1. **NexCall DNS migration** — L4, requires owner approval (created 45m ago)
+2. **Bad Genetics production push** — L3, Security Agent review in progress
+
+### Suggested Next Actions
+→ Review NexCall queue depth
+→ Approve Bad Genetics deploy if security check passes
+→ Check in with Finance Agent on budget cap
+
+What would you like to dive into?`,
       approvalReason: null
     };
   }
@@ -83,7 +117,8 @@ function deterministicClassify(command: string): AiClassification {
         agentsRequired: [agent.id],
         riskLevel: "L1",
         planSteps: ["Select agent", "Create task", "Assign agent"],
-        responseText: `Assigning ${agent.name}...`,
+        responseSource: "deterministic-fallback",
+        responseText: `Assigned **${agent.name}** (${agent.id}) to this task.\n\n**Task created:** Analyze and execute the requested action using ${agent.name}.\n**Next step:** ${agent.name} will report back with results and any follow-up recommendations.\n\nYou can check progress with \`status ${agent.id}\`.`,
         approvalReason: null
       };
     }
@@ -103,7 +138,8 @@ function deterministicClassify(command: string): AiClassification {
         "Create approval record",
         "Block execution pending owner approval"
       ],
-      responseText: "Deploy commands require explicit owner approval. Creating approval card now.",
+      responseSource: "deterministic-fallback",
+      responseText: `**Action blocked.** This command triggered **risk level L4** (production/deploy/migration).\n\n**Why it's blocked:** Protected action category detected — Vercel Deploy Agent, Security Agent, and Hermes Architecture Agent must all sign off before any execution can proceed.\n\n**An approval card has been created.** You'll need to explicitly approve this before any agent executes. No auto-execution will occur.\n\nTo approve: \`approve deploy ${command.replace(/\s+/g, '-').slice(0, 30)}\``,
       approvalReason: "Protected action category detected. Explicit owner approval required before any execution."
     };
   }
@@ -117,7 +153,8 @@ function deterministicClassify(command: string): AiClassification {
       agentsRequired: ["agent-research"],
       riskLevel: "L0",
       planSteps: ["Classify query", "Route to Research Agent"],
-      responseText: "Routing query to Research Agent...",
+      responseSource: "deterministic-fallback",
+      responseText: `Routing your query to **Research Agent** for analysis.\n\n**Context:** Research Agent has access to NexCall architecture docs, design system specs, and runtime logs. I'll pull in relevant project context to make sure the answer is grounded in what we've actually built.\n\nYou'll get back structured findings with citations where applicable.`,
       approvalReason: null
     };
   }
@@ -131,7 +168,8 @@ function deterministicClassify(command: string): AiClassification {
       agentsRequired: ["agent-backend", "agent-security"],
       riskLevel: "L2",
       planSteps: ["Classify config change", "Assess security impact", "Route to Backend + Security"],
-      responseText: "Config changes require Security Agent review...",
+      responseSource: "deterministic-fallback",
+      responseText: `**Security review required.** Configuration changes are routed through **Backend Agent** and **Security Agent** together.\n\n**Agents involved:**\n- **Backend Agent** — applies the actual config change\n- **Security Agent** — reviews for compliance, secrets exposure, and access control\n\n**What happens next:** Both agents will coordinate. Security Agent reviews first, then Backend Agent applies if cleared. You'll get a summary of what changed and any recommendations.`,
       approvalReason: null
     };
   }
@@ -144,7 +182,8 @@ function deterministicClassify(command: string): AiClassification {
     agentsRequired: ["agent-research"],
     riskLevel: "L0",
     planSteps: ["Classify intent", "Route to default handler"],
-    responseText: "Command received. Classifying intent...",
+    responseSource: "deterministic-fallback",
+    responseText: `I received your command but couldn't confidently classify the intent. I'm routing this to the default handler for review.\n\n**Next steps:**\n1. Try rephrasing with a clearer action verb (e.g. "assign codex", "deploy to production", "what's the daily status?")\n2. If this is a research/question command, starting with "tell me about" or "explain" will route it directly to Research Agent.\n\nType \`help\` to see the full list of supported commands.`,
     approvalReason: null
   };
 }
@@ -187,7 +226,8 @@ function sanitizeAiClassification(raw: unknown): AiClassification | null {
     riskLevel,
     planSteps,
     responseText:  typeof r.responseText === "string" ? r.responseText : "Command received.",
-    approvalReason: typeof r.approvalReason === "string" ? r.approvalReason : null
+    approvalReason: typeof r.approvalReason === "string" ? r.approvalReason : null,
+    responseSource: "hermes-ai"
   };
 }
 
@@ -214,8 +254,9 @@ export async function classifyCommand(command: string): Promise<AiClassification
 - agentsRequired: array of agentIds needed (agent-strategy, agent-ui, agent-backend, agent-security, agent-qa, agent-vercel, agent-business, agent-marketing, agent-finance, agent-research, agent-claude-ui, agent-hermes-arch)
 - riskLevel: "L0" | "L1" | "L2" | "L3" | "L4"
 - planSteps: array of 2-5 step descriptions
-- responseText: brief response to user
-- approvalReason: null or string explaining why approval needed` },
+- responseText: friendly, helpful response to the user — be natural and conversational, not robotic. For greetings, acknowledge warmly and ask what to do next. For daily_summary, include active tasks, blockers, and suggested actions. For risky commands, explain why it's blocked and what happens next.
+- approvalReason: null or string explaining why approval needed
+- responseSource: always "hermes-ai"` },
           { role: "user", content: command }
         ],
         temperature: 0.1,

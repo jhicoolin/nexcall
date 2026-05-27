@@ -1,3 +1,6 @@
+import { execSync } from "node:child_process";
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { appendEventJsonl, loadStore, readEventLog, runtimePaths, saveStore } from "./store";
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { executeCommand } from "./command-machine";
@@ -76,6 +79,18 @@ export function getHealth() {
     cloudOptional: true,
     approvalsPending: store.runtime.approvalsPending,
     paths: runtimePaths(),
+    capabilities: {
+      command: true,
+      taskCrud: true,
+      agentAssign: true,
+      approvals: { available: true, mode: store.runtime.mode },
+      schedule: { available: tasks.some((t: any) => t.scheduledAt), mode: "runtime-tasks" },
+      lanes: { available: agents.length > 0, mode: "runtime" },
+      obsidian: { available: !!process.env.OBSIDIAN_VAULT_PATH, mode: process.env.OBSIDIAN_VAULT_PATH ? "live-sync" : "repo-mirror" },
+      secretSentinel: { available: true, mode: "manual-scan" },
+      watchtower: { available: true, mode: "local-runtime" },
+      sse: { available: true, mode: "local-stream" }
+    },
     timestamp: nowIso()
   };
 }
@@ -91,18 +106,116 @@ export function getEvents(limit = 200) {
   return { ok: true, items: events.slice(-limit) };
 }
 
-export function getWatchtower() {
+export function getSchedule() {
+  const store = loadStore();
+  const tasks = store.tasks || [];
+  const scheduledTasks = tasks.filter((t: any) => t.scheduledAt);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  if (scheduledTasks.length === 0) {
+    return {
+      ok: true,
+      mode: "runtime-tasks",
+      today,
+      timezone,
+      viewData: { agenda: [], day: [], week: [] },
+      unscheduledTasks: tasks.length
+    };
+  }
+
+  // Day view: group by hour
+  const dayView: Record<string, any[]> = {};
+  // Week view: group by weekday
+  const weekView: Record<string, any[]> = {};
+  // Agenda: chronological flat list
+  const agenda: any[] = [];
+
+  for (const t of scheduledTasks) {
+    const schedAt = String(t.scheduledAt || "");
+    if (!schedAt) continue;
+
+    const taskEntry = {
+      id: t.id,
+      title: t.title,
+      project: t.project || "",
+      status: t.status || "Idea",
+      priority: t.priority || "Medium",
+      scheduledAt: schedAt,
+      ownerAgentId: t.ownerAgentId || t.assignedAgentId || null
+    };
+    agenda.push(taskEntry);
+
+    // Day grouping by date
+    const dateKey = schedAt.slice(0, 10);
+    if (schedAt.length >= 13) {
+      const hour = schedAt.slice(11, 13);
+      if (!dayView[dateKey]) dayView[dateKey] = [];
+      dayView[dateKey].push({ ...taskEntry, hour });
+    } else {
+      if (!dayView[dateKey]) dayView[dateKey] = [];
+      dayView[dateKey].push(taskEntry);
+    }
+
+    // Week grouping by weekday
+    try {
+      const d = new Date(schedAt);
+      const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
+      if (!weekView[weekday]) weekView[weekday] = [];
+      weekView[weekday].push(taskEntry);
+    } catch {
+      // skip invalid dates
+    }
+  }
+
+  // Sort agenda by scheduledAt
+  agenda.sort((a, b) => String(a.scheduledAt).localeCompare(String(b.scheduledAt)));
+
   return {
     ok: true,
-    serviceHealth: "healthy",
+    mode: "runtime-tasks",
+    today,
+    timezone,
+    viewData: {
+      agenda,
+      day: dayView,
+      week: weekView
+    },
+    unscheduledTasks: tasks.filter((t: any) => !t.scheduledAt).length
+  };
+}
+
+export function getWatchtower() {
+  const store = loadStore();
+  const agents = store.agents || [];
+  const tasks = store.tasks || [];
+  const approvals = store.approvals || [];
+  const obsidianConfigured = !!process.env.OBSIDIAN_VAULT_PATH;
+
+  const checks = [
+    { id: "local-runtime", name: "Local Hermes runtime", status: "up", target: `${CANONICAL_BASE_URL}/health` },
+    { id: "command", name: "Command endpoint", status: "up", target: `${CANONICAL_BASE_URL}/api/misato/command` },
+    { id: "events", name: "SSE stream", status: "up", target: `${CANONICAL_BASE_URL}/api/misato/events/stream` },
+    { id: "event-bus", name: "Event bus", status: store.runtime.runtimeStatus === "connected" ? "up" : "degraded", target: "memory" },
+    { id: "task-store", name: "Task store", status: tasks.length > 0 ? "up" : "empty", detail: `${tasks.length} tasks` },
+    { id: "approval-store", name: "Approval store", status: approvals.length > 0 ? "up" : "empty", detail: `${approvals.length} approvals` },
+    { id: "agent-pool", name: "Agent pool", status: agents.length > 0 ? "up" : "empty", detail: `${agents.length} agents` }
+  ];
+
+  if (obsidianConfigured) {
+    checks.push({ id: "obsidian-vault", name: "Obsidian vault sync", status: "up", target: process.env.OBSIDIAN_VAULT_PATH || "./docs/obsidian-mirror/" });
+  } else {
+    checks.push({ id: "obsidian-vault", name: "Obsidian vault sync", status: "not-configured", target: "./docs/obsidian-mirror/" });
+  }
+
+  return {
+    ok: true,
+    serviceHealth: checks.every((c: any) => c.status === "up" || c.status === "empty") ? "healthy" : "degraded",
     checkState: "local-runtime",
     mode: "local-first",
     liveExternalCalls: false,
-    monitors: [
-      { id: "local-runtime", name: "Local Hermes runtime", status: "up", target: `${CANONICAL_BASE_URL}/health` },
-      { id: "command", name: "Command endpoint", status: "up", target: `${CANONICAL_BASE_URL}/api/misato/command` },
-      { id: "events", name: "SSE stream", status: "up", target: `${CANONICAL_BASE_URL}/api/misato/events/stream` }
-    ]
+    monitors: checks
   };
 }
 
@@ -113,14 +226,70 @@ export function watchtowerCheck() {
 }
 
 export function getSecretsStatus() {
+  const store = loadStore();
+
+  // Check if gitleaks is installed
+  let gitleaksInstalled = false;
+  let gitleaksVersion = "";
+  try {
+    const out = execSync("which gitleaks 2>/dev/null || where gitleaks 2>nul", {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+      timeout: 5000
+    }).toString().trim();
+    gitleaksInstalled = out.length > 0;
+    if (gitleaksInstalled) {
+      try {
+        gitleaksVersion = execSync("gitleaks version 2>/dev/null", {
+          encoding: "utf8",
+          timeout: 5000
+        }).toString().trim();
+      } catch {
+        gitleaksVersion = "installed (version unknown)";
+      }
+    }
+  } catch {
+    gitleaksInstalled = false;
+  }
+
+  if (!gitleaksInstalled) {
+    return {
+      ok: true,
+      gitleaksInstalled: false,
+      lastScanAt: null,
+      critical: 0,
+      high: 0,
+      warnings: 0,
+      findings: [],
+      scanAvailable: false,
+      nextAction: "Install gitleaks: brew install gitleaks (macOS) or visit https://github.com/gitleaks/gitleaks/releases",
+      status: "not-scanned",
+      findingsRedacted: true,
+      noRawSecretsInLogs: true,
+      remediation: [{ label: "Install gitleaks to enable secret scanning", done: false }]
+    };
+  }
+
   return {
     ok: true,
+    gitleaksInstalled: true,
+    gitleaksVersion: gitleaksVersion || "installed",
+    lastScanAt: null,
+    critical: 0,
+    high: 0,
+    warnings: 0,
+    findings: [],
+    scanAvailable: true,
+    nextAction: "Run: npm run secrets:scan",
+    status: "guarded",
     findingsRedacted: true,
     repoOnlyScan: true,
     noRawSecretsInLogs: true,
-    status: "guarded",
-    findings: [],
-    remediation: [{ label: "No action required", done: true }]
+    remediation: [
+      { label: "Run gitleaks scan manually", done: false },
+      { label: "Review redacted findings if any", done: true },
+      { label: "No raw secrets in logs", done: true }
+    ]
   };
 }
 
@@ -130,12 +299,23 @@ export function secretScanSummary(summary?: Record<string, unknown>) {
 }
 
 export function getLanes() {
+  const store = loadStore();
+  const agents = store.agents || [];
+  const tasks = store.tasks || [];
+  const laneAgents = ["agent-strategy","agent-ui","agent-backend","agent-security","agent-qa","agent-vercel","agent-business","agent-marketing","agent-finance","agent-research","agent-claude-ui","agent-hermes-arch"];
+  const getAgentStatus = (agentId: string) => agents.find((a: any) => a.agentId === agentId)?.status || "idle";
+  const totalForAgent = (agentId: string) => tasks.filter((t: any) => t.ownerAgentId === agentId || t.assignedAgentId === agentId).length;
+  const doneForAgent = (agentId: string) => tasks.filter((t: any) => (t.ownerAgentId === agentId || t.assignedAgentId === agentId) && ["Done","Deleted","Cancelled"].includes(t.status||"")).length;
+  const blockedForAgent = (agentId: string) => tasks.filter((t: any) => (t.ownerAgentId === agentId || t.assignedAgentId === agentId) && t.status === "Blocked").length;
+
   return {
-    ok: true,
+    ok: true, mode: "auto",
     items: [
-      { id: "lane-hermes", name: "Hermes", branch: "misato-hermes-live-runtime", owner: "Hermes", status: "active", current: "Runtime orchestration", next: "Stabilize IPC fallback", responsibilities: ["runtime", "policy"], blockers: [] },
-      { id: "lane-codex", name: "Codex", branch: "misato-codex-client-qa", owner: "Codex", status: "ready", current: "Runtime QA", next: "Desktop smoke", responsibilities: ["qa", "integration"], blockers: [] },
-      { id: "lane-claude", name: "Claude", branch: "misato-claude-ui", owner: "Claude", status: "ready", current: "UI consumption", next: "Adapter verification", responsibilities: ["ui", "ux"], blockers: [] }
+      { id: "lane-hermes", name: "Hermes Runtime Lane", ownerAgentId: "agent-hermes-arch", ownerAgentName: "Hermes Architecture Agent", branch: "misato-hermes-live-brain", status: getAgentStatus("agent-hermes-arch") === "active" ? "active" : "ready", current: "Runtime brain integration", next: "Live AI command pipeline", tasksTotal: totalForAgent("agent-hermes-arch"), tasksDone: doneForAgent("agent-hermes-arch"), tasksBlocked: blockedForAgent("agent-hermes-arch"), blockers: [], source: "runtime" },
+      { id: "lane-codex", name: "Codex QA Lane", ownerAgentId: "agent-qa", ownerAgentName: "Codex QA Agent", branch: "misato-codex-live-ui-qa", status: getAgentStatus("agent-qa") === "active" ? "active" : "ready", current: "Client reliability audit", next: "Verify live endpoints", tasksTotal: totalForAgent("agent-qa"), tasksDone: doneForAgent("agent-qa"), tasksBlocked: blockedForAgent("agent-qa"), blockers: [], source: "runtime" },
+      { id: "lane-claude", name: "Claude UI Lane", ownerAgentId: "agent-claude-ui", ownerAgentName: "Claude UI Agent", branch: "misato-claude-ui", status: getAgentStatus("agent-claude-ui") === "active" ? "active" : "ready", current: "UI integration", next: "Wire Hermes endpoints", tasksTotal: totalForAgent("agent-claude-ui"), tasksDone: doneForAgent("agent-claude-ui"), tasksBlocked: blockedForAgent("agent-claude-ui"), blockers: [], source: "runtime" },
+      { id: "lane-misato", name: "MISATO Coordinator", ownerAgentId: "agent-strategy", ownerAgentName: "Strategy Agent", branch: "misato-hermes-live-brain", status: getAgentStatus("agent-strategy") === "active" ? "active" : "ready", current: "Mission orchestration", next: "Cross-agent coordination", tasksTotal: totalForAgent("agent-strategy"), tasksDone: doneForAgent("agent-strategy"), tasksBlocked: blockedForAgent("agent-strategy"), blockers: [], source: "runtime" },
+      { id: "lane-owner", name: "Owner Approval Lane", ownerAgentId: "owner", ownerAgentName: "Owner", branch: "", status: (store.approvals||[]).some((a:any) => a.status==="Pending") ? "blocked" : "ready", current: "Approval gate", next: "Review pending approvals", tasksTotal: (store.approvals||[]).length, tasksDone: (store.approvals||[]).filter((a:any)=>a.status==="Approved").length, tasksBlocked: (store.approvals||[]).filter((a:any)=>a.status==="Pending").length, blockers: (store.approvals||[]).filter((a:any)=>a.status==="Pending").slice(0,3).map((a:any)=>({id:a.id,title:a.title})), source: "runtime" }
     ]
   };
 }
@@ -347,6 +527,56 @@ export function dispatchAgent(payload: any) {
     missionId: mission?.id || null,
     handoffNote
   };
+}
+
+export function getApprovalStats() {
+  const store = loadStore();
+  const approvals = store.approvals || [];
+  return {
+    pending: approvals.filter((a: any) => String(a.status).toLowerCase() === "pending").length,
+    approved: approvals.filter((a: any) => String(a.status).toLowerCase() === "approved").length,
+    rejected: approvals.filter((a: any) => String(a.status).toLowerCase() === "rejected").length,
+    deferred: approvals.filter((a: any) => String(a.status).toLowerCase() === "deferred").length,
+    superseded: approvals.filter((a: any) => String(a.status).toLowerCase() === "superseded").length
+  };
+}
+
+export function getObsidianStatus() {
+  const vaultPath = process.env.OBSIDIAN_VAULT_PATH || "";
+  if (!vaultPath) {
+    return {
+      ok: true, configured: false, mode: "repo-mirror",
+      note: "Set OBSIDIAN_VAULT_PATH env var to enable live sync",
+      docsPath: "./docs/obsidian-mirror/",
+      suggestedDocuments: ["Daily Command", "Active Missions", "Agent Status", "Claude-Hermes", "Project Decisions", "Council Reports"],
+      syncStatus: "not-configured",
+      syncAvailable: false
+    };
+  }
+  try {
+    const folders = ["00-command-center", "01-projects", "02-agents", "06-handoffs"];
+    const folderInfo = folders.map(f => {
+      const fp = join(vaultPath, f);
+      let count = 0, lastUpdated = null;
+      try { count = readdirSync(fp).filter((f: string) => f.endsWith(".md")).length; } catch { count = 0; }
+      return { name: f, documentCount: count, syncStatus: "available" };
+    });
+    return {
+      ok: true, configured: true, mode: "live",
+      vaultPath: vaultPath,
+      folders: folderInfo,
+      syncStatus: "ready",
+      syncAvailable: true
+    };
+  } catch {
+    return {
+      ok: true, configured: true, mode: "live",
+      vaultPath: vaultPath,
+      note: "Vault path set but could not read directory structure",
+      syncStatus: "path-error",
+      syncAvailable: false
+    };
+  }
 }
 
 export function approvalAction(payload: any) {

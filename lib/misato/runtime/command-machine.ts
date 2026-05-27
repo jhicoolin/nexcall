@@ -7,7 +7,7 @@
 
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { loadStore, saveStore, appendEventJsonl } from "./store";
-import { classifyCommand, isAiConfigured, getActiveModel, getFallbackModel } from "./ai-gateway";
+import { classifyCommand, isAiConfigured, getActiveModel, getFallbackModel, getModelProvider } from "./ai-gateway";
 import type { AiClassification } from "./ai-gateway";
 
 const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|billing|payment|secret|rotate|external|automation|merge)/i;
@@ -87,6 +87,9 @@ export type CommandResult = {
   riskLevel: string;
   activeModel: string;
   fallbackModel: string;
+  modelUsed: string;
+  modelProvider: string;
+  responseSource: string;
   planSteps: string[];
   selectedAgents: string[];
   agentsAssigned: { agentId: string; name: string }[];
@@ -106,9 +109,10 @@ function refreshApprovalCount(store: any) {
   store.runtime.approvalsPending = store.approvals.filter((a: any) => String(a.status).toLowerCase() === "pending").length;
 }
 
-function createApprovalRecord(store: any, command: string, commandId: string, reason: string, riskLevel: string) {
+function createApprovalRecord(store: any, command: string, commandId: string, reason: string, riskLevel: string, dedupeKey: string) {
   const approval = {
     id: rid("apr"),
+    dedupeKey,
     title: `Approval required: ${command.slice(0, 50)}`,
     description: reason,
     riskLevel,
@@ -125,7 +129,7 @@ function createApprovalRecord(store: any, command: string, commandId: string, re
   };
   store.approvals.unshift(approval);
   refreshApprovalCount(store);
-  emit("approval.created", "misato.approvals", { approvalId: approval.id, approval, commandId }, "warn");
+  emit("approval.created", "misato.approvals", { approvalId: approval.id, dedupeKey, approval, commandId }, "warn");
   return approval;
 }
 
@@ -183,6 +187,17 @@ export async function executeCommand(command: string): Promise<CommandResult> {
     },
 
     agents_selected: (classification: AiClassification) => {
+      // Greeting and daily_summary are informational intents — skip agent selection
+      if (classification.intent === "greeting") {
+        emit("agents.selected", "misato.orchestrator", { commandId, agents: [], skipped: true, reason: "Casual chat does not require agent assignment" }, "info");
+        timeline.push({ stage: "agents.selected", status: "skipped", timestamp: nowIso(), detail: "Casual chat — no agent assignment needed" });
+        return [];
+      }
+      if (classification.intent === "daily_summary") {
+        emit("agents.selected", "misato.orchestrator", { commandId, agents: [], skipped: true, reason: "Daily summary is informational, no agent assignment needed" }, "info");
+        timeline.push({ stage: "agents.selected", status: "skipped", timestamp: nowIso(), detail: "Daily summary — informational, no agent assignment" });
+        return [];
+      }
       if (classification.agentsRequired.length === 0) {
         emit("agents.selected", "misato.orchestrator", { commandId, agents: [], skipped: true, reason: "No agents needed for this intent" }, "info");
         timeline.push({ stage: "agents.selected", status: "skipped", timestamp: nowIso(), detail: "No agents needed" });
@@ -200,6 +215,7 @@ export async function executeCommand(command: string): Promise<CommandResult> {
 
     agents_assigned: (agents: { agentId: string; name: string }[]) => {
       if (agents.length === 0) {
+        emit("agents.assigned", "misato.orchestrator", { commandId, agents: [], skipped: true, reason: "No agents to assign" }, "info");
         timeline.push({ stage: "agents.assigned", status: "skipped", timestamp: nowIso(), detail: "No agents to assign" });
         return [];
       }
@@ -226,6 +242,17 @@ export async function executeCommand(command: string): Promise<CommandResult> {
     },
 
     tasks_created_or_updated: (classification: AiClassification) => {
+      // Greeting and daily_summary are read-only / informational — no task needed
+      if (classification.intent === "greeting") {
+        emit("tasks.skipped", "misato.tasks", { commandId, skipped: true, reason: "No task requested for greeting" }, "info");
+        timeline.push({ stage: "tasks.created_or_updated", status: "skipped", timestamp: nowIso(), detail: "Greeting — no task needed" });
+        return { tasksCreated: [], tasksUpdated: [] };
+      }
+      if (classification.intent === "daily_summary") {
+        emit("tasks.skipped", "misato.tasks", { commandId, skipped: true, reason: "Daily summary is informational — no task needed" }, "info");
+        timeline.push({ stage: "tasks.created_or_updated", status: "skipped", timestamp: nowIso(), detail: "Daily summary — no task needed" });
+        return { tasksCreated: [], tasksUpdated: [] };
+      }
       const title = `Command: ${command.slice(0, 80)}`;
       const dedupeKey = createDedupeKey(title, classification.project);
       const existingTask = findDupTask(store, dedupeKey);
@@ -248,7 +275,7 @@ export async function executeCommand(command: string): Promise<CommandResult> {
         description: classification.responseText || "",
         project: classification.project,
         priority: classification.riskLevel === "L4" ? "Urgent" : classification.riskLevel === "L0" ? "Normal" : "High",
-        status: classification.intent === "greeting" ? "Done" : "Doing",
+        status: "Doing",
         ownerAgentId: classification.agentsRequired[0] || null,
         assignedAgentId: classification.agentsRequired[0] || null,
         assignedBy: "MISATO Hermes",
@@ -301,7 +328,24 @@ export async function executeCommand(command: string): Promise<CommandResult> {
         timeline.push({ stage: "approval.queued", status: "skipped", timestamp: nowIso(), detail: "No approval needed" });
         return { approval: null, blocked: false };
       }
-      const approval = createApprovalRecord(store, command, commandId, classification.approvalReason || "Protected action requires owner approval.", classification.riskLevel);
+
+      // Approval deduplication — check for existing pending approval with same dedupeKey
+      const approvalDedupeKey = `approval:${command.toLowerCase().trim()}:${classification.intent}:${classification.riskLevel}`;
+      const existingApproval = (store.approvals || []).find(
+        (a: any) => a.dedupeKey === approvalDedupeKey && String(a.status).toLowerCase() === "pending"
+      );
+      if (existingApproval) {
+        emit("approval.queued", "misato.approvals", { commandId, skipped: true, reason: "Duplicate approval — superseding existing", existingApprovalId: existingApproval.id }, "info");
+        existingApproval.status = "Superseded";
+        existingApproval.updatedAt = nowIso();
+        emit("approval.superseded", "misato.approvals", { commandId, approvalId: existingApproval.id }, "info");
+        timeline.push({ stage: "approval.queued", status: "completed", timestamp: nowIso(), detail: `Superseded existing approval ${existingApproval.id}` });
+        timeline.push({ stage: "approval.superseded", status: "completed", timestamp: nowIso(), detail: `Old approval ${existingApproval.id} superseded` });
+        timeline.push({ stage: "command.completed", status: "blocked", timestamp: nowIso(), detail: "Blocked by approval gate (existing)" });
+        return { approval: existingApproval, blocked: true };
+      }
+
+      const approval = createApprovalRecord(store, command, commandId, classification.approvalReason || "Protected action requires owner approval.", classification.riskLevel, approvalDedupeKey);
 
       // Link approval to blocking task
       const blockingTask = store.tasks.find((t: any) => t.sourceCommandId === commandId);
@@ -354,6 +398,9 @@ export async function executeCommand(command: string): Promise<CommandResult> {
     riskLevel: classification.riskLevel,
     activeModel: getActiveModel(),
     fallbackModel: getFallbackModel(),
+    modelUsed: getActiveModel(),
+    modelProvider: getModelProvider(),
+    responseSource: classification.responseSource,
     planSteps: classification.planSteps,
     selectedAgents: classification.agentsRequired,
     agentsAssigned: assigned,

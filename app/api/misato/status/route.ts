@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
-import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
 import { getEvents, getHealth, getRuntimeSnapshot } from "@/lib/misato/runtime/service";
 import { isDesktopTokenRequired, isLocalSoloMode, misatoRuntimeMode } from "@/lib/misato/owner-guard";
-import { getActiveModel, getFallbackModel } from "@/lib/misato/runtime/ai-gateway";
+import { getActiveModel, getFallbackModel, getModelProvider, getModelReady } from "@/lib/misato/runtime/ai-gateway";
 import { CANONICAL_BASE_URL, getRuntimeTargetInfo, validateCanonicalPort } from "@/lib/misato/runtime/config";
+import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
 
 export const runtime = "nodejs";
 
@@ -13,50 +13,76 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const unauthorized = await assertOwnerJson(request);
-  if (unauthorized) return withMisatoCors(unauthorized, request);
+  try {
+    const unauthorized = await assertOwnerJson(request);
+    if (unauthorized) return withMisatoCors(unauthorized, request);
 
-  // Runtime-health gate: fail loud if runtime is unavailable
-  const portCheck = validateCanonicalPort();
-  if (!portCheck.ok) {
+    // Runtime-health gate: fail loud if runtime is unavailable
+    const portCheck = validateCanonicalPort();
+    if (!portCheck.ok) {
+      return withMisatoCors(
+        NextResponse.json({ ok: false, error: portCheck.message, baseUrl: CANONICAL_BASE_URL }, { status: 503 }),
+        request
+      );
+    }
+
+    const health = getHealth();
+    const snapshot = getRuntimeSnapshot();
+    const latestEvent = getEvents(1).items.at(-1) as { timestamp?: string } | undefined;
+    const agents = snapshot.agents || [];
+    const tasks = snapshot.tasks || [];
+    const activeAgents = agents.filter((agent: any) => {
+      const status = String(agent?.status || agent?.state || "").toLowerCase();
+      return ["active", "online", "thinking", "doing"].includes(status);
+    }).length;
+    const activeTasks = tasks.filter((task: any) => String(task?.status || "").toLowerCase() === "doing").length;
+    const pendingApprovals = (snapshot.approvals || []).filter((approval: any) => String(approval?.status || "").toLowerCase() === "pending").length;
+    const localSoloMode = isLocalSoloMode(request);
+    const modelProvider = getModelProvider();
+    const modelReady = getModelReady();
+
     return withMisatoCors(
-      NextResponse.json({ ok: false, error: portCheck.message, baseUrl: CANONICAL_BASE_URL }, { status: 503 }),
+      NextResponse.json({
+        ...health,
+        runtimeMode: misatoRuntimeMode(),
+        localSoloMode,
+        desktopTokenRequired: localSoloMode ? false : isDesktopTokenRequired(),
+        productionLocked: process.env.NODE_ENV === "production" && !localSoloMode,
+        hermesConnected: health.runtimeStatus === "connected",
+        runtimeConnected: health.ok === true && health.status === "ok",
+        eventStreamAvailable: true,
+        baseUrl: CANONICAL_BASE_URL,
+        connectionMode: health.runtimeStatus === "connected" ? "local-runtime" : "not-connected",
+        activeModel: getActiveModel(),
+        fallbackModel: getFallbackModel(),
+        modelProvider,
+        modelReady,
+        persistenceMode: health.paths?.persistence || "filesystem",
+        activeAgents,
+        activeTasks,
+        pendingApprovals,
+        totalAgents: agents.length,
+        queueDepth: activeTasks,
+        lastEventAt: latestEvent?.timestamp || health.timestamp || null,
+        capabilities: {
+          command: true,
+          taskCrud: true,
+          agentAssign: true,
+          approvals: true,
+          schedule: true,
+          lanes: true,
+          obsidian: !!process.env.OBSIDIAN_VAULT_PATH,
+          secretSentinel: true,
+          watchtower: true,
+          sse: true
+        }
+      }),
+      request
+    );
+  } catch (err) {
+    return withMisatoCors(
+      NextResponse.json({ ok: false, error: "status_failed", message: String(err) }, { status: 500 }),
       request
     );
   }
-
-  const health = getHealth();
-  const snapshot = getRuntimeSnapshot();
-  const latestEvent = getEvents(1).items.at(-1) as { timestamp?: string } | undefined;
-  const activeAgents = (snapshot.agents || []).filter((agent: any) => {
-    const status = String(agent?.status || agent?.state || "").toLowerCase();
-    return ["active", "online", "thinking", "doing"].includes(status);
-  }).length;
-  const activeTasks = (snapshot.tasks || []).filter((task: any) => String(task?.status || "").toLowerCase() === "doing").length;
-  const pendingApprovals = (snapshot.approvals || []).filter((approval: any) => String(approval?.status || "").toLowerCase() === "pending").length;
-  const localSoloMode = isLocalSoloMode(request);
-
-  return withMisatoCors(
-    NextResponse.json({
-      ...health,
-      runtimeMode: misatoRuntimeMode(),
-      localSoloMode,
-      desktopTokenRequired: localSoloMode ? false : isDesktopTokenRequired(),
-      productionLocked: process.env.NODE_ENV === "production" && !localSoloMode,
-      hermesConnected: health.runtimeStatus === "connected",
-      runtimeConnected: health.ok === true && health.status === "ok",
-      eventStreamAvailable: true,
-      baseUrl: CANONICAL_BASE_URL,
-      connectionMode: health.runtimeStatus === "connected" ? "local-runtime" : "not-connected",
-      activeModel: getActiveModel(),
-      fallbackModel: getFallbackModel(),
-      persistenceMode: health.paths?.persistence || "filesystem",
-      activeAgents,
-      activeTasks,
-      pendingApprovals,
-      queueDepth: activeTasks,
-      lastEventAt: latestEvent?.timestamp || health.timestamp || null
-    }),
-    request
-  );
 }
