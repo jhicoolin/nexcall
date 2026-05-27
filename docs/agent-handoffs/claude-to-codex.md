@@ -1,148 +1,107 @@
-# Handoff: Claude UI → Codex QA
-
-**From:** Claude UI Agent (desktop-ui lane)
-**To:** Codex QA Agent (client reliability lane)
-**Branch:** misato-claude-ui → misato-codex-client-qa
-**Date:** 2026-05-25
-**Version:** desktop-ui v4 stabilization pass
+# Claude → Codex QA Handoff
+**Date:** 2026-05-26  
+**Branch:** misato-claude-live-ui-wiring  
+**Author:** Claude UI Agent  
 
 ---
 
-## What Claude UI delivered
+## What Codex needs to verify
 
-`desktop-ui/app.js` v4 and `desktop-ui/styles.css` v4 — full local-first rewrite.
+### Build verification
+- `npm run lint` — PASS (confirmed clean)
+- `npm run build` — PASS (confirmed)
+- `npm run desktop:build` — run this with MISATO.exe **closed**. If it fails because MISATO.exe is open, close it first.
 
-All 13 screens now use live Hermes data when connected, with clearly labeled MOCK fallback when not.
+### Functional testing checklist
 
----
+**Schedule tabs:**
+- [ ] Click Day tab → shows hourly grid 6a–10p
+- [ ] Click Week tab → shows 7-column weekly view
+- [ ] Click Agenda tab → shows agenda list (default)
+- [ ] Active tab has violet border, others have default border
 
-## What Codex should verify
+**Approvals:**
+- [ ] Approve button calls `POST /api/misato/approvals/action` with `{ approvalId, action: 'approve' }`
+- [ ] Card moves out of Pending tab after approve/reject
+- [ ] Defer keeps card in Pending tab
+- [ ] Filter tabs (Pending/Approved/Rejected/Deferred/All) each show correct subset
+- [ ] Duplicate approval IDs are collapsed to one card (no spam)
 
-### 1. Route correctness — Hermes local bridge
+**Live Feed:**
+- [ ] `runtime_heartbeat` events do NOT appear in the feed
+- [ ] `stream_connected` / `stream_reconnect` events do NOT appear
+- [ ] APPV filter shows only approval events
+- [ ] Same eventId does not appear twice
 
-`loadAllFromHermes()` now calls **flat paths** (no `/api/misato/` prefix):
-```
-GET 127.0.0.1:3010/agents
-GET 127.0.0.1:3010/tasks
-GET 127.0.0.1:3010/approvals
-GET 127.0.0.1:3010/logs
-GET 127.0.0.1:3010/watchtower
-GET 127.0.0.1:3010/secrets
-GET 127.0.0.1:3010/events/stream   (SSE)
-POST 127.0.0.1:3010/command
-```
-**Verify:** Are these the actual Hermes sidecar routes? If Hermes uses a different prefix or path alias, the UI must be updated. The `hermesBase()` function in app.js returns `http://${host}:${port}`.
+**Command Center:**
+- [ ] Send "hi" → response appears in chat bubble
+- [ ] If `modelUsed` in response → violet badge appears below message
+- [ ] If `responseSource: 'deterministic-fallback'` → amber `deterministic fallback` badge appears
+- [ ] Error messages show endpoint URL attempted, not just generic "Failed to fetch"
 
-### 2. Route correctness — Vercel Preview path
+**AgentDex:**
+- [ ] If agent has `progress: 75` → progress bar shows at 75%
+- [ ] Agent drawer shows `lastActivityAt`, progress bar, `tasksCompleted` if present
+- [ ] Assigning task via modal calls `POST /api/misato/tasks/create`
 
-`loadAll()` (the Vercel / token path) calls:
-```
-GET <baseUrl>/council     → maps to /api/misato/council on Vercel
-GET <baseUrl>/tasks       → /api/misato/tasks
-GET <baseUrl>/approvals   → /api/misato/approvals
-GET <baseUrl>/logs        → /api/misato/logs
-GET <baseUrl>/watchtower/status  → /api/misato/watchtower/status
-GET <baseUrl>/secrets/status     → /api/misato/secrets/status
-```
-**Verify:** These paths are appended to `state.baseUrl` (e.g. `https://nexcall-git-*.vercel.app/api/misato`). Confirm the Vercel routes match — particularly `/council` vs `/agents`.
+**Sentinel:**
+- [ ] Scan Now button calls `POST /api/misato/secrets/scan-summary` (NOT `sentinel/scan`)
+- [ ] If scan fails, toast shows the endpoint URL and error message
+- [ ] `gitleaksInstalled: false` shows install instructions panel
+- [ ] Secret values are never rendered (only `[REDACTED]`)
 
-### 3. CORS on Vercel preview routes
+**Obsidian Mirror:**
+- [ ] If `state.runtimeCtx.obsidian.configured` is false → shows setup instructions
+- [ ] Sync Now button calls `POST /api/misato/obsidian/sync`
+- [ ] "Open in Obsidian" button is disabled when vault not configured
 
-The UI sends two headers on Vercel path requests:
-```
-x-misato-desktop-token: <token>
-x-vercel-protection-bypass: <bypass>
-```
-**Verify:** Vercel middleware allows these custom headers. CORS `Access-Control-Allow-Headers` must include `x-misato-desktop-token` and `x-vercel-protection-bypass`. Without this, the browser will block the preflight.
+**Mock banners:**
+- [ ] When Hermes connected: NO mock banners on Overview, AgentDex, Kanban, Logs, Watchtower, Approvals
+- [ ] When Hermes disconnected: mock banners appear with amber style
+- [ ] Loading spinner (`hermes-loading`) appears while data fetches after connect
 
-### 4. Response shape normalization
-
-The UI normalizes response shapes in `normalizeItemsResponse()`:
-```js
-// Accepts bare array OR { items: [...] }
-if (Array.isArray(value)) return value;
-if (Array.isArray(value?.items)) return value.items;
-return [];
-```
-And in `normalizeCouncilAgent()`:
-```js
-// Accepts status/state synonyms: "online"→"active", "pending"→"thinking", etc.
-// Accepts perm synonyms: permissionLevel (number) → "L1", "L2", etc.
-// Accepts specialty synonyms: abilities[], allowedTools[], memoryScope
-```
-**Verify:** If Hermes or Vercel returns shapes that don't match, check which field is missing and update the normalizer — not the backend contract.
-
-### 5. `/health` response shape
-
-`discoverHermes()` reads:
-```js
-{ status, version, uptime, agents: { active, total }, tasks, events }
-```
-The top bar shows `version` and `agents.active`. If these fields are missing, the top bar shows `?` rather than breaking.
-
-**Verify:** Does `/health` return `agents.active` (object) or `agents` (number)? The UI handles both:
-- `h?.agents?.active` for object shape
-- Falls back to `'?'` if missing
-
-### 6. SSE event stream
-
-`startSSE()` connects to `127.0.0.1:3010/events/stream`. Each message must be valid JSON on `event.data`.
-
-**Verify:**
-- Does the SSE endpoint send `data: {...}\n\n` format (standard EventSource)?
-- Does each event include `{ eventId, timestamp, type, source, payload }`?
-- Does `payload.commandId` exist on command-flow events? (Used to correlate timeline stages)
-
-### 7. Panel-specific checks
-
-| Screen | What to check |
-|--------|--------------|
-| AgentDex | Does `/agents` return? Does `normalizeCouncilAgent()` map state correctly? |
-| Kanban | Does `/tasks` return? Do `status` values match `Done\|Doing\|Blocked\|Idea`? |
-| Approvals | Does `/approvals` return? Does each item have `id, title, risk, agent, details`? |
-| Logs | Does `/logs` return? Does each item have a severity field (`sev`, `level`, or `severity`)? |
-| Watchtower | Does `/watchtower` return `{ services: [...] }` or `{ monitors: [...] }`? |
-| Secret Sentinel | Does `/secrets` return an object (not array) with `findings` + `remediation`? |
-| Schedule | Does `/tasks` include `scheduledAt` or `time` fields? If not, Schedule stays MOCK. |
-| Lanes | Does `/agents` include `branch` or `lane` fields? If not, Lanes stays MOCK. |
-| Command Center | Does `POST /command` return `{ ok, commandId, missionSummary }`? |
-
-### 8. Connectivity test path (Vercel)
-
-`testConnection()` hits `<baseUrl>/status` — this maps to `/api/misato/status` on Vercel.
-
-**Verify:** Does this route return `200 application/json`? If it returns `text/html`, the UI correctly shows "Vercel Protected" and prompts the user to add a bypass token.
+**Lanes:**
+- [ ] When Hermes connected but no branch/lane fields: shows blue "waiting on" banner, NOT MOCK banner
+- [ ] When agents have `branch` field: shows live lane data
 
 ---
 
-## Known fallback surfaces (not bugs)
+## Mutations to verify (POST calls)
 
-These screens are always MOCK because the required data is not in Hermes's current contract. The MOCK banner is shown. These are not Codex bugs — they're Hermes feature requests.
-
-| Screen | Why MOCK | What Hermes needs to add |
-|--------|----------|--------------------------|
-| Schedule | Tasks have no `scheduledAt` or `time` field | Add `/schedule` endpoint or `scheduledAt` to tasks |
-| Lanes | Agents have no `branch` or `lane` field | Add `branch`/`lane` to agent objects |
-
----
-
-## Security constraints Codex must not break
-
-- Token inputs use `type="password"` and `autocomplete="off"`. Never change to `type="text"`.
-- `saveConfig()` checks `if (token && token !== '••••••••••••••••')` before overwriting saved values. Do not remove this guard.
-- No token values in `console.log`, render output, or URL parameters.
-- `isConnected()` gates command send — do not bypass.
-- No changes to `middleware.ts`, auth logic, or `/api/*` backend routes.
+| Action | Endpoint | Body |
+|--------|----------|------|
+| Send command | `POST /api/misato/command` | `{ command }` |
+| Create task | `POST /api/misato/tasks/create` | `{ title, project, priority, status, agent }` |
+| Update task | `POST /api/misato/tasks/update` | `{ taskId, payload }` |
+| Delete task | `POST /api/misato/tasks/delete` | `{ taskId }` |
+| Approve | `POST /api/misato/approvals/action` | `{ approvalId, action: 'approve' }` |
+| Reject | `POST /api/misato/approvals/action` | `{ approvalId, action: 'reject' }` |
+| Defer | `POST /api/misato/approvals/action` | `{ approvalId, action: 'defer' }` |
+| Scan secrets | `POST /api/misato/secrets/scan-summary` | `{}` |
+| Sync Obsidian | `POST /api/misato/obsidian/sync` | `{}` |
 
 ---
 
-## Files to diff
+## Known issues Codex may need to fix
 
-```
-desktop-ui/app.js
-desktop-ui/styles.css
-```
+1. **`npm run desktop:build`** — must be run with MISATO.exe closed. If build fails, report in this doc.
+2. **Approval filter state** — if `state.approvalFilter` persists across screen changes, it might confuse navigation. Codex can decide if it should reset on nav.
+3. **Schedule Day/Week with no `scheduledAt` data** — shows honest waiting state. If Hermes tasks never have `scheduledAt`, Codex can confirm this is expected.
+4. **Watchtower refresh** — still calls `loadAllFromHermes()` on Refresh click, not a dedicated `/watchtower/check` endpoint. If Hermes adds this, Codex should wire it.
+5. **SSE noise** — if Hermes emits events not in `FEED_NOISE_TYPES` that are still spammy, Codex/Hermes should coordinate to add them.
 
-**Branch:** `misato-claude-ui`
+---
 
-Codex's branch: `misato-codex-client-qa` — PRs should target `misato-full-build`, not `main`.
+## Secrets / security checklist
+
+- [ ] No raw secret values in any UI render path
+- [ ] Token fields are password inputs — value never shown after entry
+- [ ] No `console.log` of tokens (check browser DevTools)
+- [ ] Sentinel findings show `[REDACTED]` for any secret-like value
+
+---
+
+## Blockers for Codex
+
+- `npm run desktop:build` requires Tauri environment (might need to run on owner machine)
+- Approval action endpoint shape must match: `{ approvalId, action }` — if Hermes uses different field names, Codex should update the Hermes API contract doc and flag to Claude

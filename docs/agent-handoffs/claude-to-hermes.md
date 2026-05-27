@@ -1,225 +1,139 @@
-# Handoff: Claude UI → Hermes Architecture
-
-**From:** Claude UI Agent (desktop-ui lane)
-**To:** Hermes Architecture Agent (backend lane)
-**Branch:** misato-claude-ui → misato-hermes-backend
-**Date:** 2026-05-25
-**Version:** desktop-ui v4 (stabilization pass)
+# Claude → Hermes Handoff
+**Date:** 2026-05-26  
+**Branch:** misato-claude-live-ui-wiring  
+**Author:** Claude UI Agent  
 
 ---
 
-## What Claude UI did in v4
+## What Claude shipped in this pass
 
-- Delivered `desktop-ui/app.js` v4 and `desktop-ui/styles.css` v4.
-- Local Hermes Bridge is the **primary daily path**. Boot probes `127.0.0.1:3010/health` within 4 s; no token required for local mode.
-- SSE at `127.0.0.1:3010/events/stream` drives live feed, command timeline, and incremental data patches.
-- All 13 screens show live runtime data when Hermes is connected; MOCK fallback is always labeled with an orange banner.
-- Persistent SSE failure (3 consecutive errors) escalates to `discoverHermes()` to re-probe `/health`.
-- 30-second health ping updates the top bar and detects mid-session Hermes shutdown.
-- Vercel / token path is collapsed under Advanced in Settings — not the daily path.
+UI-only changes to `desktop-ui/app.js` and `desktop-ui/styles.css`. No backend, auth, or API routes were touched.
 
----
-
-## Hermes routes the UI calls
-
-All routes are **flat** — no `/api/misato/` prefix. That prefix belongs to the Next.js / Vercel side only.
-Base: `http://127.0.0.1:3010` (configurable in Settings).
-
-| Method | Path | Used for |
-|--------|------|---------|
-| `GET` | `/health` | Boot discovery + 30 s health ping |
-| `GET` | `/agents` | Agent registry (AgentDex, Overview, Watchtower, Command Center) |
-| `GET` | `/tasks` | Task list (Kanban, Schedule fallback, Overview) |
-| `GET` | `/approvals` | Pending approvals (Approvals screen, Overview) |
-| `GET` | `/logs` | Log entries (Logs screen, Watchtower incidents, Overview alerts) |
-| `GET` | `/watchtower` | Service health monitors (Watchtower screen) |
-| `GET` | `/secrets` | Sentinel findings (Secret Sentinel screen) |
-| `GET` | `/events/stream` | SSE stream — drives everything in real time |
-| `POST` | `/command` | Send mission command; body `{ command: string }` |
+### Changes made
+1. **Schedule Day/Week/Agenda** — all three tabs now render real content. Day: hourly grid 6a–10p with task blocks. Week: 7-column calendar. All tabs wired and stateful via `state.scheduleView`.
+2. **Approvals** — filter tabs (Pending/Approved/Rejected/Deferred/All), dedup by ID to stop approval spam, normalizes `requestedByAgentName`, `riskLevel`, `safeExecutionMode`, `decisionAt`.
+3. **Live Feed** — heartbeat/stream noise filtered (`runtime_heartbeat`, `stream_connected`, `ping`, `pong`). Deduplication by eventId. Added APPV (approvals) filter tab.
+4. **Mock banners** — suppressed when Hermes connected. Replaced with loading spinner while data fetches, or honest empty state after load.
+5. **Command Center** — captures `modelUsed` and `responseSource` from command responses. Shows violet model badge and amber `deterministic-fallback` badge on MISATO messages.
+6. **AgentDex** — progress bar on cards and drawer if `progress` field present. `lastActivityAt`, `tasksCompleted`, `tasksPending` shown in drawer.
+7. **Obsidian Mirror** — checks `state.runtimeCtx.obsidian.configured` / `vaultPath`. Shows live vs. not-configured state. Sync button calls `POST /api/misato/obsidian/sync`.
+8. **Secret Sentinel** — fixed scan endpoint from `sentinel/scan` → `secrets/scan-summary`. Added `gitleaksInstalled` and `scanAvailable` status panel. Disabled scan button when endpoint unavailable. Normalizes `critical`, `high`, `warnings` counts.
+9. **Lanes** — no longer shows MOCK banner when Hermes is connected. Shows honest "waiting on branch/lane fields" message with specific instruction.
+10. **Overview** — active model tile from `ctx.activeModel`. Health tiles show `…` while loading.
+11. **Error states** — every fetch error shows endpoint URL and recovery action.
 
 ---
 
-## Expected response shapes
+## Endpoints Claude is calling — Hermes must serve these
 
-### `/health`
+| Method | Path | Used by | Notes |
+|--------|------|---------|-------|
+| GET | `/health` | Boot discovery, 30s ping | Must return `application/json` |
+| GET | `/api/misato/status` | runtimeCtx, activeModel, mutationMode | Required |
+| GET | `/api/misato/agents` | AgentDex, Overview | Required |
+| GET | `/api/misato/tasks` | Kanban, Schedule, Overview | Required |
+| GET | `/api/misato/approvals` | Approvals screen | Required |
+| GET | `/api/misato/logs` | Logs, Live Feed fallback | Required |
+| GET | `/api/misato/watchtower` | Watchtower | Required |
+| GET | `/api/misato/secrets` | Sentinel screen | Required |
+| GET | `/api/misato/events/stream` | SSE — Live Feed | Required |
+| POST | `/api/misato/command` | Command Center | Required |
+| POST | `/api/misato/tasks/create` | Create task modal | Required |
+| POST | `/api/misato/tasks/update` | Kanban status/priority | Required |
+| POST | `/api/misato/tasks/delete` | Kanban delete | Required |
+| POST | `/api/misato/approvals/action` | Approve/Reject/Defer | Required |
+| POST | `/api/misato/secrets/scan-summary` | Sentinel Scan Now | **RENAMED — was `sentinel/scan`** |
+| POST | `/api/misato/obsidian/sync` | Obsidian Sync Now | New endpoint needed |
+
+---
+
+## Fields Hermes should add or confirm
+
+### `/api/misato/status` — Claude reads these
 ```json
 {
-  "status": "ok",
-  "version": "1.0.0",
-  "uptime": 3600,
-  "agents": { "active": 3, "total": 14 },
-  "tasks": { "doing": 2, "blocked": 1 },
-  "events": 128
-}
-```
-
-### `/agents`
-Accepts bare array OR `{ items: [...] }`.
-```json
-[{
-  "id": "strategy",
-  "name": "Strategy Agent",
-  "role": "Mission Planning",
-  "specialty": "Goal alignment, OKRs",
-  "state": "active|thinking|idle|blocked|complete",
-  "perm": "Advisory|Build|Audit|Gate",
-  "risk": "Low|Medium|High",
-  "feedback": "Current status string"
-}]
-```
-**Optional for Lanes screen:** add `"branch"` or `"lane"` field to each agent.
-
-### `/tasks`
-Accepts bare array OR `{ items: [...] }`.
-```json
-[{
-  "id": "t1",
-  "title": "Task name",
-  "project": "NexCall",
-  "priority": "High|Medium|Low",
-  "status": "Done|Doing|Blocked|Idea",
-  "agent": "Claude UI",
-  "risk": "Low",
-  "approvalRequired": false
-}]
-```
-**Optional for Schedule screen:** add `"scheduledAt"` (ISO 8601) or `"time"` (string range) to each task.
-
-### `/logs`
-Accepts bare array OR `{ items: [...] }`. Severity field can be `sev`, `level`, or `severity`.
-```json
-[{
-  "ts": "09:31:57",
-  "src": "CONN-TEST",
-  "sev": "warn|info|error",
-  "agent": "Claude UI",
-  "action": "Description of event"
-}]
-```
-
-### `/approvals`
-Accepts bare array OR `{ items: [...] }`.
-```json
-[{
-  "id": "apr-1",
-  "title": "Action requiring approval",
-  "risk": "High|Medium|Low",
-  "agent": "Hermes Architecture Agent",
-  "details": "What this action does",
-  "requestedAt": "5 min ago"
-}]
-```
-
-### `/watchtower`
-```json
-{
-  "services": [
-    { "name": "Hermes Local Bridge", "meta": "127.0.0.1:3010", "ok": true }
-  ]
-}
-```
-Also accepts `{ monitors: [...] }` with `{ name, target, status: 'up'|'down' }`.
-
-### `/secrets`
-Object (not array). No raw secret values — type/path/severity only.
-```json
-{
-  "lastScanAt": "2026-05-25T09:33:00Z",
-  "findings": [
-    { "sev": "warn", "title": "...", "loc": "path/to/file", "age": "1h ago", "status": "Confirmed" }
-  ],
-  "remediation": [
-    { "label": "Rotate all exposed secrets", "done": false }
-  ]
-}
-```
-
-### `/events/stream` — SSE canonical schema
-```json
-{
-  "eventId": "uuid",
-  "timestamp": "2026-05-25T09:31:57Z",
-  "type": "command_received|plan_generated|agent_assigned|task_updated|risk_detected|approval_requested|approval_resolved|log|status_change",
-  "source": "agent-id or system",
-  "payload": {
-    "message": "Human-readable description",
-    "commandId": "optional — ties events to a command flow",
-    "summary": "optional — short summary for timeline",
-    "task": { "...task fields..." },
-    "agent": { "...agent fields..." },
-    "approval": { "...approval fields..." }
+  "mode": "LOCAL SOLO",
+  "activeModel": "deepseek-v4-flash",
+  "runtimeMode": "local",
+  "mutationMode": "full CRUD",
+  "agentCount": 14,
+  "taskCount": 9,
+  "obsidian": {
+    "configured": true,
+    "vaultPath": "/path/to/vault",
+    "lastSync": "2026-05-26T12:00:00Z"
   }
 }
 ```
 
-### `POST /command`
-```json
-{ "command": "What needs attention today?" }
-```
-Response:
+### `/api/misato/command` — canonical response shape
 ```json
 {
   "ok": true,
-  "commandId": "cmd-uuid",
-  "missionSummary": "Plain text summary shown in Command Center"
+  "commandId": "cmd-abc123",
+  "responseText": "Human-readable MISATO response.",
+  "modelUsed": "deepseek-v4-flash",
+  "responseSource": "ai",
+  "intent": "task.create",
+  "riskLevel": "Low",
+  "commandStatus": "completed"
+}
+```
+Claude reads `responseText` first, then `missionSummary → response → message → output`.
+
+### `/api/misato/agents` — add for live progress + lanes
+```json
+{
+  "progress": 75,
+  "tasksCompleted": 3,
+  "tasksPending": 1,
+  "branch": "misato-hermes-backend",
+  "lane": "Hermes Backend Lane",
+  "lastActivityAt": "2026-05-26T11:30:00Z"
+}
+```
+`branch` or `lane` field makes Lanes screen go fully live.
+
+### `/api/misato/approvals` — add for clean card rendering
+```json
+{
+  "id": "apr-xxx",
+  "title": "Human-readable title",
+  "description": "What this approval does and why",
+  "riskLevel": "High",
+  "status": "pending",
+  "requestedByAgentName": "Hermes Architecture Agent",
+  "actionType": "deploy.production",
+  "createdAt": "2026-05-26T10:00:00Z",
+  "decisionAt": null,
+  "safeExecutionMode": true
 }
 ```
 
----
-
-## CORS requirement
-
-The UI runs in Tauri's webview. The webview origin is `tauri://localhost` in packaged builds and `http://localhost:1420` in dev. Hermes must allow both:
+### `/api/misato/tasks` — add for Schedule Day/Week
+```json
+{
+  "scheduledAt": "2026-05-26T14:00:00Z"
+}
 ```
-Access-Control-Allow-Origin: tauri://localhost, http://localhost:1420
-Access-Control-Allow-Methods: GET, POST, OPTIONS
-Access-Control-Allow-Headers: Content-Type
-```
+Without `scheduledAt`, tasks won't appear in Day/Week calendar views.
 
 ---
 
-## New Hermes endpoints needed (v5 wiring pass)
+## Hermes must verify
 
-These endpoints are now called by the UI but not yet confirmed as implemented in Hermes. UI shows toast with URL on failure — it does not crash.
-
-| Method | Path | Body | Used for |
-|--------|------|------|---------|
-| POST | `/approvals/:id/approve` | `{}` | Approval resolution |
-| POST | `/approvals/:id/reject` | `{}` | Approval resolution |
-| POST | `/approvals/:id/defer` | `{}` | Approval deferral |
-| POST | `/tasks` | task object | Task creation |
-| PATCH | `/tasks/:id` | partial task | Task status/priority update |
-
-All return `200` on success. On error, UI shows `HTTP <status> — <body excerpt>` and the attempted URL.
+1. `POST /api/misato/secrets/scan-summary` — endpoint exists (renamed from `sentinel/scan`)
+2. `POST /api/misato/obsidian/sync` — endpoint exists (new)
+3. `POST /api/misato/command` response includes `responseText` field
+4. `GET /api/misato/status` returns `activeModel` field
+5. SSE does not emit `runtime_heartbeat` continuously (or Hermes is OK that Claude filters it)
+6. Approval objects have `requestedByAgentName` not just `agent`
 
 ---
 
-## What the UI does NOT need from Hermes yet
+## Blockers for Claude (waiting on Hermes)
 
-- A `/schedule` endpoint (UI falls back to MOCK_SCHEDULE with a clear label)
-- Agent `branch`/`lane` fields (UI falls back to MOCK lanes with a clear label)
-- Any auth token for local-solo mode
-
----
-
-## Security constraints (unchanged)
-
-- No token values logged or rendered.
-- Sentinel findings show type + path + severity only — never raw secret values.
-- Do not change auth logic, middleware, or public NexCall routes.
-- Do not merge to main. PR targets `misato-full-build` only.
-- Do not connect live automations without owner approval.
-
----
-
-## Files Claude UI changed in v5
-
-```
-desktop-ui/app.js   — v5 wiring pass: hermesMutate, resolveApproval, createTask, updateTask,
-                       modal system, runtimeStatus(), runtime badge in topbar,
-                       sendCommand error surfaces URL, btn-refresh fixed to loadAllFromHermes
-desktop-ui/styles.css — v5: modal overlay, kanban-card-actions, runtime-mode-badge, cmd-message-error
-docs/agent-handoffs/claude-to-hermes.md — this file (updated)
-docs/agent-handoffs/claude-to-codex.md  — new
-docs/design/CLAUDE_UI_STYLE_GUIDE.md    — updated
-```
+- Schedule Week/Day only populate if tasks have `scheduledAt` ISO field
+- Lanes screen fully live only when agents have `branch` or `lane` fields
+- Obsidian live sync requires `OBSIDIAN_VAULT_PATH` env var + Hermes support
+- Active model badge requires `activeModel` in `/status` response

@@ -778,3 +778,220 @@ code {
 select.input { appearance: none; cursor: pointer; }
 
 /* styles.css v5 */
+
+/* ================================================================
+   v6 UI polish — Schedule Day/Week, Approvals filter, model badges,
+   progress bars, loading states, feed quality, error states
+   ================================================================ */
+
+/* ── Loading / empty inline ────────────────────────────────────── */
+.loading-inline {
+  padding: 24px; text-align: center;
+  font-size: 12px; color: var(--text-tertiary);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.loading-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent-blue); opacity: 0.6;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* ── Schedule — Day view ───────────────────────────────────────── */
+.schedule-day-grid {
+  display: flex; flex-direction: column; gap: 0;
+  overflow-y: auto; position: relative;
+  max-height: calc(100vh - 240px);
+}
+.schedule-day-hour {
+  display: flex; align-items: flex-start; gap: 12px;
+  border-top: 1px solid var(--border-subtle);
+  min-height: 44px; padding: 4px 0;
+  position: relative;
+}
+.schedule-day-hour.now-row { background: rgba(224,68,78,0.04); }
+.schedule-day-hour-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-tertiary); min-width: 54px; padding-top: 4px;
+  text-align: right; padding-right: 8px; flex-shrink: 0;
+}
+.schedule-day-hour.now-row .schedule-day-hour-label { color: var(--accent-red); }
+.schedule-now-stripe {
+  position: absolute; left: 66px; right: 0; top: 0;
+  height: 2px; background: var(--accent-red); opacity: 0.7;
+}
+.schedule-day-tasks { flex: 1; display: flex; flex-direction: column; gap: 3px; padding: 4px 0; }
+.schedule-day-task {
+  border-radius: 3px; padding: 4px 10px;
+  font-size: 11px; font-weight: 500; color: var(--text-primary);
+  display: flex; align-items: center; gap: 6px;
+}
+.schedule-day-task.priority-high   { background: var(--accent-red-bg);    border-left: 2px solid var(--accent-red);    }
+.schedule-day-task.priority-medium { background: var(--accent-blue-bg);   border-left: 2px solid var(--accent-blue);   }
+.schedule-day-task.priority-low    { background: var(--surface-3);        border-left: 2px solid var(--accent-slate);  }
+.schedule-day-task-agent { font-size: 9px; color: var(--text-tertiary); margin-left: auto; }
+
+/* ── Schedule — Week view ──────────────────────────────────────── */
+.schedule-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.schedule-week-day {
+  background: var(--surface-2); border: 1px solid var(--border-default);
+  border-radius: 6px; overflow: hidden; min-height: 120px;
+}
+.schedule-week-day.today { border-color: var(--accent-violet); }
+.schedule-week-day-header {
+  padding: 6px 8px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-tertiary); background: var(--surface-1);
+}
+.schedule-week-day.today .schedule-week-day-header {
+  background: var(--accent-violet-bg);
+  color: var(--accent-violet);
+  border-bottom-color: rgba(139,92,246,0.25);
+}
+.schedule-week-day-date {
+  font-weight: 400; opacity: 0.6;
+}
+.schedule-week-task {
+  padding: 5px 8px; border-bottom: 1px solid var(--border-subtle);
+  font-size: 10px; cursor: pointer;
+  transition: background var(--ease-hover);
+  line-height: 1.3;
+}
+.schedule-week-task:hover { background: var(--surface-3); }
+.schedule-week-task-title { font-weight: 500; color: var(--text-primary); }
+.schedule-week-task-time  { color: var(--text-tertiary); margin-top: 2px; font-family: var(--font-mono); font-size: 9px; }
+.schedule-week-empty { padding: 12px; font-size: 10px; color: var(--text-tertiary); text-align: center; }
+
+/* ── Approval filter strip ─────────────────────────────────────── */
+.approval-filter-strip {
+  display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.approval-filter-btn {
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  background: var(--surface-2); border: 1px solid var(--border-default);
+  cursor: pointer; transition: all var(--ease-hover);
+}
+.approval-filter-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.approval-filter-btn.active {
+  background: var(--accent-amber-bg);
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+.approval-card.approved { border-left-color: var(--accent-teal)  !important; opacity: 0.65; }
+.approval-card.rejected { border-left-color: var(--accent-red)   !important; opacity: 0.65; }
+.approval-card.deferred { border-left-color: var(--accent-slate) !important; opacity: 0.65; }
+.approval-safe-badge {
+  font-size: 10px; color: var(--accent-teal);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 4px;
+}
+
+/* ── Command Center — model + fallback badges ──────────────────── */
+.cmd-message-meta {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+.cmd-model-badge   { font-size: 9px !important; padding: 1px 5px !important; }
+.cmd-fallback-note { font-size: 10px; color: var(--accent-amber); opacity: 0.75; }
+
+/* ── Agent progress bar ────────────────────────────────────────── */
+.agent-progress-wrap { display: flex; align-items: center; gap: 8px; }
+.agent-progress-bar  {
+  flex: 1; height: 3px; background: var(--surface-3);
+  border-radius: 2px; overflow: hidden;
+}
+.agent-progress-fill {
+  height: 100%; border-radius: 2px;
+  background: var(--accent-teal);
+  transition: width 300ms ease-out;
+}
+.agent-progress-pct { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); min-width: 28px; text-align: right; }
+.agent-card-progress { margin-top: 6px; }
+
+/* ── Sentinel status panel ─────────────────────────────────────── */
+.sentinel-status-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; border-bottom: 1px solid var(--border-subtle); font-size: 12px;
+}
+.sentinel-status-label { flex: 1; color: var(--text-secondary); }
+.sentinel-scan-state {
+  padding: 10px 14px; font-size: 12px; color: var(--text-secondary);
+  border-top: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Watchtower service status ─────────────────────────────────── */
+.wt-service-row.ok   { }
+.wt-service-row.warn { background: rgba(245,166,35,0.04); }
+.wt-service-row.bad  { background: rgba(224,68,78,0.04);  }
+
+/* ── Overview model tile ───────────────────────────────────────── */
+.model-tile {
+  background: var(--accent-violet-bg);
+  border: 1px solid rgba(139,92,246,0.2);
+  border-radius: 6px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  border-top: 2px solid var(--accent-violet);
+}
+.model-tile-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); }
+.model-tile-value { font-size: 13px; font-weight: 700; color: var(--accent-violet); line-height: 1.2; }
+.model-tile-sub   { font-size: 11px; color: var(--text-secondary); }
+
+/* ── Connected loading placeholder ────────────────────────────── */
+.hermes-loading {
+  padding: 20px; text-align: center;
+  font-size: 11px; color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+/* ── Feed entry expand button ──────────────────────────────────── */
+.feed-entry-expand {
+  font-size: 9px; color: var(--text-tertiary); cursor: pointer;
+  margin-top: 2px; background: none; border: none; padding: 0;
+  font-family: var(--font-ui);
+}
+.feed-entry-expand:hover { color: var(--text-secondary); }
+
+/* ── Schedule view active toggle variant ───────────────────────── */
+.schedule-view-toggle .view-toggle-btn.active {
+  background: var(--surface-3);
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+}
+
+/* ── Kanban board scrollable improvement ───────────────────────── */
+.kanban-board {
+  align-items: flex-start;
+}
+
+/* ── Overview section gap override ────────────────────────────── */
+.overview-grid-bottom { margin-top: 16px; }
+
+/* ── Fallback waiting state ────────────────────────────────────── */
+.waiting-hermes {
+  padding: 16px; border-radius: 6px; margin-bottom: 12px;
+  background: var(--accent-blue-bg);
+  border: 1px solid rgba(74,140,255,0.2);
+  font-size: 11px; color: var(--accent-blue);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── Approval card action row ──────────────────────────────────── */
+.approval-decision-note {
+  font-size: 10px; color: var(--text-tertiary);
+  margin-top: 8px; font-style: italic;
+}
+
+/* ── Lanes — waiting state ─────────────────────────────────────── */
+.lanes-waiting {
+  padding: 16px; text-align: center;
+  font-size: 12px; color: var(--text-secondary);
+  background: var(--surface-2); border-radius: 6px;
+  border: 1px solid var(--border-default); margin-bottom: 12px;
+}
+

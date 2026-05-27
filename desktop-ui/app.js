@@ -283,7 +283,9 @@ const state = {
   designLibTab:   'tokens',
   obsidianFolder: 0,
   modal:          null,  // { type, data } — current open modal or null
-  logFilter:      'all'  // 'all' | 'info' | 'warn' | 'error'
+  logFilter:      'all', // 'all' | 'info' | 'warn' | 'error'
+  scheduleView:   'agenda', // 'agenda' | 'day' | 'week'
+  approvalFilter: 'pending' // 'pending' | 'approved' | 'rejected' | 'deferred' | 'all'
 };
 
 // ── Utility Helpers ────────────────────────────────────────────
@@ -693,6 +695,15 @@ function toFeedEvent(log, i) {
   };
 }
 
+// Event types that are too noisy for the default live feed.
+// Heartbeats and stream lifecycle events are filtered from all views.
+const FEED_NOISE_TYPES = new Set([
+  'runtime.heartbeat', 'runtime_heartbeat', 'heartbeat',
+  'stream.connected',  'stream_connected',
+  'stream.reconnect',  'stream_reconnect',
+  'ping', 'pong'
+]);
+
 function getFilteredFeedEvents() {
   let raw;
   if (state.feedEvents.length) {
@@ -705,12 +716,25 @@ function getFilteredFeedEvents() {
     // Truly disconnected — show mock so the feed isn't empty
     raw = MOCK_LOGS.map(toFeedEvent);
   }
-  if (state.feedFilter === 'all')      return raw;
-  if (state.feedFilter === 'alerts')   return raw.filter(e => e.type === 'risk_detected' || e.payload?.sev === 'warn' || e.payload?.sev === 'error' || e.payload?.sev === 'warning');
-  if (state.feedFilter === 'agents')   return raw.filter(e => ['agent_assigned','status_change'].includes(e.type));
-  if (state.feedFilter === 'commands') return raw.filter(e => ['command_received','plan_generated','approval_requested','approval_resolved'].includes(e.type));
-  if (state.feedFilter === 'tasks')    return raw.filter(e => e.type === 'task_updated');
-  return raw;
+
+  // Remove noise events and deduplicate by eventId.
+  // Approval spam (same approval_requested eventId appearing many times) is collapsed here.
+  const seen = new Set();
+  const cleaned = raw.filter(e => {
+    if (FEED_NOISE_TYPES.has(e.type)) return false;
+    const key = e.eventId || `${e.type}::${e.timestamp}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  if (state.feedFilter === 'all')       return cleaned;
+  if (state.feedFilter === 'alerts')    return cleaned.filter(e => e.type === 'risk_detected' || e.payload?.sev === 'warn' || e.payload?.sev === 'error' || e.payload?.sev === 'warning');
+  if (state.feedFilter === 'agents')    return cleaned.filter(e => ['agent_assigned','status_change'].includes(e.type));
+  if (state.feedFilter === 'commands')  return cleaned.filter(e => ['command_received','plan_generated','approval_requested','approval_resolved'].includes(e.type));
+  if (state.feedFilter === 'tasks')     return cleaned.filter(e => e.type === 'task_updated');
+  if (state.feedFilter === 'approvals') return cleaned.filter(e => ['approval_requested','approval_resolved'].includes(e.type));
+  return cleaned;
 }
 
 function buildFeedEntriesHTML() {
@@ -1000,7 +1024,10 @@ async function sendCommand(cmd) {
       || (data.intent   ? `[${data.intent}] ${data.commandStatus || 'received'}` : '')
       || (data.ok === true ? 'Command sent.' : '')
       || 'Command sent.';
-    state.messages.push({ role:'misato', text, ts:now() });
+    // Capture model info for display in the chat bubble
+    const modelUsed      = data.modelUsed || data.model || data.aiModel || null;
+    const responseSource = data.responseSource || null;
+    state.messages.push({ role:'misato', text, ts:now(), modelUsed, responseSource });
     // Refresh live state — commands can trigger task/agent/approval changes on Hermes
     if (isHermesConnected()) setTimeout(() => loadAllFromHermes(), 1500);
   } catch (e) {
@@ -1113,11 +1140,12 @@ function renderFeed() {
   const { text: liveTxt, color: liveColor } = sseLiveLabel();
   const count = getFilteredFeedEvents().length;
   const filters = [
-    { id:'all',      label:'ALL'      },
-    { id:'alerts',   label:'ALERTS'   },
-    { id:'agents',   label:'AGENTS'   },
-    { id:'commands', label:'CMDS'     },
-    { id:'tasks',    label:'TASKS'    }
+    { id:'all',       label:'ALL'   },
+    { id:'alerts',    label:'ALERTS'},
+    { id:'agents',    label:'AGENTS'},
+    { id:'commands',  label:'CMDS'  },
+    { id:'tasks',     label:'TASKS' },
+    { id:'approvals', label:'APPV'  }
   ];
   return `
     <aside class="feed">
@@ -1275,10 +1303,14 @@ function renderConfigPanel() {
 function renderOverview() {
   const hermes  = isHermesConnected();
   const h       = state.hermesHealth;
-  const agents  = state.agents  || MOCK_AGENTS;
-  const tasks   = state.tasks   || MOCK_TASKS;
-  const appr    = state.approvals || MOCK_APPROVALS;
-  const isMock  = !state.agents;
+  const agents  = state.agents  || (hermes ? [] : MOCK_AGENTS);
+  const tasks   = state.tasks   || (hermes ? [] : MOCK_TASKS);
+  const appr    = state.approvals || (hermes ? [] : MOCK_APPROVALS);
+  // Show mock banner only when Hermes is NOT connected and we're using fallback data
+  const isMock  = !state.agents && !hermes;
+  // Show model info from status endpoint
+  const ctx     = state.runtimeCtx || {};
+  const activeModel = ctx.activeModel || ctx.model || ctx.aiModel || null;
   const active  = hermes && h?.agents?.active != null ? h.agents.active : agents.filter(a=>a.state==='active'||a.state==='thinking').length;
   const blocked = tasks.filter(t=>t.status==='Blocked').length;
   const pending = appr.length;
@@ -1286,15 +1318,22 @@ function renderOverview() {
   const healthTiles = [
     { label:'Hermes',        value: hermes ? 'Connected' : state.hermesState === 'not-running' ? 'Offline' : '—', sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Local runtime', cls: hermes ? 'ok' : state.hermesState==='not-running' ? 'bad' : '' },
     { label:'Uptime',        value: hermes && h?.uptime != null ? fmtUptime(h.uptime) : '—',  sub: hermes ? (h?.version ? `v${h.version}` : 'running') : 'not running',  cls: hermes ? 'ok' : '' },
-    { label:'Active Agents', value: active, sub:`${agents.length} total in council`, cls: active > 0 ? '' : '' },
-    { label:'Queue Depth',   value: tasks.filter(t=>t.status==='Doing').length, sub:blocked?`${blocked} blocked`:'No blockers', cls:blocked?'warn':'' },
-    { label:'Approvals',     value: pending, sub:pending?`${pending} pending review`:'All clear', cls:pending?'warn':'ok' }
+    { label:'Active Agents', value: hermes && !state.agents ? '…' : active, sub: hermes && !state.agents ? 'loading…' : `${agents.length} total`, cls: active > 0 ? '' : '' },
+    { label:'Queue Depth',   value: hermes && !state.tasks ? '…' : tasks.filter(t=>t.status==='Doing').length, sub:blocked?`${blocked} blocked`:'No blockers', cls:blocked?'warn':'' },
+    { label:'Approvals',     value: hermes && !state.approvals ? '…' : pending, sub:pending?`${pending} pending review`:'All clear', cls:pending?'warn':'ok' }
   ].map(t => `
     <div class="health-tile ${t.cls||''}">
       <div class="health-tile-label">${esc(t.label)}</div>
       <div class="health-tile-value">${esc(String(t.value))}</div>
       <div class="health-tile-sub">${esc(t.sub)}</div>
     </div>`).join('');
+
+  const modelTile = activeModel ? `
+    <div class="model-tile">
+      <div class="model-tile-label">Active Model</div>
+      <div class="model-tile-value">${esc(activeModel)}</div>
+      <div class="model-tile-sub">${esc(ctx.runtimeMode || 'Hermes local')}</div>
+    </div>` : '';
 
   const agentRows = agents.slice(0,6).map(a=>`
     <div class="wt-service-row">
@@ -1316,8 +1355,9 @@ function renderOverview() {
     <div class="workspace-body">
       ${state.hermesState === 'not-running' ? renderHermesSetupCard() : ''}
       ${isMock && state.hermesState !== 'unknown' ? mockBanner() : ''}
-      <div class="health-strip section-gap" style="${state.hermesState==='not-running'?'opacity:0.45;pointer-events:none':''}">
+      <div class="health-strip section-gap" style="grid-template-columns:repeat(${activeModel?6:5},1fr);${state.hermesState==='not-running'?'opacity:0.45;pointer-events:none':''}">
         ${healthTiles}
+        ${modelTile}
       </div>
       <div class="grid-2 section-gap">
         <div class="card">
@@ -1375,6 +1415,11 @@ function renderCommand() {
         <span class="cmd-message-ts">${fmtTime(m.ts)}</span>
       </div>
       <div class="cmd-message-body" style="white-space:pre-wrap">${esc(m.text)}</div>
+      ${(m.role === 'misato' && !m.error && (m.modelUsed || m.responseSource)) ? `
+        <div class="cmd-message-meta">
+          ${m.modelUsed ? `<span class="badge badge-violet cmd-model-badge">${esc(m.modelUsed)}</span>` : ''}
+          ${m.responseSource === 'deterministic-fallback' ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note">deterministic fallback</span>` : ''}
+        </div>` : ''}
     </div>`).join('');
 
   const rs = runtimeStatus();
@@ -1434,8 +1479,9 @@ function renderCommand() {
 
 // ── Screen 3: AgentDex ─────────────────────────────────────────
 function renderAgentDex() {
-  const agents   = state.agents || MOCK_AGENTS;
-  const isMock   = !state.agents;
+  const hermes   = isHermesConnected();
+  const agents   = state.agents || (hermes ? [] : MOCK_AGENTS);
+  const isMock   = !state.agents && !hermes;
   const filters  = ['all','active','thinking','idle','blocked','complete'];
   const filtered = state.agentFilter==='all' ? agents : agents.filter(a=>a.state===state.agentFilter);
 
@@ -1461,6 +1507,13 @@ function renderAgentDex() {
         <div class="agent-card-task-label">Current task</div>
         ${esc(a.feedback||'—')}
       </div>
+      ${a.progress != null ? `
+      <div class="agent-card-progress">
+        <div class="agent-progress-wrap">
+          <div class="agent-progress-bar"><div class="agent-progress-fill" style="width:${Math.min(100,Math.max(0,a.progress))}%"></div></div>
+          <span class="agent-progress-pct">${a.progress}%</span>
+        </div>
+      </div>` : ''}
       <div class="agent-card-footer">
         <span class="agent-card-ts">${esc((a.specialty||'').substring(0,30))}…</span>
         <span class="badge ${a.risk==='High'?'badge-red':a.risk==='Medium'?'badge-amber':'badge-slate'}">${esc(a.risk)} risk</span>
@@ -1489,10 +1542,24 @@ function renderAgentDex() {
         <span class="badge badge-slate">${esc(state.selectedAgent.perm)}</span>
         <span class="badge ${state.selectedAgent.risk==='High'?'badge-red':state.selectedAgent.risk==='Medium'?'badge-amber':'badge-slate'}" style="margin-left:4px">${esc(state.selectedAgent.risk)} risk</span>
       </div>
+      ${state.selectedAgent.progress != null ? `
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">Progress</div>
+        <div class="agent-progress-wrap" style="margin-bottom:4px">
+          <div class="agent-progress-bar" style="height:4px"><div class="agent-progress-fill" style="width:${Math.min(100,Math.max(0,state.selectedAgent.progress))}%"></div></div>
+          <span class="agent-progress-pct">${state.selectedAgent.progress}%</span>
+        </div>
+        ${state.selectedAgent.tasksCompleted != null ? `<div style="font-size:10px;color:var(--text-tertiary)">${state.selectedAgent.tasksCompleted} done · ${state.selectedAgent.tasksPending||0} pending</div>` : ''}
+      </div>` : ''}
       <div class="agent-drawer-section">
         <div class="agent-drawer-label">Current feedback</div>
         <div class="agent-drawer-value">${esc(state.selectedAgent.feedback||'—')}</div>
       </div>
+      ${state.selectedAgent.lastActivityAt ? `
+      <div class="agent-drawer-section">
+        <div class="agent-drawer-label">Last activity</div>
+        <div class="agent-drawer-value" style="font-family:var(--font-mono);font-size:10px">${esc(fmtTime(state.selectedAgent.lastActivityAt))}</div>
+      </div>` : ''}
       <div class="agent-drawer-section">
         <div class="agent-drawer-label">Recent events</div>
         ${state.feedEvents.filter(e=>e.payload?.agent===state.selectedAgent.id||e.source===state.selectedAgent.id).slice(0,5).map(e=>`
@@ -1504,9 +1571,10 @@ function renderAgentDex() {
     </div>` : '';
 
   return `
-    ${renderSectionHeader('AgentDex',`${agents.length} agents in council`,`<button class="btn btn-secondary btn-sm" id="btn-assign-task">+ Assign Task</button>`)}
+    ${renderSectionHeader('AgentDex',`${agents.length} agent${agents.length!==1?'s':''} in council`,`<button class="btn btn-secondary btn-sm" id="btn-assign-task">+ Assign Task</button>`)}
     <div class="workspace-body" style="padding-bottom:0">
       ${isMock ? mockBanner() : ''}
+      ${hermes && !state.agents ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading agents from Hermes…</div>` : ''}
       <div class="filter-strip">${pills}</div>
       <div class="agentdex-layout">
         <div class="agentdex-grid">
@@ -1525,52 +1593,164 @@ function normalizeScheduleItems(tasks) {
   const scheduled = tasks.filter(t => t.scheduledAt || t.time || t.scheduledFor);
   if (!scheduled.length) return null;
   return scheduled.map(t => ({
-    time:     t.time || (t.scheduledAt ? new Date(t.scheduledAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'),
-    title:    t.title || t.name || '—',
-    agent:    t.agent || t.assignee || '—',
-    priority: t.priority || 'Medium',
-    status:   t.status || 'Scheduled',
-    live:     !!(t.liveAt || t.status === 'Doing')
+    time:       t.time || (t.scheduledAt ? new Date(t.scheduledAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'),
+    scheduledAt: t.scheduledAt || t.scheduledFor || null,
+    title:      t.title || t.name || '—',
+    agent:      t.agent || t.assignee || '—',
+    priority:   t.priority || 'Medium',
+    status:     t.status || 'Scheduled',
+    live:       !!(t.liveAt || t.status === 'Doing')
   }));
 }
 
-function renderSchedule() {
-  // Prefer live scheduled tasks; fall back to MOCK_SCHEDULE
-  const liveItems = normalizeScheduleItems(state.tasks);
-  const items     = liveItems || MOCK_SCHEDULE;
-  const isMock    = !liveItems;
-  // Schedule requires a /schedule or scheduled-task fields from Hermes.
-  // If Hermes returns tasks without scheduledAt, we still show mock.
-  const hermesHasSchedule = isHermesConnected() && !!liveItems;
+function renderAgendaItem(s) {
   return `
-    ${renderSectionHeader('Schedule','Today · Agenda view',`
+    <div class="agenda-item">
+      <div class="agenda-time">${esc(s.time)}</div>
+      <div class="agenda-body">
+        <div class="agenda-title">${esc(s.title)}</div>
+        <div class="agenda-meta">${esc(s.agent)} · ${priorityBadge(s.priority)} ${statusBadge(s.status)} ${s.live?`<span class="badge badge-teal" style="margin-left:4px">LIVE</span>`:`<span class="badge badge-slate" style="margin-left:4px">SCHEDULED</span>`}</div>
+      </div>
+    </div>`;
+}
+
+function renderScheduleAgenda(items, hermes) {
+  if (!items || !items.length) return `
+    <div class="empty-state">
+      <div class="empty-state-icon">◷</div>
+      <div class="empty-state-title">${hermes ? 'No scheduled tasks' : 'No tasks with schedule data'}</div>
+      <div class="empty-state-msg">${hermes ? 'Tasks with scheduledAt fields will appear here. Add one below.' : 'Connect Hermes and add tasks with scheduledAt to see the live schedule.'}</div>
+    </div>`;
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Today — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
+        <span class="badge ${hermes?'badge-teal':'badge-blue'}">${items.length} tasks${hermes?' · LIVE':''}</span>
+      </div>
+      ${items.map(s => renderAgendaItem(s)).join('')}
+    </div>`;
+}
+
+function renderScheduleDay(items) {
+  // Build hour buckets for 6 AM – 10 PM
+  const HOURS = Array.from({length:17}, (_,i) => i + 6); // 6..22
+  const now = new Date();
+  const nowH = now.getHours();
+
+  function getItemHour(item) {
+    if (item.scheduledAt) return new Date(item.scheduledAt).getHours();
+    const m = (item.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+    if (!m) return null;
+    let h = parseInt(m[1],10);
+    if (m[3]?.toUpperCase()==='PM' && h<12) h+=12;
+    if (m[3]?.toUpperCase()==='AM' && h===12) h=0;
+    return h;
+  }
+
+  return `
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="card-header" style="padding:12px 14px">
+        <span class="card-title">Day — ${now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
+        <span class="badge badge-slate">${(items||[]).length} scheduled</span>
+      </div>
+      <div class="schedule-day-grid" style="padding:0 12px 16px">
+        ${HOURS.map(h => {
+          const isNow = h === nowH;
+          const label = `${h%12||12}${h<12?'a':'p'}`;
+          const hourItems = (items||[]).filter(i => getItemHour(i) === h);
+          return `
+            <div class="schedule-day-hour ${isNow?'now-row':''}">
+              ${isNow?`<div class="schedule-now-stripe"></div>`:''}
+              <div class="schedule-day-hour-label">${label}</div>
+              <div class="schedule-day-tasks">
+                ${hourItems.map(i=>`
+                  <div class="schedule-day-task priority-${(i.priority||'medium').toLowerCase()}">
+                    <span style="flex:1">${esc(i.title)}</span>
+                    <span class="schedule-day-task-agent">${esc(i.agent)}</span>
+                  </div>`).join('')}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderScheduleWeek(items) {
+  const today    = new Date();
+  const todayIdx = today.getDay(); // 0=Sun
+  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const cols = DAY_NAMES.map((name, i) => {
+    const diff = i - todayIdx;
+    const d    = new Date(today);
+    d.setDate(today.getDate() + diff);
+    const isToday = i === todayIdx;
+    const dStr = d.toISOString().split('T')[0];
+    const dayItems = (items||[]).filter(item => {
+      if (!item.scheduledAt) return false;
+      return item.scheduledAt.startsWith(dStr);
+    });
+    return { name, date: d, isToday, items: dayItems };
+  });
+
+  const hasAny = cols.some(c => c.items.length);
+  return `
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="card-header" style="padding:12px 14px">
+        <span class="card-title">Week of ${cols[0].date.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${cols[6].date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+        ${!hasAny ? `<span class="badge badge-slate">No scheduled items with dates</span>` : ''}
+      </div>
+      <div class="schedule-week-grid" style="padding:12px">
+        ${cols.map(c => `
+          <div class="schedule-week-day ${c.isToday?'today':''}">
+            <div class="schedule-week-day-header">
+              ${c.name} <span class="schedule-week-day-date">${c.date.getDate()}</span>
+            </div>
+            ${c.items.length ? c.items.map(i=>`
+              <div class="schedule-week-task">
+                <div class="schedule-week-task-title">${esc(i.title)}</div>
+                <div class="schedule-week-task-time">${esc(i.time||'—')}</div>
+              </div>`).join('') : `<div class="schedule-week-empty">—</div>`}
+          </div>`).join('')}
+      </div>
+      ${!hasAny ? `<div style="padding:8px 12px 12px;font-size:11px;color:var(--text-tertiary);text-align:center">Tasks need a <code>scheduledAt</code> ISO date to appear in week view. Add one via + New Task.</div>` : ''}
+    </div>`;
+}
+
+function renderSchedule() {
+  const hermes    = isHermesConnected();
+  const liveItems = normalizeScheduleItems(state.tasks);
+  const items     = liveItems || (!hermes ? MOCK_SCHEDULE : null);
+  const isMock    = !liveItems && !hermes;
+  const view      = state.scheduleView || 'agenda';
+
+  let content;
+  if (view === 'day')    content = renderScheduleDay(items || []);
+  else if (view === 'week') content = renderScheduleWeek(items || []);
+  else                   content = renderScheduleAgenda(items, hermes);
+
+  const viewLabel = view.charAt(0).toUpperCase() + view.slice(1);
+  return `
+    ${renderSectionHeader('Schedule',`${viewLabel} view`,`
       <div class="schedule-view-toggle">
-        <button class="view-toggle-btn">Day</button><button class="view-toggle-btn active">Agenda</button><button class="view-toggle-btn">Week</button>
+        <button class="view-toggle-btn ${view==='day'?'active':''}"    data-schedview="day">Day</button>
+        <button class="view-toggle-btn ${view==='agenda'?'active':''}" data-schedview="agenda">Agenda</button>
+        <button class="view-toggle-btn ${view==='week'?'active':''}"   data-schedview="week">Week</button>
       </div>
       <button class="btn btn-primary btn-sm" id="btn-add-task" style="margin-left:8px">+ New Task</button>`)}
     <div class="workspace-body">
-      ${isMock ? mockBanner(isHermesConnected() ? 'no scheduledAt fields in tasks — add /schedule endpoint to Hermes' : 'connect Hermes for live schedule') : ''}
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Today — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
-          <span class="badge ${hermesHasSchedule?'badge-teal':'badge-blue'}">${items.length} tasks${hermesHasSchedule?' · LIVE':''}</span>
-        </div>
-        ${items.map(s=>`
-          <div class="agenda-item">
-            <div class="agenda-time">${esc(s.time)}</div>
-            <div class="agenda-body">
-              <div class="agenda-title">${esc(s.title)}</div>
-              <div class="agenda-meta">${esc(s.agent)} · ${priorityBadge(s.priority)} ${statusBadge(s.status)} ${s.live?`<span class="badge badge-teal" style="margin-left:4px">LIVE</span>`:`<span class="badge badge-slate" style="margin-left:4px">SCHEDULED</span>`}</div>
-            </div>
-          </div>`).join('')}
-      </div>
+      ${isMock ? mockBanner('connect Hermes for live schedule') : ''}
+      ${hermes && !state.tasks ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading schedule from Hermes…</div>` : ''}
+      ${hermes && state.tasks && !liveItems ? `<div class="waiting-hermes">◎ Hermes connected — tasks loaded but no <code>scheduledAt</code> fields found. Waiting on Hermes /schedule endpoint or task scheduledAt data.</div>` : ''}
+      ${content || ''}
     </div>`;
 }
 
 // ── Screen 5: Kanban ───────────────────────────────────────────
 function renderKanban() {
-  const tasks  = state.tasks || MOCK_TASKS;
-  const isMock = !state.tasks;
+  const hermes = isHermesConnected();
+  const tasks  = state.tasks || (hermes ? [] : MOCK_TASKS);
+  const isMock = !state.tasks && !hermes;
   const cols   = ['Done','Doing','Blocked','Idea'];
   const board  = cols.map(col => {
     const colTasks = tasks.filter(t=>t.status===col);
@@ -1617,10 +1797,10 @@ function renderKanban() {
 function renderWatchtower() {
   const hermes  = isHermesConnected();
   const h       = state.hermesHealth;
-  const agents  = state.agents || MOCK_AGENTS;
-  const tasks   = state.tasks  || MOCK_TASKS;
+  const agents  = state.agents || (hermes ? [] : MOCK_AGENTS);
+  const tasks   = state.tasks  || (hermes ? [] : MOCK_TASKS);
   const wt      = state.watchtower || MOCK_WATCHTOWER;
-  const isMock  = !state.watchtower;
+  const isMock  = !state.watchtower && !hermes;
 
   const tiles = [
     { label:'Hermes',       value: hermes?'Connected':'Offline',           sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Start npm run dev',       cls: hermes?'ok':'bad'  },
@@ -1702,22 +1882,63 @@ function renderWatchtower() {
 
 // ── Screen 7: Secret Sentinel ──────────────────────────────────
 function renderSentinel() {
+  const hermes = isHermesConnected();
   const data   = state.sentinel || MOCK_SENTINEL;
-  const isMock = !state.sentinel;
+  const isMock = !state.sentinel && !hermes;
   const { findings, lastScanAt } = data;
+  const gitleaksInstalled = data.gitleaksInstalled;
+  const scanAvailable     = data.scanAvailable !== false; // default true unless explicitly false
+  const critical = data.critical ?? (findings||[]).filter(f=>['critical','error'].includes((f.sev||'').toLowerCase())).length;
+  const high     = data.high     ?? (findings||[]).filter(f=>f.sev?.toLowerCase()==='high').length;
+  const warnings = data.warnings ?? (findings||[]).filter(f=>f.sev?.toLowerCase()==='warn').length;
   // Hermes may return remediation as a string or array — normalize defensively.
   const remediation = Array.isArray(data.remediation)
     ? data.remediation
     : typeof data.remediation === 'string'
       ? [{ label: data.remediation, done: false }]
-      : (data.remediation ? [] : []);
+      : [];
   const done = remediation.filter(c => c.done).length;
+
+  const statusPanel = hermes ? `
+    <div class="card" style="padding:0;margin-bottom:16px">
+      <div class="card-header" style="padding:10px 14px"><span class="card-title">Scan Status</span></div>
+      <div class="sentinel-status-row">
+        <div class="auth-mode-led ${gitleaksInstalled===true?'on':gitleaksInstalled===false?'':''}"></div>
+        <span class="sentinel-status-label">Gitleaks binary</span>
+        <span class="badge ${gitleaksInstalled===true?'badge-teal':gitleaksInstalled===false?'badge-red':'badge-slate'}">
+          ${gitleaksInstalled===true?'Installed':gitleaksInstalled===false?'Not found':'Unknown'}
+        </span>
+      </div>
+      <div class="sentinel-status-row">
+        <div class="auth-mode-led ${scanAvailable?'on':''}"></div>
+        <span class="sentinel-status-label">Scan endpoint</span>
+        <span class="badge ${scanAvailable?'badge-teal':'badge-amber'}">${scanAvailable?'Available':'Unavailable'}</span>
+      </div>
+      <div class="sentinel-status-row">
+        <div class="auth-mode-led on"></div>
+        <span class="sentinel-status-label">Secret values in UI</span>
+        <span class="badge badge-teal">Hidden — [REDACTED]</span>
+      </div>
+      ${gitleaksInstalled===false ? `
+      <div class="sentinel-scan-state">
+        <span style="color:var(--accent-amber)">⚠</span>
+        <span>Gitleaks not installed. Install via: <code>brew install gitleaks</code> or download from gitleaks.io</span>
+      </div>` : ''}
+    </div>` : '';
+
   return `
-    ${renderSectionHeader('Secret Sentinel','Security scan and remediation',`<button class="btn btn-secondary btn-sm" id="btn-scan-now">Scan Now</button>`)}
+    ${renderSectionHeader('Secret Sentinel','Security scan — repo scope only',`<button class="btn btn-secondary btn-sm" id="btn-scan-now" ${!hermes||!scanAvailable?'disabled title="Hermes must be running with scan endpoint"':''}>Scan Now</button>`)}
     <div class="workspace-body">
-      ${isMock ? mockBanner('run hermes for live scan results') : ''}
+      ${isMock ? mockBanner('connect Hermes for live scan results') : ''}
+      ${hermes && !state.sentinel ? `<div class="hermes-loading"><div class="loading-dot"></div> Fetching scan status from Hermes…</div>` : ''}
+      ${statusPanel}
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-        ${[{l:'Critical',v:0,c:'ok'},{l:'High',v:0,c:'ok'},{l:'Warnings',v:(findings||[]).filter(f=>f.sev==='warn').length,c:'warn'},{l:'Last Scan',v:lastScanAt?fmtTime(lastScanAt):'—',c:''}].map(t=>`
+        ${[
+          {l:'Critical', v: critical, c: critical>0?'bad':'ok'},
+          {l:'High',     v: high,     c: high>0?'warn':'ok'},
+          {l:'Warnings', v: warnings, c: warnings>0?'warn':''},
+          {l:'Last Scan', v: lastScanAt ? fmtTime(lastScanAt) : '—', c:''}
+        ].map(t=>`
           <div class="health-tile ${t.c}">
             <div class="health-tile-label">${esc(t.l)}</div>
             <div class="health-tile-value" style="font-size:16px">${esc(String(t.v))}</div>
@@ -1725,27 +1946,32 @@ function renderSentinel() {
       </div>
       <div class="sentinel-layout">
         <div class="card" style="padding:0">
-          <div class="card-header" style="padding:12px 14px"><span class="card-title">Findings</span><span style="font-size:10px;color:var(--text-tertiary)">No raw secret values displayed</span></div>
-          ${(findings||[]).map(f=>`
+          <div class="card-header" style="padding:12px 14px">
+            <span class="card-title">Findings</span>
+            <span style="font-size:10px;color:var(--text-tertiary)">Secret values never displayed · [REDACTED] only</span>
+          </div>
+          ${(findings||[]).length ? (findings||[]).map(f=>{
+            const sev = (f.sev || f.severity || 'info').toLowerCase();
+            return `
             <div class="sentinel-row">
-              <span class="badge ${f.sev==='warn'?'badge-amber':f.sev==='error'?'badge-red':'badge-slate'}">${f.sev.toUpperCase()}</span>
+              <span class="badge ${sev==='warn'||sev==='warning'?'badge-amber':sev==='error'||sev==='critical'||sev==='high'?'badge-red':'badge-slate'}">${sev.toUpperCase()}</span>
               <div class="sentinel-row-info">
-                <div class="sentinel-row-title">${esc(f.title)}</div>
-                <div class="sentinel-row-path">${esc(f.loc)}</div>
+                <div class="sentinel-row-title">${esc(f.title || f.ruleId || f.rule || '—')}</div>
+                <div class="sentinel-row-path">${esc(f.loc || f.file || '—')}${f.line ? `:${f.line}` : ''}</div>
               </div>
               <div class="col gap-4" style="align-items:flex-end">
-                <span class="badge ${f.status==='OK'?'badge-teal':f.status==='Confirmed'?'badge-amber':'badge-slate'}">${esc(f.status)}</span>
+                <span class="badge ${f.status==='OK'?'badge-teal':f.status==='Confirmed'?'badge-amber':'badge-slate'}">${esc(f.status||'found')}</span>
                 <span class="sentinel-row-age">${esc(f.age||'')}</span>
               </div>
-            </div>`).join('')}
+            </div>`}).join('') : `<div style="padding:16px;text-align:center;font-size:12px;color:var(--accent-teal)">◉ No findings${hermes?' — last scan clean':' — run scan to check'}</div>`}
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">Remediation</span><span class="badge badge-teal">${done}/${(remediation||[]).length}</span></div>
-          ${(remediation||[]).map(c=>`
+          <div class="card-header"><span class="card-title">Remediation</span><span class="badge ${done===(remediation||[]).length&&done>0?'badge-teal':'badge-slate'}">${done}/${(remediation||[]).length}</span></div>
+          ${(remediation||[]).length ? (remediation||[]).map(c=>`
             <div class="remediation-item ${c.done?'done':''}">
               <span class="remediation-check">${c.done?'✓':'○'}</span>
               <span>${esc(c.label)}</span>
-            </div>`).join('')}
+            </div>`).join('') : `<div style="padding:12px;font-size:11px;color:var(--text-tertiary)">No checklist — run Hermes scan for recommendations.</div>`}
         </div>
       </div>
     </div>`;
@@ -1753,8 +1979,9 @@ function renderSentinel() {
 
 // ── Screen 8: Logs ─────────────────────────────────────────────
 function renderLogs() {
-  const allLogs = state.logs || MOCK_LOGS;
-  const isMock  = !state.logs;
+  const hermes  = isHermesConnected();
+  const allLogs = state.logs || (hermes ? [] : MOCK_LOGS);
+  const isMock  = !state.logs && !hermes;
   const filterDefs = [
     { id:'all',   label:'ALL',   cls:'badge-slate' },
     { id:'info',  label:'INFO',  cls:'' },
@@ -1902,62 +2129,164 @@ function renderLanes() {
       <div class="lane-owns">${(l.owns||[]).map(o=>`<span class="lane-owns-tag">${esc(o)}</span>`).join('')}</div>
     </div>`).join('');
   return `
-    ${renderSectionHeader('Lanes',`${lanes.length} lanes${isMock?' · MOCK':' · live'}`)}
+    ${renderSectionHeader('Lanes',`${lanes.length} lane${lanes.length!==1?'s':''}${isMock?' · static manifest':' · live'}`)}
     <div class="workspace-body">
-      ${isMock ? mockBanner(isHermesConnected() ? 'no branch/lane fields in agent registry — Hermes can add them' : 'connect Hermes for live lane state') : ''}
+      ${isMock && !isHermesConnected() ? mockBanner('connect Hermes for live lane state') : ''}
+      ${isMock && isHermesConnected() ? `<div class="waiting-hermes">◎ Hermes connected — waiting on agent branch/lane fields. Showing static manifest. Hermes can enrich agents with <code>branch</code> or <code>lane</code> fields to make this screen live.</div>` : ''}
       <div class="grid-2">${cards}</div>
     </div>`;
 }
 
 // ── Screen 11: Approvals ───────────────────────────────────────
+function normalizeApproval(a) {
+  const risk   = a.riskLevel || a.risk || 'Low';
+  const status = (a.status || 'pending').toLowerCase();
+  return {
+    ...a,
+    id:          a.id || `apr-${Date.now()}-${Math.random()}`,
+    title:       a.title || a.actionType || a.action || 'Approval Required',
+    description: a.description || a.details || a.reason || a.summary || '—',
+    risk,
+    status,
+    agentName:    a.requestedByAgentName || a.agentName || a.agent || '—',
+    requestedAt:  a.requestedAt || a.createdAt || '—',
+    decisionAt:   a.decisionAt || a.resolvedAt || null,
+    doesNotAutoExecute: !!(a.safeExecutionMode || a.doesNotAutoExecuteProduction)
+  };
+}
+
 function renderApprovals() {
-  const approvals = state.approvals || MOCK_APPROVALS;
-  const isMock    = !state.approvals;
-  const cards     = approvals.map(a=>`
-    <div class="approval-card ${(a.risk||'').toLowerCase()}">
-      <div class="row-between mb-4">
-        <span class="badge ${a.risk==='High'?'badge-red':a.risk==='Medium'?'badge-amber':'badge-slate'}">⚠ ${esc(a.risk)} Risk</span>
-        <span style="font-size:10px;color:var(--text-tertiary)">Requested ${esc(a.requestedAt)}</span>
-      </div>
-      <div class="approval-title">${esc(a.title)}</div>
-      <div class="approval-agent">Requested by ${esc(a.agent)}</div>
-      <div style="font-size:11px;color:var(--text-secondary)">${esc(a.details)}</div>
-      <div class="approval-actions">
-        <button class="btn btn-primary btn-sm" data-approve="${esc(a.id)}">Approve</button>
-        <button class="btn btn-danger btn-sm"  data-reject="${esc(a.id)}">Reject</button>
-        <button class="btn btn-ghost btn-sm"   data-defer="${esc(a.id)}">Defer</button>
-      </div>
-    </div>`).join('');
+  const hermes      = isHermesConnected();
+  const rawApprovals = state.approvals || (hermes ? [] : MOCK_APPROVALS);
+  const isMock       = !state.approvals && !hermes;
+  const normalized   = rawApprovals.map(normalizeApproval);
+  // Deduplicate: same id appearing multiple times (approval spam) → keep only the latest
+  const deduped = [];
+  const seenIds = new Set();
+  for (const a of normalized) {
+    if (!seenIds.has(a.id)) { seenIds.add(a.id); deduped.push(a); }
+  }
+
+  const filter       = state.approvalFilter || 'pending';
+  const pendingCount = deduped.filter(a => a.status === 'pending').length;
+
+  const filtered = filter === 'all'
+    ? deduped.filter(a => a.status !== 'superseded')
+    : filter === 'superseded'
+      ? deduped.filter(a => a.status === 'superseded')
+      : deduped.filter(a => a.status === filter);
+
+  const filterBtns = [
+    { id:'pending',   label:`Pending${pendingCount ? ` (${pendingCount})` : ''}` },
+    { id:'approved',  label:'Approved' },
+    { id:'rejected',  label:'Rejected' },
+    { id:'deferred',  label:'Deferred' },
+    { id:'all',       label:'All' }
+  ];
+
+  const cards = filtered.map(a => {
+    const isPending  = a.status === 'pending';
+    const riskLower  = (a.risk||'low').toLowerCase();
+    const riskBadge  = riskLower==='high'?'badge-red':riskLower==='medium'?'badge-amber':'badge-slate';
+    const reqTime    = a.requestedAt && a.requestedAt !== '—'
+      ? fmtTime(a.requestedAt) || a.requestedAt
+      : '—';
+    return `
+      <div class="approval-card ${riskLower} ${isPending?'':''+a.status}">
+        <div class="row-between mb-4">
+          <div class="row gap-8">
+            <span class="badge ${riskBadge}">⚠ ${esc(a.risk||'Low')} Risk</span>
+            ${!isPending ? `<span class="badge ${a.status==='approved'?'badge-teal':a.status==='rejected'?'badge-red':'badge-slate'}">${esc(a.status)}</span>` : ''}
+          </div>
+          <span style="font-size:10px;color:var(--text-tertiary)">${esc(reqTime)}</span>
+        </div>
+        <div class="approval-title">${esc(a.title)}</div>
+        <div class="approval-agent">Requested by ${esc(a.agentName)}</div>
+        <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px">${esc(a.description)}</div>
+        ${a.doesNotAutoExecute ? `<div class="approval-safe-badge">◉ Safe mode — will not auto-execute production actions</div>` : ''}
+        ${isPending ? `
+          <div class="approval-actions">
+            <button class="btn btn-primary btn-sm" data-approve="${esc(a.id)}">Approve</button>
+            <button class="btn btn-danger btn-sm"  data-reject="${esc(a.id)}">Reject</button>
+            <button class="btn btn-ghost btn-sm"   data-defer="${esc(a.id)}">Defer</button>
+          </div>` : `
+          <div class="approval-decision-note">
+            ${a.decisionAt ? `Decision: ${fmtTime(a.decisionAt)}` : `Status: ${esc(a.status)}`}
+          </div>`}
+      </div>`;
+  }).join('');
+
   return `
-    ${renderSectionHeader('Approvals',`${approvals.length} pending`,`<span class="badge ${approvals.length?'badge-amber':'badge-teal'}">${approvals.length} pending</span>`)}
+    ${renderSectionHeader('Approvals',
+      `${pendingCount} pending · ${deduped.length} total`,
+      `<span class="badge ${pendingCount?'badge-amber':'badge-teal'}">${pendingCount} pending</span>`
+    )}
     <div class="workspace-body">
-      ${isMock?mockBanner():''}
-      ${approvals.length ? cards : `<div class="empty-state"><div class="empty-state-icon">◆</div><div class="empty-state-title" style="color:var(--accent-teal)">No pending approvals</div><div class="empty-state-msg">All gates clear.</div></div>`}
+      ${isMock ? mockBanner() : ''}
+      ${hermes && !state.approvals ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading approvals from Hermes…</div>` : ''}
+      <div class="approval-filter-strip">
+        ${filterBtns.map(f=>`<button class="approval-filter-btn ${filter===f.id?'active':''}" data-apprfilter="${f.id}">${f.label}</button>`).join('')}
+      </div>
+      ${filtered.length ? cards : `
+        <div class="empty-state">
+          <div class="empty-state-icon">◆</div>
+          <div class="empty-state-title" style="color:var(--accent-teal)">
+            ${filter==='pending' ? 'No pending approvals' : `No ${filter} approvals`}
+          </div>
+          <div class="empty-state-msg">
+            ${filter==='pending' ? 'All gates clear.' : 'Nothing to show for this filter.'}
+          </div>
+          ${filter!=='pending' ? `<button class="btn btn-ghost btn-sm" data-apprfilter="pending">← Back to pending</button>` : ''}
+        </div>`}
     </div>`;
 }
 
 // ── Screen 12: Obsidian Mirror ─────────────────────────────────
 function renderObsidian() {
-  const folder = OBSIDIAN_FOLDERS[state.obsidianFolder];
-  const tree   = OBSIDIAN_FOLDERS.map((f,i)=>`
+  const hermes     = isHermesConnected();
+  const obsData    = state.runtimeCtx?.obsidian || null;
+  const vaultConfigured = !!(obsData?.vaultPath || obsData?.configured);
+  const lastSync   = obsData?.lastSync || null;
+  const folder     = OBSIDIAN_FOLDERS[state.obsidianFolder];
+
+  const tree = OBSIDIAN_FOLDERS.map((f,i)=>`
     <div class="obsidian-folder ${i===state.obsidianFolder?'active':''}" data-obfolder="${i}">
       <span>⬡</span><span style="flex:1">${esc(f.name)}</span><span class="obsidian-count">${f.count}</span>
     </div>`).join('');
+
+  const statusBanner = vaultConfigured
+    ? `<div style="background:var(--accent-teal-bg);border-bottom:1px solid rgba(0,201,167,0.25);padding:8px 16px;font-size:11px;color:var(--accent-teal);display:flex;align-items:center;gap:8px">
+         ◉ Vault connected${lastSync ? ` · last sync ${fmtTime(lastSync)}` : ''} · Sync available below
+       </div>`
+    : `<div style="background:var(--accent-amber-bg);border-bottom:1px solid rgba(245,166,35,0.25);padding:8px 16px;font-size:11px;color:var(--accent-amber)">
+         ⚠ Vault not configured — set <code>OBSIDIAN_VAULT_PATH</code> in your environment and restart Hermes to enable live sync.
+       </div>`;
+
+  const docContent = vaultConfigured
+    ? `<h1>${esc(folder.name)}</h1><p>${esc(folder.desc)}</p>
+       <h2>Live Sync Status</h2>
+       <p>Vault path: <code>${esc(obsData?.vaultPath || 'configured')}</code></p>
+       ${lastSync ? `<p>Last sync: ${esc(fmtTime(lastSync))}</p>` : ''}
+       <h2>Documents (${folder.count})</h2>
+       <p style="color:var(--text-secondary)">Use Sync button to refresh vault mirror.</p>`
+    : `<h1>${esc(folder.name)}</h1><p>${esc(folder.desc)}</p>
+       <h2>Setup Required</h2>
+       <p>Set <code>OBSIDIAN_VAULT_PATH=/path/to/your/vault</code> in your environment and restart Hermes.</p>
+       <h2>What will sync</h2>
+       <ul style="padding-left:16px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text-secondary)">
+         ${OBSIDIAN_FOLDERS.map(f=>`<li><strong>${esc(f.name)}</strong> — ${esc(f.desc)}</li>`).join('')}
+       </ul>
+       <p style="color:var(--text-tertiary);font-style:italic;margin-top:12px">No vault files will be shown until OBSIDIAN_VAULT_PATH is configured.</p>`;
+
   return `
-    ${renderSectionHeader('Obsidian Mirror','Knowledge base',`<button class="btn btn-secondary btn-sm">Open in Obsidian</button>`)}
+    ${renderSectionHeader('Obsidian Mirror','Knowledge base',`
+      ${vaultConfigured ? `<button class="btn btn-secondary btn-sm" id="btn-obsidian-sync">Sync Now</button>` : ''}
+      <button class="btn btn-ghost btn-sm" ${!vaultConfigured?'disabled title="Configure vault path first"':''}>Open in Obsidian</button>`)}
     <div class="workspace-body" style="padding:0;overflow:hidden">
-      <div style="background:var(--accent-amber-bg);border-bottom:1px solid var(--accent-amber);padding:8px 16px;font-size:11px;color:var(--accent-amber)">
-        ⚠ Live sync not configured — showing folder structure only. Set OBSIDIAN_VAULT_PATH to enable.
-      </div>
+      ${statusBanner}
       <div class="obsidian-layout" style="padding:16px;height:calc(100% - 40px)">
         <div class="obsidian-tree">${tree}</div>
-        <div class="obsidian-doc">
-          <h1>${esc(folder.name)}</h1><p>${esc(folder.desc)}</p>
-          <h2>About this folder</h2>
-          <p>This folder mirrors MISATO's Obsidian vault. Live sync is planned but not yet connected.</p>
-          <h2>Documents (${folder.count})</h2>
-          <p style="color:var(--text-tertiary);font-style:italic">Connect your vault to see mirrored documents.</p>
-        </div>
+        <div class="obsidian-doc">${docContent}</div>
       </div>
     </div>`;
 }
@@ -2308,22 +2637,42 @@ function bind() {
   });
 
   // Sentinel — Scan Now
+  // Contract: POST /api/misato/secrets/scan-summary  (not sentinel/scan)
   document.getElementById('btn-scan-now')?.addEventListener('click', async () => {
-    if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+    if (!isHermesConnected()) { showToast('Hermes not connected — start npm run dev.', '⚠'); return; }
     showToast('Scan requested…', '◆');
     try {
-      const result = await hermesMutate('POST', 'api/misato/sentinel/scan', {});
-      if (result?.findings !== undefined) { state.sentinel = result; render(); showToast('Scan complete.', '◉'); }
-      else { loadAllFromHermes(); }
+      const result = await hermesMutate('POST', 'api/misato/secrets/scan-summary', {});
+      if (result) {
+        state.sentinel = result;
+        render();
+        showToast('Scan complete.', '◉');
+      } else {
+        loadAllFromHermes();
+      }
     } catch (e) {
-      showToast(e.url ? `Scan failed — ${e.message}` : e.message, '⚠');
-      loadAllFromHermes(); // refresh anyway
+      const msg = e.url
+        ? `Scan failed: ${e.message}\nEndpoint: ${e.url}`
+        : e.message;
+      showToast(msg, '⚠');
+      // Still refresh secrets/status in case partial result available
+      loadAllFromHermes();
     }
   });
 
   // Watchtower / Sentinel refresh via a shared "Refresh data" flow
   document.getElementById('btn-refresh-data')?.addEventListener('click', () => {
     if (isHermesConnected()) { loadAllFromHermes(); showToast('Refreshing data…', '◎'); }
+  });
+
+  // Schedule view toggle (Day / Agenda / Week)
+  document.querySelectorAll('[data-schedview]').forEach(el => {
+    el.addEventListener('click', () => { state.scheduleView = el.dataset.schedview; render(); });
+  });
+
+  // Approval filter tabs (Pending / Approved / Rejected / Deferred / All)
+  document.querySelectorAll('[data-apprfilter]').forEach(el => {
+    el.addEventListener('click', () => { state.approvalFilter = el.dataset.apprfilter; render(); });
   });
 
   // Log severity filter
@@ -2339,6 +2688,19 @@ function bind() {
   // Obsidian folder
   document.querySelectorAll('[data-obfolder]').forEach(el => {
     el.addEventListener('click', () => { state.obsidianFolder = parseInt(el.dataset.obfolder, 10); render(); });
+  });
+
+  // Obsidian — Sync Now
+  document.getElementById('btn-obsidian-sync')?.addEventListener('click', async () => {
+    if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+    showToast('Syncing Obsidian vault…', '⬡');
+    try {
+      await hermesMutate('POST', 'api/misato/obsidian/sync', {});
+      showToast('Sync complete.', '◉');
+      loadAllFromHermes();
+    } catch (e) {
+      showToast(e.url ? `Sync failed: ${e.message}` : e.message, '⚠');
+    }
   });
 
   // Auto-scroll cmd messages
