@@ -903,7 +903,9 @@ async function resolveApproval(id, action) {
     if (action !== 'defer') {
       state.approvals = (state.approvals || []).filter(a => a.id !== id);
     }
-    showToast(`Approval ${action}d.`, action === 'approve' ? '◉' : action === 'reject' ? '✕' : '○');
+    // UX Copy Deck compliant toast (includes approval ID for traceability)
+    const actionLabel = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'deferred';
+    showToast(`✓ Approval #${id} ${actionLabel} by owner.`, action === 'approve' ? '◉' : action === 'reject' ? '✕' : '○');
     render();
     // Refresh full approval list in background
     loadAllFromHermes();
@@ -2347,24 +2349,30 @@ function renderApprovals() {
 
   const cards = filtered.map(a => {
     const isPending  = a.status === 'pending';
-    const riskLower  = (a.risk||'low').toLowerCase();
+    // Bug fix: normalizeApproval() returns .riskLevel not .risk — read the correct field
+    const riskLabel  = a.riskLevel || a.risk || 'Low';
+    const riskLower  = riskLabel.toLowerCase();
     const riskBadge  = riskLower==='high'?'badge-red':riskLower==='medium'?'badge-amber':'badge-slate';
+    // requestedAt may come from seed data; createdAt from live records
     const reqTime    = a.requestedAt && a.requestedAt !== '—'
       ? fmtTime(a.requestedAt) || a.requestedAt
-      : '—';
+      : (a.createdAt ? fmtTime(a.createdAt) : '—');
+    // Bug fix: safe mode badge reads safeExecutionMode (normalizeApproval output),
+    // not doesNotAutoExecute (raw backend field that doesn't survive normalization)
+    const isSafe = !!a.safeExecutionMode;
     return `
       <div class="approval-card ${riskLower} ${isPending?'':''+a.status}">
         <div class="row-between mb-4">
           <div class="row gap-8">
-            <span class="badge ${riskBadge}">⚠ ${esc(a.risk||'Low')} Risk</span>
+            <span class="badge ${riskBadge}">⚠ ${esc(riskLabel)} Risk</span>
             ${!isPending ? `<span class="badge ${a.status==='approved'?'badge-teal':a.status==='rejected'?'badge-red':'badge-slate'}">${esc(a.status)}</span>` : ''}
           </div>
           <span style="font-size:10px;color:var(--text-tertiary)">${esc(reqTime)}</span>
         </div>
         <div class="approval-title">${esc(a.title)}</div>
-        <div class="approval-agent">Requested by ${esc(a.agentName)}</div>
+        <div class="approval-agent">Requested by <strong>${esc(a.agentName)}</strong></div>
         <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px">${esc(a.description)}</div>
-        ${a.doesNotAutoExecute ? `<div class="approval-safe-badge">◉ Safe mode — will not auto-execute production actions</div>` : ''}
+        ${isSafe ? `<div class="approval-safe-badge">◉ Safe mode — will not auto-execute production actions</div>` : ''}
         ${isPending ? `
           <div class="approval-actions">
             <button class="btn btn-primary btn-sm" data-approve="${esc(a.id)}">Approve</button>
@@ -2373,6 +2381,7 @@ function renderApprovals() {
           </div>` : `
           <div class="approval-decision-note">
             ${a.decisionAt ? `Decision: ${fmtTime(a.decisionAt)}` : `Status: ${esc(a.status)}`}
+            ${a.decidedBy ? ` · by ${esc(a.decidedBy)}` : ''}
           </div>`}
       </div>`;
   }).join('');
@@ -2807,7 +2816,11 @@ function bind() {
       if (result) {
         state.sentinel = result;
         render();
-        showToast('Scan complete.', '◉');
+        // UX Copy Deck: show severity counts in success toast
+        const c = result.critical || 0;
+        const h = result.high || 0;
+        const w = result.warnings || 0;
+        showToast(`✓ Scan complete · ${c} critical · ${h} high · ${w} warnings`, '◉');
       } else {
         loadAllFromHermes();
       }
@@ -2856,11 +2869,13 @@ function bind() {
     if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
     showToast('Syncing Obsidian vault…', '⬡');
     try {
-      await hermesMutate('POST', 'api/misato/obsidian/sync', {});
-      showToast('Sync complete.', '◉');
+      const syncResult = await hermesMutate('POST', 'api/misato/obsidian/sync', {});
+      // UX Copy Deck: show item count when available
+      const filesWritten = syncResult?.filesWritten?.length ?? syncResult?.filesWritten ?? null;
+      showToast(filesWritten != null ? `✓ Synced · ${filesWritten} files · Just now` : '✓ Obsidian sync complete.', '◉');
       loadAllFromHermes();
     } catch (e) {
-      showToast(e.url ? `Sync failed: ${e.message}` : e.message, '⚠');
+      showToast(e.url ? `✗ Obsidian sync failed: ${e.message}\nEndpoint: ${e.url}` : `✗ Obsidian sync failed: ${e.message}`, '⚠');
     }
   });
 

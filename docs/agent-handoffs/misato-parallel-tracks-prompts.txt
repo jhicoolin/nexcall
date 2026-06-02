@@ -1,182 +1,294 @@
-MISATO Parallel Build Pack (for when limits reset)
-Date: 2026-05-24
-Branch Base: misato-hermes-backend
-Primary Contract Doc: docs/agent-handoffs/hermes-codex-runtime-contract.md
+MISATO Parallel Build Pack — Revised v2.0
+Date: 2026-06-02
+Branch Base: misato-hermes-live-brain
+Primary Contract Docs:
+  docs/misato/ARCHITECTURE.md
+  docs/misato/OWNERSHIP_MATRIX.md
+  docs/misato/HOOKS.md
+  docs/agent-handoffs/claude-to-hermes.md
+  docs/agent-handoffs/claude-to-codex.md
 
 ==================================================
 HOW TO USE THIS FILE
 ==================================================
-1) Give PROMPT A to Codex (runtime lane).
-2) Give PROMPT B to Hermes (orchestration lane).
-3) Keep both lanes on separate branches/worktrees.
-4) Reconcile via a handoff PR into misato-hermes-backend.
+
+1) Give PROMPT A to Codex (runtime lane — verification and build).
+2) Give PROMPT B to Hermes (backend truth lane — API gaps and hook integration).
+3) Both lanes work from branch: misato-hermes-live-brain
+4) No merges to main without Owner approval.
 
 Hard constraints for BOTH prompts:
 - Do not merge to main.
 - Do not production deploy.
 - Do not change DNS.
 - Do not expose MISATO publicly.
-- Do not print or commit secrets.
-- Do not bypass Approval Gate.
-- Keep secret findings redacted as [REDACTED].
+- Do not print or commit secrets. All secrets → [REDACTED] in logs.
+- Do not bypass the Approval Gate. L2+ actions require approval.
+- All changes must pass: npm run lint && npm run build
+- Read docs/misato/ before starting. These are the canonical specs.
+- The run ledger (events.jsonl) is immutable — append only.
+- Trust policy (docs/misato/TRUST_POLICY.md) governs all MCP use.
 
 ==================================================
-TRACK A — CODEX RUNTIME LANE (PROMPT A)
+TRACK A — CODEX VERIFICATION LANE (PROMPT A)
 ==================================================
-You are Codex in the MISATO runtime lane.
 
-Goal:
-Build the “hands” layer: robust local runtime execution + event publishing into MISATO backend so desktop can update in near real-time.
+You are Codex in the MISATO verification lane.
 
-Reference contract:
-- docs/agent-handoffs/hermes-codex-runtime-contract.md
+Your job: Run the full test matrix, build the desktop installer, verify all 12
+regression fixes from v6.6, and fix any code issues you find.
 
-Worktree/branch:
-- Prefer dedicated worktree (e.g., C:\Users\pixel\nexcall-runtime-audit)
-- Branch: misato-codex-runtime-audit (or equivalent runtime branch)
-- Base: origin/misato-full-build or latest agreed integration point
+Reference documents (read before starting):
+- docs/tests/MISATO_TEST_MATRIX.md      — 130 tests to run
+- docs/releases/RELEASE_CHECKLIST.md    — release gates to satisfy
+- docs/misato/ACCEPTANCE_GATES.md       — 12 pass/fail release gates
+- docs/audits/MISATO_UI_AUDIT.md        — audit findings from Claude (action items for Codex)
+- docs/agent-handoffs/claude-to-codex.md — what Claude shipped and what Codex must verify
+
+Branch: misato-hermes-live-brain
 
 Required outcomes:
-1) Runtime reliability spine
-   - deterministic command execution status: queued/running/success/failed/blocked
-   - timeout + retry + exit-code handling
-   - clear error taxonomy (network/auth/404/runtime/parse)
 
-2) Desktop client reliability
-   - never overwrite saved API URL/token with empty injected env
-   - preserve connection states:
-     Connected / Unauthorized / 404 / Failed / Vercel Protected / Not configured / Testing
-   - robust response parsing for JSON vs HTML walls
+1) Full test matrix execution
+   - Run every test in docs/tests/MISATO_TEST_MATRIX.md
+   - Mark each row PASS, FAIL, or BLOCKED (with documented reason)
+   - FAIL items must be diagnosed and fixed or escalated to Claude/Hermes
+   - DO NOT mark PASS without actually running the test
 
-3) Event emitter
-   - publish runtime events with schema from contract doc
-   - include approvalLevel + redacted=true semantics
-   - no raw secret values in payloads
+2) Regression verification (CRITICAL)
+   Verify all 12 regression fixes from v6.6 + audit pass:
+   R1: state.schedule populated on Hermes connect
+   R2: GET /api/misato/schedule fires on loadAllFromHermes
+   R3: GET /api/misato/lanes fires on loadAllFromHermes
+   R4: buildLiveLanes uses state.lanes.items as priority source
+   R5: Approval cards show requestedAgent name (not blank)
+   R6: Kanban cards show agent name and project name (not IDs)
+   R7: context_loaded absent from Live Feed
+   R8: Watchtower has no hardcoded CORS tile
+   R9: Approval cards show correct risk level badge (not always "Low Risk")
+   R10: Safe mode badge appears when safeExecutionMode is true
+   R11: Approval toast includes approval ID
+   R12: Scan toast includes severity counts
 
-4) Local watchers (safe v1 only)
-   - health checks and non-destructive monitors only
-   - repo-only scope by default
-   - no broad host scans, no auto destructive actions
+3) Desktop build
+   - Close MISATO.exe first
+   - Run: npm run desktop:build
+   - Artifact: src-tauri/target/release/bundle/msi/MISATO-x.x.x.exe
+   - Verify: installs without admin, no PowerShell required, tray works
 
-5) Compatibility
-   - keep API contracts compatible with Hermes orchestration lane
-   - avoid changing policy semantics (Approval Gate levels)
+4) Hook TypeScript verification
+   - lib/misato/hooks/*.ts must compile: npx tsc --noEmit
+   - If integrating hooks into command-machine.ts:
+     - runDestructiveToolGuard before every tool call
+     - runLedgerWrite after every tool call
+     - runSubagentStart/Stop around subagent invocations
+   - See docs/misato/HOOKS.md for integration points
 
-Validation:
-- npm run lint
-- npm run build
-- npm run desktop:build
+5) Security checklist
+   - No raw secrets visible in any UI screen
+   - Token inputs type=password
+   - Sentinel findings show [REDACTED] only
+   - Risky commands require approval
 
-Deliverables:
-- code changes in runtime lane branch
-- handoff doc: docs/agent-handoffs/codex-runtime-to-hermes.md
+6) Action items from UI audit (docs/audits/MISATO_UI_AUDIT.md)
+   C1: Run full test matrix (DONE as part of this prompt)
+   C2: Fix Obsidian sync error — include e.url (ALREADY FIXED in audit pass)
+   C3: Add empty state to Live Feed when filter returns no events
+   C4: Run desktop build
+
+Build validation:
+  npm run lint      — must PASS (zero errors, zero warnings)
+  npm run build     — must PASS
+  npm run desktop:build — must PASS (MISATO.exe closed)
+
+Deliverable: docs/agent-handoffs/codex-to-claude.md
   Include:
-  - changed files
-  - runtime behavior matrix
-  - known blockers
-  - exact test commands/results
+  - test matrix results (PASS/FAIL/BLOCKED per section)
+  - regression verification results (R1–R12)
+  - desktop build result + artifact path
+  - any new bugs found
+  - sign-off status
 
 Commit guidance:
-- commit message example:
-  feat(runtime): harden MISATO local execution and event publishing
+  feat(qa): verify MISATO v6.6 — test matrix, regressions, desktop build
 
-Push:
-- push only your runtime branch (no main merge)
+Push to: misato-hermes-live-brain only.
 
 ==================================================
-TRACK B — HERMES ORCHESTRATION LANE (PROMPT B)
+TRACK B — HERMES BACKEND TRUTH LANE (PROMPT B)
 ==================================================
-You are Hermes in the MISATO orchestration lane.
 
-Goal:
-Build the “brain + guardrails” layer: policy engine, approval-level gating, event ingestion/display contracts, and safe module coordination (Watchtower/Design/Secret Sentinel).
+You are Hermes in the MISATO backend truth lane.
 
-Reference contract:
-- docs/agent-handoffs/hermes-codex-runtime-contract.md
+Your job: Close the API gaps that are blocking live UI surfaces. The UI is wired
+and waiting. Hermes needs to send the right data.
 
-Branch:
-- misato-hermes-backend
+Reference documents (read before starting):
+- docs/misato/ARCHITECTURE.md           — system architecture and data ownership
+- docs/misato/RUN_LEDGER_SCHEMA.md      — all ledger event types you must emit
+- docs/misato/FIELD_NORMALIZATION.md    — exact field names the UI expects
+- docs/misato/HOOKS.md                  — hook integration points in command-machine.ts
+- docs/agent-handoffs/claude-to-hermes.md — CRITICAL: read this first. Lists every gap.
+- lib/misato/hooks/                     — TypeScript hooks ready to import
 
-Required outcomes:
-1) Approval Gate policy enforcement
-   - enforce L0/L1/L2/L3/L4 semantics from contract
-   - classify commands/actions by risk + side effects
-   - block or require approval accordingly
+Branch: misato-hermes-live-brain
 
-2) Event ingestion + dashboard contract
-   - standardize event schema in backend responses
-   - ensure desktop/dashboard can render queue + status cleanly
-   - maintain redaction guarantees
+Required outcomes (in priority order):
 
-3) Module coordination
-   - Watchtower: safe status modeling, planned/connected/mock mode clarity
-   - Design System Library: DESIGN.md governance hooks + guidance
-   - Secret Sentinel: redacted summaries only, no raw secret output
+1) CRITICAL — Fix approval requester name (approval cards show "—")
+   File: lib/misato/runtime/command-machine.ts
+   Function: createApprovalRecord()
+   Fix: Add requestedByAgentName: "Hermes Runtime" to the approval object
 
-4) Council/agent orchestration
-   - keep specialist agents explicit:
-     Watchtower Agent, Design Librarian Agent, Secret Sentinel Agent
-   - update docs and permission matrix if needed
+   Current:
+     requestedByAgentId: "agent-hermes",
 
-5) Interop with Codex runtime lane
-   - accept Codex event payloads without breaking
-   - document any schema deltas in a versioned way
+   Required:
+     requestedByAgentId: "agent-hermes",
+     requestedByAgentName: "Hermes Runtime",
 
-Validation:
-- npm run lint
-- npm run build
-- npm run desktop:build
+2) HIGH — Add scheduledAt to command-created tasks
+   File: lib/misato/runtime/command-machine.ts
+   Function: tasks_created_or_updated stage
+   Fix: Add scheduledAt: null to the task object (null is fine — at least the field exists)
+   Also: If task has a due date, populate scheduledAt from it.
 
-Deliverables:
-- code changes on misato-hermes-backend
-- handoff doc: docs/agent-handoffs/hermes-orchestration-to-codex.md
+   This unblocks Schedule Day/Week tabs.
+
+3) HIGH — Verify /api/misato/schedule returns viewData
+   File: lib/misato/runtime/service.ts
+   Function: getSchedule()
+   Verify returns shape:
+   {
+     ok: true,
+     mode: "runtime-tasks",
+     today: "YYYY-MM-DD",
+     viewData: {
+       agenda: [...tasks with scheduledAt],
+       day: { "YYYY-MM-DD": [...tasks with hour field] },
+       week: { "Monday": [...tasks], ... }
+     },
+     unscheduledTasks: N
+   }
+
+4) HIGH — Verify /api/misato/lanes returns items
+   File: lib/misato/runtime/service.ts
+   Function: getLanes()
+   Verify returns shape:
+   {
+     ok: true,
+     mode: "live" | "auto",
+     items: [
+       {
+         id: "lane-xxx",
+         name: "Lane Name",
+         ownerAgentName: "Agent Name",
+         ownerAgentId: "agent-xxx",
+         branch: "branch-name",
+         status: "active" | "blocked" | "ready",
+         current: "Current task description",
+         next: "Next planned task",
+         tasksTotal: N,
+         tasksDone: N,
+         tasksBlocked: N,
+         blockers: []
+       }
+     ]
+   }
+
+5) MEDIUM — Add activeModel to /api/misato/status
+   File: lib/misato/runtime/service.ts or route handler
+   Fix: Include activeModel from ai-gateway.ts getActiveModel()
+   {
+     ...,
+     activeModel: getActiveModel(),
+     runtimeMode: "local"
+   }
+
+6) MEDIUM — Add branch/lane fields to agents in state
+   File: lib/misato/runtime/store.ts (defaultStore)
+   Fix: When mapping councilAgents, include branch and lane if tracked
+   Or: Set branch: null for agents without one (field must exist)
+
+7) LOW — Add progress field to agent objects
+   File: lib/misato/runtime/store.ts (defaultStore mapping)
+   Fix: Include progress: null by default (UI shows bar only when non-null)
+
+8) LOW — SSE context_loaded cleanup
+   File: app/events/stream/route.ts
+   Current: publishEvent({ type: "context_loaded", ... }) in stream start()
+   Fix: Either remove this event or change to a named SSE event:
+     data: `event: context_loaded\ndata: {...}\n\n`
+   (Named events never reach onmessage — UI already filters the type but cleaner not to emit)
+
+9) Hook integration (if integrating hooks)
+   See docs/misato/HOOKS.md for exact integration points.
+   Import from: @/lib/misato/hooks
+
+   Hooks to integrate:
+   - runDestructiveToolGuard: call before executeCommand tool calls
+   - runLedgerWrite: call after every tool result
+   - runSubagentStart/Stop: call when routing to specialist agents
+
+Build validation:
+  npm run lint      — must PASS
+  npm run build     — must PASS
+
+Deliverable: docs/agent-handoffs/hermes-to-claude.md
   Include:
-  - changed files
-  - policy matrix verification
-  - redaction verification
-  - integration notes for runtime lane
+  - which gaps are now resolved
+  - endpoint response shapes (exact JSON examples)
+  - any gaps that cannot be resolved and why
+  - SSE events that are now emitted correctly
+  - sign-off status
 
 Commit guidance:
-- commit message example:
-  feat(orchestration): enforce MISATO approval policy and event contract
+  feat(hermes): close API gaps — approval names, scheduledAt, lanes, activeModel
 
-Push:
-- push to misato-hermes-backend only (no main merge)
+Push to: misato-hermes-live-brain only.
 
 ==================================================
-INTEGRATION CHECKPOINT (BOTH LANES)
+INTEGRATION CHECKPOINT (BOTH LANES COMPLETE)
 ==================================================
-When both prompts complete, run a controlled integration pass:
 
-1) Compare branches against shared contract doc.
-2) Reconcile event schema fields.
-3) Verify approval levels appear in runtime events.
-4) Verify no raw secrets in logs/UI/API/doc artifacts.
-5) Run full validation:
-   - npm run lint
-   - npm run build
-   - npm run desktop:build
-6) Produce merged handoff summary:
-   - docs/agent-handoffs/misato-runtime-orchestration-integration-report.md
+When both prompts are done, run a controlled integration check:
 
-PASS criteria:
-- Desktop can show real runtime status safely.
-- Runtime actions obey approval levels.
-- Secret sentinel stays redacted.
-- No forbidden side effects executed.
+1) Compare against acceptance gates: docs/misato/ACCEPTANCE_GATES.md
+2) Run Dashboard Polisher subagent audit against current state
+3) Run Approval Guardian subagent against approval queue
+4) Verify run ledger contains all required event types
+5) Run full build validation:
+   npm run lint && npm run build && npm run desktop:build
+6) Produce integration report: docs/agent-handoffs/misato-integration-report.md
+   Include: which gates PASS, which FAIL, blocking issues, next steps
 
-==================================================
-COPY/PASTE QUICK MESSAGE FOR EACH AGENT
-==================================================
-Message to Codex:
-"Use TRACK A from docs/agent-handoffs/misato-parallel-tracks-prompts.txt and execute fully in your runtime worktree. Follow hermes-codex-runtime-contract.md exactly."
-
-Message to Hermes:
-"Use TRACK B from docs/agent-handoffs/misato-parallel-tracks-prompts.txt and execute fully on misato-hermes-backend. Follow hermes-codex-runtime-contract.md exactly."
+PASS criteria (from docs/releases/RELEASE_CHECKLIST.md Phase 9+10):
+- Hermes confirms all endpoints working with correct shapes
+- Codex confirms test matrix run and regressions verified
+- Desktop installer tested on Windows
+- Zero security issues
+- Owner can approve the release
 
 ==================================================
-NOTES
+QUICK HANDOFF MESSAGES
 ==================================================
-- Keep everything private/internal MISATO.
-- Keep automations safe and reversible.
-- Owner approval is mandatory for risky actions.
+
+To Codex:
+"Read docs/agent-handoffs/claude-to-codex.md in full, then run TRACK A from
+docs/agent-handoffs/misato-parallel-tracks-prompts.txt. Run the full test
+matrix at docs/tests/MISATO_TEST_MATRIX.md. Mark every test honestly."
+
+To Hermes:
+"Read docs/agent-handoffs/claude-to-hermes.md in full, then run TRACK B from
+docs/agent-handoffs/misato-parallel-tracks-prompts.txt. Priority 1 is the
+requestedByAgentName fix — approval cards show blank requester without it."
+
+==================================================
+SECURITY NOTES (BOTH LANES)
+==================================================
+- Keep MISATO private and internal.
+- No automations that touch production, billing, DNS, or auth without Owner approval.
+- Secrets: [REDACTED] in all logs, ledger entries, API responses, and UI.
+- Token storage: Windows Credential Manager only (not config files).
+- Third-party MCPs: never enabled without explicit trust policy approval.
+- Owner approval required for all L2+ actions (see docs/misato/TRUST_POLICY.md).
