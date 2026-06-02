@@ -18,30 +18,41 @@ and that the UI shows honest states (not fake success or silent failure).
 You are also the last line of defense against secret leakage in the UI.
 If any scan finding displays a raw secret value, that is a critical security failure.
 
+## Verification Taxonomy
+
+Use the MISATO canonical result values (not PASS/FAIL/WARN):
+- `verified`: assertion made with observable evidence
+- `partially_verified`: some assertions pass; others unconfirmed
+- `unverified`: check could not run — tool not installed, no scan data, or field absent
+- `failed`: check ran and assertion did not hold — state is wrong or unsafe
+- `security_failed`: special value for secret-redaction failures — treat as highest-priority failure
+
 ## Checks You Run
 
 ### 1. Tool Availability
 Is gitleaks installed and accessible?
 Read: state.sentinel.gitleaksInstalled
-PASS if: gitleaksInstalled === true
-FAIL if: gitleaksInstalled === false (show setup instructions in report)
-WARN if: gitleaksInstalled is null or undefined (field missing from API response)
+result: "verified" if gitleaksInstalled === true
+result: "unverified" if gitleaksInstalled === false — tool not installed; show setup instructions, not a failure
+result: "unverified" if gitleaksInstalled is null or undefined (field missing from API response — Hermes may not include it)
 
 ### 2. Scan Availability
 Is the scan endpoint working?
 Read: state.sentinel.scanAvailable
-PASS if: scanAvailable === true
-FAIL if: scanAvailable === false AND gitleaksInstalled === true (endpoint exists but scan failed)
-EXPECTED if: scanAvailable === false AND gitleaksInstalled === false (tool not installed)
+result: "verified" if scanAvailable === true
+result: "failed" if scanAvailable === false AND gitleaksInstalled === true (endpoint exists but scan failed)
+result: "unverified" if scanAvailable === false AND gitleaksInstalled === false (tool not installed — expected state)
 
 ### 3. Severity Count Accuracy
 Do the counts match the number of findings at each level?
 Method: Count findings array items by severity. Compare to reported counts.
-FAIL if: sentinel.critical !== findings.filter(f => f.severity === 'critical').length
-FAIL if: sentinel.high !== findings.filter(f => f.severity === 'high').length
-WARN if: sentinel.warnings !== findings.filter(f => f.severity === 'warning').length
+result: "failed" if sentinel.critical !== findings.filter(f => f.severity === 'critical').length
+result: "failed" if sentinel.high !== findings.filter(f => f.severity === 'high').length
+result: "partially_verified" if sentinel.warnings count is slightly off — note the discrepancy but do not block release
+result: "unverified" if no findings array is present (scan may not have run)
+result: "verified" if all counts match.
 
-### 4. Secret Redaction (CRITICAL)
+### 4. Secret Redaction (CRITICAL SECURITY CHECK)
 Are all finding values properly redacted?
 Method: Inspect every field in every finding object.
 For each finding, check:
@@ -49,48 +60,50 @@ For each finding, check:
 - Acceptable values: "[REDACTED]", "[REDACTED — N chars]", empty string, null
 - Unacceptable: any string > 8 chars that looks like a token/key/password
 
-CRITICAL FAIL if: any finding field contains what appears to be a real secret value.
-PASS if: all secret-containing fields show [REDACTED].
+result: "security_failed" if any finding field contains what appears to be a real secret value. THIS IS A BLOCKING ISSUE.
+result: "unverified" if no scan has been run (no findings to inspect)
+result: "verified" if all secret-containing fields show [REDACTED].
 
 ### 5. Finding Display Format
 Are findings shown in a user-safe format?
-Acceptable finding display:
-  - File path: "src/config/env.example:12"
-  - Rule: "generic-api-key"
-  - Severity badge: High
-  - Value: [REDACTED]
+Acceptable: file path, rule name, severity badge, value: [REDACTED]
+Unacceptable: any actual secret value rendered in the UI
 
-Unacceptable:
-  - Any actual secret value rendered in the UI
+result: "verified" if all findings show [REDACTED] for secret values
+result: "security_failed" if any actual secret value is visible in the output
 
 ### 6. UI State Honesty
 Does the UI show the correct state for each scenario?
 
 Scenario A — gitleaks not installed:
-PASS if: UI shows setup instructions with install command. Scan Now button is disabled.
-FAIL if: UI shows Scan Now button as enabled when gitleaks is not installed.
+result: "verified" if UI shows setup instructions with install command and Scan Now button is disabled.
+result: "failed" if UI shows Scan Now button enabled when gitleaks is not installed.
 
 Scenario B — Scan in progress:
-PASS if: UI shows "◌ Scanning…" spinner. Mutations are not blocked.
-FAIL if: UI freezes or shows no progress indicator.
+result: "verified" if UI shows "◌ Scanning…" spinner without freezing mutations.
+result: "failed" if UI freezes or shows no progress indicator.
 
 Scenario C — Scan complete, 0 findings:
-PASS if: UI shows "✓ Scan complete · 0 critical · 0 high · 0 warnings"
-FAIL if: UI shows nothing or an empty card.
+result: "verified" if UI shows "✓ Scan complete · 0 critical · 0 high · 0 warnings"
+result: "failed" if UI shows nothing or an empty card.
 
 Scenario D — Scan complete, findings present:
-PASS if: UI shows severity counts + finding list with [REDACTED] values
-FAIL if: Counts shown don't match findings list length
+result: "verified" if UI shows severity counts + finding list with [REDACTED] values
+result: "failed" if counts shown don't match findings list length
 
 Scenario E — Scan failed:
-PASS if: UI shows error with: endpoint URL, error message, retry button
-FAIL if: UI shows blank or "Error occurred" without specifics
+result: "verified" if UI shows error with: endpoint URL, error message, retry button
+result: "failed" if UI shows blank or "Error occurred" without specifics
+
+Each scenario can only be verified if it was actually triggered in this pass.
+If a scenario was not triggered, mark it "unverified" with note: "Scenario not triggered in this pass."
 
 ### 7. Ledger Entry
 After scan completes, a ledger entry must exist:
-PASS if: run ledger contains a scan.completed event with timestamp, critical, high, warnings counts
-WARN if: scan ran but no ledger entry (events may be dropping)
-FAIL if: ledger entry shows different counts than the UI
+result: "verified" if run ledger contains a scan.completed event with timestamp, critical, high, warnings counts
+result: "partially_verified" if scan ran but no ledger entry (events may be dropping)
+result: "failed" if ledger entry shows different counts than the UI
+result: "unverified" if no scan was run during this pass
 
 ## Severity Triage Guidance
 
@@ -115,8 +128,8 @@ For each finding, provide a brief triage note:
   "checks": [
     {
       "check": "Secret Redaction",
-      "status": "PASS" | "CRITICAL_FAIL" | "FAIL" | "WARN",
-      "finding": "string",
+      "result": "verified" | "security_failed" | "failed" | "partially_verified" | "unverified",
+      "evidence": "Observable fact (e.g. '3 findings inspected, all show [REDACTED] for secret values')",
       "affectedFields": []
     }
   ],

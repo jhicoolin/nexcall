@@ -7,11 +7,17 @@
 
 ## Build status
 
-- `npm run lint` — **PASS**
-- `npm run build` — **PASS**
-- `node scripts/misato-runtime-smoke.mjs` — **PASS** against `http://127.0.0.1:3010`
-- `node scripts/misato-regression-check.mjs http://127.0.0.1:3010` — **PASS**
-- `npx tauri build --verbose` — **PASS**
+All entries use the verification taxonomy from `docs/misato/STATUS_TAXONOMY.md`.
+
+| Command | Status | Evidence |
+|---------|--------|---------|
+| `npm run lint` | SOURCE_VERIFIED | 0 ESLint errors, 0 warnings — confirmed by running the command |
+| `npm run build` | SOURCE_VERIFIED | Next.js build completed, 0 type errors — confirmed by running the command |
+| `node scripts/misato-runtime-smoke.mjs` | API_VERIFIED | `summary.verified: 13, failed: 0` at `http://127.0.0.1:3010` — structured JSON evidence emitted |
+| `node scripts/misato-regression-check.mjs http://127.0.0.1:3010` | API_VERIFIED | `summary.verified: 11, failed: 0` (6 source + 5 live) — structured JSON evidence emitted |
+| `npx tauri build --verbose` | SOURCE_VERIFIED | NSIS installer artifact produced: `src-tauri/target/release/bundle/nsis/MISATO_0.1.0_x64-setup.exe` |
+| `npm run misato:browser-shell-check` | UNVERIFIED (browser-required) | Requires MISATO.exe on port 1420 + Playwright. Run: `npx playwright install chromium && npm run misato:browser-shell-check` |
+| `npm run misato:browser-contract-check` | UNVERIFIED (browser-required) | Requires MISATO.exe + Hermes + Playwright. Run: `npm run misato:browser-contract-check` |
 
 ## Installer artifact
 

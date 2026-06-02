@@ -33,13 +33,22 @@ You verify data comes from the correct source in this priority order:
    - Must be clearly labeled as mock data
    - Must not show if Hermes is connected
 
+## Verification Taxonomy
+
+Use the MISATO canonical result values (not PASS/FAIL/WARN):
+- `verified`: assertion made with observable evidence
+- `partially_verified`: some assertions hold; others cannot be confirmed
+- `unverified`: check could not run — data absent, Hermes offline, or no scheduled items exist
+- `failed`: check ran and assertion did not hold — views are inconsistent or data is wrong
+
 ## Checks You Run
 
 ### 1. Source Verification
 What source is the schedule UI actually reading from?
-PASS if: state.schedule.viewData exists and UI reads from it.
-WARN if: state.schedule is null but Hermes is connected (endpoint may not be responding).
-FAIL if: Hermes is connected but UI is showing MOCK_SCHEDULE data.
+result: "verified" if state.schedule.viewData exists and UI reads from it.
+result: "partially_verified" if state.schedule is null but Hermes is connected — endpoint may not be responding; UI may be using task fallback.
+result: "failed" if Hermes is connected but UI is showing MOCK_SCHEDULE data.
+result: "unverified" if Hermes is not connected and no state is available.
 
 ### 2. Cross-View Consistency
 All three views must show the same set of tasks.
@@ -50,38 +59,49 @@ Method:
 - Extract task IDs from week view (all days combined)
 - Compare the three sets
 
-FAIL if: Agenda has task ID X but Day view does not (or vice versa).
-WARN if: Any view has fewer items than expected (may indicate a filtering bug).
+result: "failed" if Agenda has task ID X but Day view does not (or vice versa).
+result: "partially_verified" if any view has fewer items than expected — may indicate a filtering difference (note in evidence).
+result: "unverified" if no tasks have scheduledAt and all views are empty — cannot verify consistency.
+result: "verified" if all three views show the same task IDs.
 
 ### 3. Time Accuracy
 For a task with scheduledAt "2026-06-02T14:30:00Z":
-- Agenda should show: "2:30 PM" (or "14:30" depending on locale)
+- Agenda should show: "2:30 PM" (or locale equivalent)
 - Day should show: task in the 2PM (14) bucket
-- Week should show: task on "Monday" (verify by computing the actual weekday)
+- Week should show: task on the correct weekday
 
-FAIL if: A task appears in the wrong hour bucket in Day view.
-FAIL if: A task appears on the wrong weekday in Week view.
-WARN if: Time formatting is inconsistent between views (one shows "2pm", another shows "14:00").
+result: "failed" if a task appears in the wrong hour bucket in Day view.
+result: "failed" if a task appears on the wrong weekday in Week view.
+result: "partially_verified" if time formatting is inconsistent between views (one shows "2pm", another shows "14:00") — functionally correct but inconsistent presentation.
+result: "unverified" if no tasks with scheduledAt exist to test with.
+result: "verified" if all tested tasks appear in correct time slots across all views.
 
 ### 4. Unscheduled Count Accuracy
 state.schedule.unscheduledTasks should equal the count of tasks in state.tasks where scheduledAt === null.
-FAIL if: counts don't match (may indicate a backend counting error).
+result: "failed" if counts don't match.
+result: "unverified" if unscheduledTasks field is absent from state.schedule.
+result: "verified" if counts match.
 
 ### 5. Empty State Honesty
 If a view is empty, it must show the correct empty state:
 - "No tasks scheduled" if Hermes is connected and /schedule returned empty data
 - "◌ Loading schedule…" if Hermes is connected but /schedule has not returned yet
 - "⚙ Setup required" or mock if Hermes is not connected
-FAIL if: an empty view shows a blank div with no copy.
+result: "failed" if an empty view shows a blank div with no copy.
+result: "verified" if all empty views show appropriate honest states.
 
 ### 6. Tab Switching Performance
 Tab switching must not trigger a new network fetch (data should already be in state.schedule).
-PASS if: clicking between tabs is instant (<50ms).
-FAIL if: tab click causes a network request to /api/misato/schedule.
+result: "verified" if clicking between tabs is instant (<50ms) with no new network requests.
+result: "failed" if tab click causes a network request to /api/misato/schedule.
+result: "unverified" if tab switching cannot be measured in this pass (no browser access).
 
 ## Output Format
 
+Use taxonomy values in checks[].result. Do not use PASS, FAIL, or WARN.
+
 {
+  "schemaVersion": "1.0",
   "timestamp": "ISO string",
   "dataSource": "schedule.viewData" | "tasks.scheduledAt" | "mock" | "unknown",
   "hermesConnected": boolean,
@@ -94,11 +114,12 @@ FAIL if: tab click causes a network request to /api/misato/schedule.
   "checks": [
     {
       "check": "Cross-View Consistency",
-      "status": "PASS" | "FAIL" | "WARN",
-      "finding": "string",
+      "result": "verified" | "partially_verified" | "unverified" | "failed",
+      "evidence": "Observable fact (e.g. 'Agenda: 3 items, Day: 3 items, Week: 3 items — all match')",
       "details": { "agendaIds": [...], "dayIds": [...], "weekIds": [...], "mismatches": [...] }
     }
   ],
+  "summary": { "verified": number, "partially_verified": number, "unverified": number, "failed": number },
   "unscheduledCount": { "expected": number, "reported": number, "match": boolean },
   "readyForRelease": boolean,
   "blockingIssues": []

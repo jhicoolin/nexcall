@@ -122,4 +122,4 @@ This is the authoritative handoff. Codex should:
 4. Rebuild, restart, and run the 10-test suite
 5. Write own handoff note for Hermes when done
 
-**All 10 tests PASS on the current build.** Do not regress them.
+**All 10 regression-check source contracts are SOURCE_VERIFIED on the current build** (`npm run misato:regression` → `summary.verified: 6, failed: 0`). Do not regress them. Full live verification requires Hermes running: `npm run misato:smoke` → `summary.verified: 13, failed: 0`.
