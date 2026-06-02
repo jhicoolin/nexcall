@@ -1,10 +1,27 @@
 # MISATO Dangerous Command Hook Policy
-**Version:** 1.0  
-**Date:** 2026-06-02  
+**Version:** 1.1  
+**Date:** 2026-06-02 (updated)  
 **Owner:** Claude UI Agent (policy) · Codex (TypeScript implementation)  
 **Implementation:** `lib/misato/hooks/destructive-tool-guard.ts`
 
 This document defines exactly which commands require approval, which are safe to execute, and which require confirmation. It is the authoritative policy for the approval gate.
+
+---
+
+## Process Watcher Integration
+
+**Dev server:** `npm run dev` on port 3010 (canonical runtime origin)  
+**Process stability:** The Hermes runtime must be running before any tool in Category A or B is executed. If the runtime goes down mid-execution, the hook should:
+1. Detect the error (ECONNREFUSED on any Hermes endpoint)
+2. Block the in-progress operation and write `operation.failed_retrying` to the ledger
+3. Wait for the server to recover (exponential backoff, max 3 retries)
+4. If server does not recover within the retry window, write `operation.failed_final` and surface an error
+
+**Auto-restart behavior:** The dev server does not auto-restart itself. If pm2 is managing the process (`pm2 status misato-dev`), it will restart on crash. If running directly with `npm run dev`, a crash requires manual restart.
+
+**Hook behavior when Hermes is offline:** `runDestructiveToolGuard()` still creates the approval record in memory (state store), but cannot confirm it was written to the persistent ledger until Hermes reconnects. The approval should be re-queued on reconnect.
+
+---
 
 ---
 

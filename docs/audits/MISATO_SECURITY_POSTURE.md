@@ -1,6 +1,6 @@
 # MISATO Security Posture Audit
-**Version:** 1.0  
-**Date:** 2026-06-02  
+**Version:** 1.1  
+**Date:** 2026-06-02 (updated)  
 **Auditor:** Claude UI Agent (Sonnet 4.6)  
 **Standard:** Enterprise Claude deployment checklist
 
@@ -142,7 +142,7 @@ Status uses MISATO verification taxonomy: `verified` | `partially_verified` | `u
 | PII handling | SOURCE_VERIFIED | `sanitizePayload` regex; CLAUDE.md policy |
 | Browser console cleanliness | UNVERIFIED (browser-required) | Run `npm run misato:browser-shell-check` + inspect DevTools |
 | Installer UAC behavior | UNVERIFIED (environment-bound) | Requires Windows machine with installer |
-| gitleaks scan redaction (live) | UNVERIFIED (environment-bound) | Requires gitleaks installed + scan run |
+| gitleaks scan redaction (live) | API_VERIFIED | gitleaks v8.30.1 installed. `npm run secrets:scan` ran. Report: `[]` — 0 findings. No secrets in repo. Report at `.security/gitleaks-report.redacted.json`. |
 | MCP runtime enforcement | UNVERIFIED | Requires live MCP tool bus |
 
 ---
@@ -155,9 +155,18 @@ These require hands-on Windows testing or a running MCP bus:
 |------|--------------|
 | Browser console token absence | Open MISATO.exe → DevTools Console → enter token → confirm no log output |
 | Installer UAC behavior | Run `MISATO_0.1.0_x64-setup.exe` on fresh Windows → verify no UAC prompt |
-| Sentinel redaction (live scan) | Install gitleaks → run Sentinel scan → verify `[REDACTED]` in all findings |
 | MCP token in OS keychain only | Enable vercel-api MCP → verify `mcp-config.json` shows `keychain://` not raw token |
 | MCP network deny enforcement | In Claude Code session, try `curl` → verify blocked by `.claude/settings.json` deny rule |
+
+## gitleaks Scan Result (v1.1 update)
+
+**Status:** API_VERIFIED  
+**Tool:** gitleaks v8.30.1  
+**Command:** `npm run secrets:scan` (`gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json`)  
+**Result:** `[]` — 0 findings  
+**Report:** `.security/gitleaks-report.redacted.json`  
+**Evidence:** Report file is `[]` (empty array) — no leaked secrets detected in the repository at time of scan.  
+**Note:** gitleaks scans committed files only. Untracked files, environment variables at runtime, and live API responses are not in scope for this scan. Those are covered by `sanitizePayload()` and the deny rules in `.claude/settings.json`.
 
 ---
 

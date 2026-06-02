@@ -928,11 +928,11 @@ async function createTask(data) {
       agent:    data.agent    || ''
     });
     updateLiveTask(task.id ? task : { ...data, id: `local-${Date.now()}` });
-    showToast('Task created.', '◉');
+    showToast(`✓ Task "${task.title || data.title || 'Untitled'}" created.`, '◉');
     state.modal = null;
     render();
   } catch (e) {
-    showToast(e.url ? `${e.message}\n${e.url}` : e.message, '⚠');
+    showToast(e.url ? `✗ Task create failed · ${e.message} · ${e.url}` : `✗ Task create failed · ${e.message}`, '⚠');
   }
 }
 
@@ -973,7 +973,7 @@ async function deleteTask(id) {
       requestedAt: 'just now'
     };
     prependLiveApproval(apr);
-    showToast('High-risk delete queued for approval.', '◆');
+    showToast(`✕ Task delete gated for approval. Approval #${apr.id}.`, '◆');
     render();
     return;
   }
@@ -1444,7 +1444,7 @@ function renderOverview() {
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Active Work</span><button class="btn btn-ghost btn-sm" data-nav="kanban">Kanban →</button></div>
-          ${taskRows || '<div style="padding:12px;font-size:12px;color:var(--text-tertiary)">No tasks in progress</div>'}
+          ${taskRows || '<div style="padding:12px;font-size:12px;color:var(--text-tertiary)">◎ No active tasks</div>'}
         </div>
       </div>
       <div class="grid-3">
@@ -1911,7 +1911,7 @@ function renderKanban() {
                 <button class="kc-action kc-delete" data-task-id="${esc(t.id)}" data-task-delete="1" title="Delete task">✕</button>
               </div>
             </div>`;
-        }).join('') || `<div style="padding:12px;font-size:11px;color:var(--text-tertiary);text-align:center">No tasks</div>`}
+        }).join('') || `<div style="padding:12px;font-size:11px;color:var(--text-tertiary);text-align:center">No tasks in this column</div>`}
       </div>`;
   }).join('');
   return `

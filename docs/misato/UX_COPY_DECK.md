@@ -1,6 +1,6 @@
 # MISATO UX Copy Deck
-**Version:** 1.1  
-**Date:** 2026-06-02  
+**Version:** 2.0  
+**Date:** 2026-06-02 (final acceptance)  
 **Owner:** Claude UI Agent  
 **Status:** PRODUCTION — all user-facing strings must come from this document
 
@@ -768,3 +768,44 @@ No schedule data · Connect Hermes and add tasks with dates         [was: "No ta
 ⊘ Blocked · approval #{linkedApprovalId} pending     [was: "⚠ Blocked — approval pending"]
 ⊘ Blocked · requires owner approval                  [was: "⚠ Blocked — requires approval"]
 ```
+
+### Kanban: Empty states (v2.0 additions)
+
+```
+◎ No active tasks                       [Overview active-tasks widget when empty]
+No tasks in this column                 [Kanban column when all tasks are in other columns]
+```
+
+### Task mutations: Create (v2.0 — K1 applied by Codex)
+
+```
+✓ Task "{title}" created.               [was: "Task created."]
+✗ Task create failed · {message} · {url}   [was: "{message}\n{url}"]
+```
+
+### Task mutations: High-risk delete (v2.0 — K5 applied)
+
+```
+✕ Task delete gated for approval. Approval #{approvalId}.   [was: "High-risk delete queued for approval."]
+```
+
+---
+
+## v2.0 Change Summary
+
+| ID | String | Status |
+|----|--------|--------|
+| T1 | `"Hermes not connected."` → `"◎ Hermes offline — start npm run dev to reconnect."` | Applied |
+| T2 | `"Disconnected from Hermes."` → `"⬡ Hermes disconnected · start npm run dev..."` | Applied |
+| T3 | `"Refreshing…"` → `"◎ Refreshing live data from Hermes…"` | Applied |
+| K1 | `"Task created."` → `"✓ Task \"{title}\" created."` | Applied (Codex) |
+| K2 | `"{msg}\n{url}"` → `"✗ Task create failed · {msg} · {url}"` | Applied |
+| K5 | `"High-risk delete queued..."` → `"✕ Task delete gated for approval. Approval #{id}."` | Applied (Codex) |
+| S1 | `"Scan requested…"` → `"◌ Scanning repository for secrets…"` | Applied |
+| O1 | `"Syncing Obsidian vault…"` → `"⟳ Syncing to Obsidian vault…"` | Applied |
+| C1 | `"Configuration saved."` → `"✓ Configuration saved."` | Applied |
+| C2 | `"Title is required."` → `"⚠ Title is required to create a task."` | Applied |
+| A2 | `"Failed: {msg}\nURL: {url}"` → `"✗ Approval action failed · {msg} · {url}"` | Applied |
+| E7 | `"No tasks"` (kanban column) → `"No tasks in this column"` | Applied |
+| Topbar | `"HERMES OFFLINE"` → `"HERMES OFFLINE · npm run dev"` | Applied |
+| Sentinel | `"Fetching scan status…"` → `"Loading scan status…"` (normalized) | Applied |

@@ -1,11 +1,24 @@
 # MISATO Subagent Prompt Polish
-**Version:** 1.0  
-**Date:** 2026-06-02  
+**Version:** 1.1  
+**Date:** 2026-06-02 (updated)  
 **Owner:** Claude UI Agent  
 **Scope:** Concrete examples, evidence requirements, and user-facing language for all 6 specialist subagents
 
 Each section adds "What Good Looks Like" guidance to the subagent's existing prompt.  
 Add this content to the subagent's `.md` file in the `## System Prompt` block.
+
+---
+
+## Dev Server Stability Requirements
+
+All subagents that invoke Hermes endpoints require the dev server to be running.
+
+**Current dev server:** `npm run dev` on port 3010  
+**Stability requirement:** Server must be running before any subagent that calls `/api/misato/*` is invoked.  
+**If server is down:** Checks that require live endpoints return `result: "unverified"` with note: "Hermes not reachable at http://127.0.0.1:3010 — start npm run dev."  
+**Process monitoring:** If pm2 is available (`pm2 status`), the dev server process name is `misato-dev`. Subagents can check `pm2 status misato-dev` to confirm server is online before invoking live checks.
+
+---
 
 ---
 
