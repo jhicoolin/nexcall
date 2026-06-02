@@ -17,6 +17,7 @@
     "desktop-ui:build": "node -e \"process.exit(0)\"",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
+    "misato:browser-shell-check": "node scripts/misato-browser-shell-check.mjs",
     "misato:smoke": "node scripts/misato-runtime-smoke.mjs",
     "secrets:scan": "gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json",
     "secrets:scan:staged": "gitleaks protect --staged --redact"
