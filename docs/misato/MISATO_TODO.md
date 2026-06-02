@@ -138,8 +138,41 @@ ANALYZE=true npm run build
 
 ### Performance Measurement Protocol
 
-Before claiming any performance numbers, run this baseline:
+**Real baseline (recorded 2026-06-02, dev server):**
 
+```
+npm run lighthouse:nexcall
+→ NexCall marketing page at http://127.0.0.1:3010/ (DEV MODE — scores lower than production)
+
+Performance:    44   ← dev server overhead, NOT production score
+Accessibility:  96
+Best Practices: 96
+SEO:            91
+
+FCP:            1.3 s
+LCP:           19.9 s  ← main thread blocked by JS
+TTI:           20.0 s
+TBT:        4,080 ms  ← large React hydration
+CLS:            0.002
+Speed Index:    3.4 s
+Total weight:   2,918 KiB
+
+Root causes (from Lighthouse audit):
+  - Server response: 1,055ms (dev compilation overhead — will be ~50ms in production)
+  - Unused JS: 237KB (error.js 143KB, not-found.js 94KB — dev-only chunks)
+  - Main thread: 7.0s (React hydration of full marketing page)
+  - Console error: SyntaxError: Unexpected identifier 'nc' (needs investigation — no URL/line)
+```
+
+**IMPORTANT: This is the NexCall marketing page, not the MISATO desktop UI.**
+MISATO desktop shell lives at `http://127.0.0.1:1420`. Run `npm run lighthouse:misato` for MISATO.
+
+Production scores will be significantly higher than dev scores because:
+- Dev server adds compilation overhead to every request (~1s)
+- Dev bundles include error handling and source maps not present in production
+- Production build removes unused code and minifies
+
+To establish production baseline:
 ```bash
 # 1. Build for production
 npm run build

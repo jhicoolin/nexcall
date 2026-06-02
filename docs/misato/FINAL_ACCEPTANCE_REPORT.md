@@ -1,7 +1,16 @@
 # MISATO LIVE v2.0 — Final Acceptance Report
 **Date:** 2026-06-02  
 **Branch:** `misato-hermes-live-brain`  
-**Verdict:** RELEASE CANDIDATE
+**Verdict:** PARTIALLY VERIFIED
+
+## Hermes Execution Update (2026-06-02)
+- `pm2` dev server `misato-dev` is online and stable on the canonical runtime origin `http://127.0.0.1:3010`.
+- `npm run misato:live-data-check` passes with 12/12 endpoints verified.
+- Browser console session re-check shows 0 JS errors.
+- Command Center, Schedule, Lanes, Watchtower, and Secret Sentinel were verified against live state.
+- Obsidian Mirror is honestly setup-required because `OBSIDIAN_VAULT_PATH` is not configured.
+- Windows packaging artifacts exist, but tray / single-instance / autostart runtime behavior remains environment-bound and was not fully exercised here.
+- Console warning noise from Hermes discovery/health pings was reduced to info-level logging in `desktop-ui/app.js`.
 
 ---
 

@@ -146,11 +146,26 @@ The following optimizations are **on the v2.1 roadmap but not yet implemented** 
 
 See `MISATO_TODO.md` for implementation details for each item.
 
-**What IS measured vs. what is aspirational:**
+**Real baseline (recorded 2026-06-02, dev server):**
 
-Do not publish performance numbers (e.g., "1.3s load time", "750KB bundle", "60fps scroll") unless they come from a recorded Lighthouse run or DevTools measurement. All such numbers in any previous draft were placeholders — not measured values.
+```
+npm run lighthouse:nexcall  (NexCall marketing page, DEV server)
 
-To establish a real baseline: run `npm run build` then `npx lighthouse http://127.0.0.1:3010 --output json` and record the output. Do this once before each release.
+Performance:    44    ← dev server overhead — NOT production score
+Accessibility:  96
+Best Practices: 96
+SEO:            91
+
+FCP: 1.3s  |  LCP: 19.9s  |  TTI: 20.0s  |  TBT: 4,080ms  |  CLS: 0.002
+Total weight: 2,918 KiB  |  Server response: 1,055ms (dev compilation)
+```
+
+**Note:** This is the **NexCall marketing page** at port 3010, not the MISATO desktop shell (port 1420).
+Dev scores are always lower than production. Expected production FCP: ~0.5s, LCP: ~2-3s after build optimization.
+
+**Known issue from Lighthouse:** `SyntaxError: Unexpected identifier 'nc'` in browser console. No URL or line number provided — likely from an inline script in `app/layout.tsx` or a Next.js compiled module. Does not affect MISATO API routes.
+
+**Production baseline:** Run `npm run build && npm run lighthouse:nexcall` after building. Record output before each release.
 
 ---
 

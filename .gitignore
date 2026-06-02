@@ -46,3 +46,7 @@ gitleaks-report*.json
 
 # Backup files
 *.bak
+
+# Lighthouse reports (keep baselines in .lighthouse/, ignore ad-hoc reports)
+lighthouse-*.report.json
+lighthouse-*.report.html
