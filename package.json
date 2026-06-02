@@ -22,6 +22,10 @@
     "misato:smoke": "node scripts/misato-runtime-smoke.mjs",
     "misato:regression": "node scripts/misato-regression-check.mjs",
     "misato:desktop-packaging-check": "node scripts/misato-desktop-packaging-check.mjs",
+    "misato:desktop-acceptance": "node scripts/misato-desktop-acceptance.mjs",
+    "misato:updater-check": "node -e \"console.log('TODO: MISATO updater wiring not implemented yet'); process.exit(0)\"",
+    "misato:updater-download": "node -e \"console.log('TODO: MISATO updater download not implemented yet'); process.exit(0)\"",
+    "misato:updater-install": "node -e \"console.log('TODO: MISATO updater install not implemented yet'); process.exit(0)\"",
     "secrets:scan": "gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json",
     "secrets:scan:staged": "gitleaks protect --staged --redact"
   },

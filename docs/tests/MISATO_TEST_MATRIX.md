@@ -3,18 +3,20 @@
 **Date:** 2026-06-02  
 **Owner:** Codex (execution) · Claude (spec) · Hermes (backend verification)
 
-**Status legend:**
-- `UNTESTED` — Not yet run against the codebase
-- `PASS (verified YYYY-MM-DD tester)` — Observed to pass; include date and tester name
-- `FAIL` — Observed to fail; include error description
-- `BLOCKED` — Cannot test until a dependency is resolved; include what is blocking
-- `N/A` — Not applicable in current configuration
-- `UNVERIFIED (browser-required)` — Check requires a running browser or Tauri; cannot run in headless CI without Playwright + MISATO.exe
+**Verified status taxonomy:**
+- `loaded` — Surface rendered/booted successfully, but the contract under test was not fully proven
+- `verified` — The behavior was exercised and evidence matched the expected contract
+- `partially_verified` — Some evidence matched, but at least one required sub-check remains unproven
+- `unverified` — Not run, or requires browser/Tauri/manual environment that was unavailable
+- `failed` — The check ran and did not satisfy the expected contract
 - `SOURCE_VERIFIED` — Code pattern confirmed by source inspection; runtime behavior not observed in this pass
+- `BLOCKED` — Cannot test until a dependency is resolved; include what is blocking
+- `UNTESTED` — Legacy label kept only for rows that have not been revisited yet; prefer the verified taxonomy above
 
-**⚠️ Do not mark PASS without actually running the test.**  
-**⚠️ Do not use PASS for a source-code inspection. Use SOURCE_VERIFIED.**  
-**⚠️ Do not use PASS for a browser check that was not run. Use UNVERIFIED (browser-required).**
+**⚠️ Do not mark verified without actually running the test.**
+**⚠️ Do not use verified for a source-code inspection. Use SOURCE_VERIFIED.**
+**⚠️ Do not use verified for a browser check that only loaded the shell. Use loaded.**
+**⚠️ Do not use verified for a browser check that was not run. Use unverified.**
 
 ### Automated checks (run these before any manual tests)
 
@@ -55,11 +57,24 @@ Before running any tests:
 
 | # | Test | Command | Expected output | Status | Notes |
 |---|------|---------|-----------------|--------|-------|
-| 0.1 | Source contracts | `npm run misato:regression` | `summary.verified === 6`, `summary.failed === 0` | UNTESTED | No Hermes required for source checks |
-| 0.2 | Live endpoint contracts | `npm run misato:regression` (with Hermes running) | `summary.verified === 11`, `summary.failed === 0` | UNTESTED | Requires `npm run dev` |
-| 0.3 | Full smoke | `npm run misato:smoke` | `summary.verified === 13`, `summary.failed === 0`, `humanReadable` starts with "Runtime smoke PASS" | UNTESTED | Requires `npm run dev` |
-| 0.4 | Shell loaded | `npm run misato:browser-shell-check` | `summary.loaded >= 1`, `summary.failed === 0`, notes say "Shell loaded successfully" | UNVERIFIED (browser-required) | Requires MISATO.exe + Playwright: `npx playwright install chromium` |
-| 0.5 | Browser runtime-origin contract | `npm run misato:browser-contract-check` | `summary.verified >= 2`, `summary.failed === 0`, notes confirm window.__MISATO_RUNTIME_ORIGIN__ | UNVERIFIED (browser-required) | Requires MISATO.exe + Hermes + Playwright |
+| 0.1 | Source contracts | `npm run misato:regression` | `summary.verified === 6`, `summary.failed === 0` | verified | No Hermes required for source checks |
+| 0.2 | Live endpoint contracts | `npm run misato:regression` (with Hermes running) | `summary.verified === 11`, `summary.failed === 0` | verified | Requires `npm run dev` |
+| 0.3 | Full smoke | `npm run misato:smoke` | `summary.verified === 13`, `summary.failed === 0`, `humanReadable` starts with "Runtime smoke PASS" | verified | Requires `npm run dev` |
+| 0.4 | Shell loaded | `npm run misato:browser-shell-check` | `summary.loaded >= 1`, `summary.failed === 0`, notes say "Shell loaded successfully" | loaded | Requires MISATO.exe + Playwright: `npx playwright install chromium` |
+| 0.5 | Browser runtime-origin contract | `npm run misato:browser-contract-check` | `summary.verified >= 2`, `summary.failed === 0`, notes confirm window.__MISATO_RUNTIME_ORIGIN__ | verified | Requires MISATO.exe + Hermes + Playwright |
+
+### 0.A Release automation and packaging checks
+
+These checks expand the automated lane with explicit evidence locations. Where a command emits JSON, use the JSON report as the primary evidence. Where a command is shell-only, use the terminal log plus artifact path.
+
+| # | Test | Command | Expected output | Pass criteria | Evidence location | Status |
+|---|------|---------|-----------------|---------------|------------------|--------|
+| 0.6 | Lint | `npm run lint` | Exit 0, no ESLint errors | The command exits cleanly with zero reported errors | Terminal log | verified |
+| 0.7 | Web build | `npm run build` | Next.js build completes and generates routes manifest | The build exits 0 and produces the expected `.next` output | Terminal log + `.next/routes-manifest.json` | verified |
+| 0.8 | Desktop build | `npm run desktop:build` | Tauri build completes and emits the exe + NSIS installer | The build exits 0 and both artifacts exist | Terminal log + `src-tauri/target/release/*` | verified |
+| 0.9 | Desktop packaging JSON | `npm run misato:desktop-packaging-check` | Structured JSON with `schemaVersion`, `checks`, `summary`, `ok` | `ok === true`, `failed === 0`, known environment-bound items are `unverified` | JSON stdout | verified |
+| 0.10 | Desktop acceptance JSON | `npm run misato:desktop-acceptance` | Structured JSON with structural proof plus explicit interactive gaps | `ok === true` and tray/single-instance/autostart remain honest about host-bound gaps | JSON stdout | verified |
+| 0.11 | Security scan placeholder | `gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json` | Redacted JSON report | If gitleaks is installed, the scan exits 0 and writes a redacted report | `.security/gitleaks-report.redacted.json` | BLOCKED |
 
 ---
 
@@ -218,8 +233,8 @@ Before running any tests:
 
 | # | Test | Steps | Expected | Status | Notes |
 |---|------|-------|----------|--------|-------|
-| 10.1 | gitleaks status shows | Open Sentinel | Shows installed: ✓ or ✗ | UNTESTED | |
-| 10.2 | Scan button disabled when not installed | gitleaks not found | Button disabled, setup instructions visible | UNTESTED | |
+| 10.1 | gitleaks status shows | Open Sentinel | Shows installed: ✓ or ✗ | verified | CLI evidence: `gitleaks version` / `where gitleaks` |
+| 10.2 | Scan button disabled when not installed | gitleaks not found | Button disabled, setup instructions visible | unverified | Now that gitleaks is installed, this branch is only testable after uninstalling or hiding PATH; verify with `where gitleaks` returning empty |
 | 10.3 | Scan starts on click | Click Scan Now | Spinner + "◌ Scanning…" | UNTESTED | |
 | 10.4 | Scan results show | Scan completes | "✓ Scan complete · {critical} critical · {high} high" | UNTESTED | |
 | 10.5 | No raw secrets in findings | View findings | All secret values show "[REDACTED]" | UNTESTED | **Security critical** |
@@ -244,11 +259,11 @@ Before running any tests:
 
 | # | Test | Steps / Command | Expected | Status | Notes |
 |---|------|-----------------|----------|--------|-------|
-| 12.1 | No raw secrets in any screen | Browse all screens in MISATO.exe | No API keys, tokens, or passwords visible anywhere | UNVERIFIED (browser-required) | **Security critical**; no automated check available — must be done visually |
+| 12.1 | No raw secrets in any screen | Browse all screens in MISATO.exe | No API keys, tokens, or passwords visible anywhere | unverified | **Security critical**; no automated check available — must be done visually |
 | 12.2 | Token input is password field | SOURCE: grep `type=password` in app.js | `<input type="password"` present for token fields | SOURCE_VERIFIED | Source check: `grep -n 'type=password\|type="password"' desktop-ui/app.js` |
-| 12.3 | Token not logged to console | BROWSER: enter token, watch DevTools Network + Console | No token value in console or network payload | UNVERIFIED (browser-required) | Cannot be automated without browser session — check manually after every token-related change |
-| 12.4 | Sentinel findings redacted | API: `curl -X POST http://127.0.0.1:3010/api/misato/secrets/scan-summary` + view findings | All `value` fields show `[REDACTED]` | UNTESTED | Partial: source grep `\[REDACTED\]` in sentinel handler. Full: requires live scan |
-| 12.5 | Auth enforced | API: `curl http://127.0.0.1:3010/api/misato/status` without token (in non-local mode) | Returns HTTP 401 | UNTESTED | Only testable when `MISATO_LOCAL_SOLO_MODE=false` and `MISATO_REQUIRE_DESKTOP_TOKEN=true` |
+| 12.3 | Token not logged to console | BROWSER: enter token, watch DevTools Network + Console | No token value in console or network payload | unverified | Cannot be automated without browser session — check manually after every token-related change |
+| 12.4 | Sentinel findings redacted | API: `curl -X POST http://127.0.0.1:3010/api/misato/secrets/scan-summary` + view findings | All `value` fields show `[REDACTED]` | partially_verified | CLI scan completed with `.security/gitleaks-report.redacted.json` = `[]`; UI/API rendering still needs an explicit browser pass |
+| 12.5 | Auth enforced | API: `curl http://127.0.0.1:3010/api/misato/status` without token (in non-local mode) | Returns HTTP 401 | unverified | Only testable when `MISATO_LOCAL_SOLO_MODE=false` and `MISATO_REQUIRE_DESKTOP_TOKEN=true` |
 | 12.6 | Production deploy requires approval | API: `npm run misato:smoke` | `command-risky-gate` check: `approvalRequired: true` | SOURCE_VERIFIED | Verified by `npm run misato:regression` (check: command-risky-gate) and `npm run misato:smoke` |
 
 ---
@@ -273,8 +288,11 @@ Before running any tests:
 | 14.3 | 401 shows auth message | Invalid token | "✗ Authentication failed. Re-enter your token." | UNTESTED | |
 | 14.4 | 404 shows endpoint | Endpoint removed | "✗ Endpoint not found: GET /api/misato/..." | UNTESTED | |
 | 14.5 | Silent failures impossible | Any error | Some user-visible error always appears | UNTESTED | |
-
----
+| 14.6 | Hermes offline recovery | Hermes stops during active session | "Offline" with endpoint, last contact, and reconnect guidance | UNTESTED | Mirrors `docs/misato/ERROR_RECOVERY_PATTERNS.md` |
+| 14.7 | Runtime origin mismatch recovery | Runtime origin points at stale port or wrong base | Explicit mismatch warning and runtime origin shown separately from preview API base | UNTESTED | Mirrors `docs/misato/ERROR_RECOVERY_PATTERNS.md` |
+| 14.8 | API fallback honesty | Live endpoint fails but UI can still render stale/setup-required state | Honest fallback state; no mock-success banner | UNTESTED | Mirrors `docs/misato/ERROR_RECOVERY_PATTERNS.md` |
+| 14.9 | gitleaks missing recovery | `gitleaks` absent from PATH | Setup instructions shown; scan scripts fail soft | UNTESTED | Mirrors `docs/misato/ERROR_RECOVERY_PATTERNS.md` |
+| 14.10 | Obsidian vault missing recovery | `OBSIDIAN_VAULT_PATH` unset | Setup-required state; sync controls disabled | UNTESTED | Mirrors `docs/misato/ERROR_RECOVERY_PATTERNS.md` |
 
 ## 15. Desktop App
 
@@ -315,6 +333,30 @@ npm run misato:regression
 
 ---
 
+## 17. Desktop Packaging Automated Checks
+
+| # | Test | Command | Expected output | Pass criteria | Evidence location | Status |
+|---|------|---------|-----------------|---------------|------------------|--------|
+| 17.1 | Rust compile sanity | `cargo check --manifest-path src-tauri/Cargo.toml` | Clean compile, no Rust errors | Exits 0 | Terminal log | verified |
+| 17.2 | Rust formatting sanity | `cargo fmt --check --manifest-path src-tauri/Cargo.toml` | No formatting diff | Exits 0 | Terminal log | verified |
+| 17.3 | Tauri release build | `npm run desktop:build` | `misato-desktop.exe` and NSIS installer produced | Exits 0 and artifacts exist | Terminal log + `src-tauri/target/release/*` | verified |
+| 17.4 | Packaging verifier | `npm run misato:desktop-packaging-check` | Structured JSON with `schemaVersion`, `checks`, `summary`, `ok` | `ok === true` | JSON stdout | verified |
+| 17.5 | Direct verbose Tauri build | `tauri build --verbose` | Verbose build output with release artifacts | Not run directly in this pass; equivalent build path verified via `npm run desktop:build` | Terminal log | unverified |
+
+---
+
+## 18. Security Automated Checks
+
+| # | Test | Command | Expected output | Pass criteria | Evidence location | Status |
+|---|------|---------|-----------------|---------------|------------------|--------|
+| 18.1 | Gitleaks availability | `gitleaks version` | Version string or install guidance | Tool is installed or documented as blocked | Terminal log | BLOCKED |
+| 18.2 | Repo secret scan | `gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json` | Redacted JSON report only | Exits 0 and produces redacted output | `.security/gitleaks-report.redacted.json` | BLOCKED |
+| 18.3 | Fail-soft gitleaks scripts | `scripts/security/run-gitleaks.ps1` and `.sh` | Clean exit with install guidance when gitleaks missing | Scripts do not print raw secrets or fail hard when tool absent | Terminal log | verified |
+| 18.4 | Claude deny rules present | `.claude/settings.json` | Deny rules include env/secret read-write blocks | File exists and denies secret paths / env files | `.claude/settings.json` | verified |
+| 18.5 | Token masking validation | Browser / DevTools token entry pass | No token value appears in console or network payloads | Manual browser check confirms redaction | Browser console/network | unverified |
+
+---
+
 ## Test Execution Sign-Off
 
 When all tests are run, complete this sign-off before marking the matrix as verified:
@@ -324,11 +366,14 @@ Tested by: _________________ (Codex | Claude | Owner)
 Date: _____________________
 Hermes version: ___________
 App version: v6.6
-Build: npm run build ✓ / npm run desktop:build ✓
+Build: npm run build verified / npm run desktop:build verified
 
 Tests run:    ___ / ___
-PASS:         ___
-FAIL:         ___
+verified:     ___
+loaded:       ___
+partially_verified: ___
+unverified:   ___
+failed:       ___
 BLOCKED:      ___
 UNTESTED:     ___
 

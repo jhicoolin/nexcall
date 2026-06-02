@@ -66,3 +66,24 @@
 - `gitleaks` is not installed on this host, so the live redacted repo scan is still blocked.
 - Repo-local scripts are fail-soft and the `.gitignore` rules already protect `.security/`, redacted reports, and SARIF outputs.
 - The GitHub workflow now includes `misato-hermes-live-brain` in its push branch list.
+
+## Desktop acceptance update
+- Added `npm run misato:desktop-acceptance`.
+- Current JSON result:
+  - `ok: true`
+  - `verified: 7`
+  - `loaded: 1`
+  - `unverified: 4`
+  - `failed: 0`
+- Structural proof covers:
+  - release exe present
+  - installer present
+  - Tauri config baseline correct
+  - single-instance plugin present
+  - tray handlers present
+  - window-state plugin present
+  - autostart plugin present
+- Interactive Windows behavior remains unverified:
+  - tray click/restore
+  - second-instance suppression
+  - OS-level autostart enablement
