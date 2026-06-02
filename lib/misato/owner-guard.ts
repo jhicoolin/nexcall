@@ -28,7 +28,9 @@ export function isDesktopTokenRequired() {
 }
 
 export function misatoRuntimeMode() {
-  return (process.env.MISATO_RUNTIME_MODE || "mock").trim() || "mock";
+  const configured = (process.env.MISATO_RUNTIME_MODE || "").trim().toLowerCase();
+  if (!configured || configured === "mock") return "local";
+  return configured;
 }
 
 export function misatoAuthMode(request?: Request) {
