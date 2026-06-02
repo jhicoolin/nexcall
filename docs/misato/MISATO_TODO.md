@@ -1,9 +1,163 @@
 # MISATO Future Work
-**Version:** 1.0  
-**Date:** 2026-06-02  
+**Version:** 1.1  
+**Date:** 2026-06-02 (updated)  
 **Scope:** Documented future improvements and intentionally deferred work
 
 This document tracks what was intentionally NOT done in v2.0 and why. Nothing here is a v2.0 bug unless noted.
+
+**Verification standard:** Items marked "NOT IMPLEMENTED" were confirmed absent from the codebase by source audit. Do not mark any item as complete until the code exists and is verified.
+
+---
+
+## Performance Optimization Roadmap (v2.1)
+
+None of the items below are implemented in v2.0. They are the correct next step after the v2.0 release is stable. Each includes exact implementation instructions.
+
+### P1: List Virtualization — HIGH IMPACT
+
+**Status:** NOT IMPLEMENTED — `@tanstack/react-virtual` not installed, no usage in codebase  
+**When to implement:** If any list (agents, tasks, approvals, logs, events) exceeds 200 items and shows jank  
+**Implementation:**
+```bash
+npm install @tanstack/react-virtual
+```
+```tsx
+// In any list component with 100+ items:
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+const rowVirtualizer = useVirtualizer({
+  count: items.length,
+  getScrollElement: () => parentRef.current,
+  estimateSize: () => 48, // estimated row height in px
+});
+```
+**Measure before and after:** Chrome DevTools > Performance > record 5s scroll. Target: constant 60fps frame time.
+
+---
+
+### P2: Lazy Loading Heavy Components — MEDIUM IMPACT
+
+**Status:** NOT IMPLEMENTED — no `next/dynamic` usage in app/ or components/  
+**When to implement:** When initial bundle size (from `npm run build` output) exceeds 500KB shared  
+**Implementation:**
+```tsx
+// In any page that uses modals or charts:
+import dynamic from 'next/dynamic';
+
+const HeavyChart = dynamic(() => import('../components/HeavyChart'), {
+  loading: () => <div>Loading chart…</div>,
+  ssr: false
+});
+```
+**Measure before and after:** `npm run build` → "First Load JS shared by all" line.
+
+---
+
+### P3: React.memo on List Items — LOW IMPACT
+
+**Status:** NOT IMPLEMENTED — no `React.memo` usage in codebase  
+**When to implement:** After adding virtualization, if profiler still shows unnecessary re-renders  
+**Implementation:**
+```tsx
+// Wrap list item components:
+const AgentCard = React.memo(function AgentCard({ agent }: { agent: Agent }) {
+  // component body unchanged
+});
+```
+**Measure before and after:** Chrome DevTools > Performance > "Components" tab (React DevTools Profiler).
+
+---
+
+### P4: next/font — LOW IMPACT
+
+**Status:** NOT IMPLEMENTED — layout uses Tailwind `font-sans` class  
+**When to implement:** If Lighthouse shows font-related LCP penalty  
+**Implementation:**
+```tsx
+// In app/layout.tsx:
+import { Inter } from 'next/font/google';
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
+// Replace className="font-sans" with className={inter.className}
+```
+
+---
+
+### P5: Error Boundaries — IMPORTANT FOR PRODUCTION
+
+**Status:** NOT IMPLEMENTED — `react-error-boundary` not installed  
+**When to implement:** Before first real user deployment (not just owner use)  
+**Implementation:**
+```bash
+npm install react-error-boundary
+```
+```tsx
+// In app/layout.tsx or each major route:
+import { ErrorBoundary } from 'react-error-boundary';
+
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <div role="alert">
+      <p>Something went wrong:</p>
+      <pre>{error.message}</pre>
+    </div>
+  );
+}
+
+// Wrap root or section:
+<ErrorBoundary FallbackComponent={ErrorFallback}>
+  {children}
+</ErrorBoundary>
+```
+
+---
+
+### P6: Bundle Analyzer — MONITORING TOOL
+
+**Status:** NOT IMPLEMENTED — `@next/bundle-analyzer` not installed  
+**When to implement:** Before optimizing bundle size (need to know what's large first)  
+**Implementation:**
+```bash
+npm install -D @next/bundle-analyzer
+```
+```js
+// next.config.mjs:
+import withBundleAnalyzer from '@next/bundle-analyzer';
+const analyzed = withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
+export default analyzed(nextConfig);
+```
+```bash
+# To run:
+ANALYZE=true npm run build
+```
+**Add to package.json:**
+```json
+"analyze": "ANALYZE=true next build"
+```
+
+---
+
+### Performance Measurement Protocol
+
+Before claiming any performance numbers, run this baseline:
+
+```bash
+# 1. Build for production
+npm run build
+
+# 2. Note the "First Load JS shared by all" from build output
+# This is your actual bundle baseline
+
+# 3. Run Lighthouse
+npx lighthouse http://127.0.0.1:3010 --output json --output-path ./lighthouse-baseline.json
+# Extract: performance score, FCP, TTI, LCP, TBT
+
+# 4. Record in a file
+echo "Baseline recorded: $(date)" >> docs/misato/PERFORMANCE_BASELINES.md
+```
+
+Only publish performance numbers from a recorded Lighthouse run. Never use estimates or aspirational targets as if they were measured values.
+
+---
 
 ---
 

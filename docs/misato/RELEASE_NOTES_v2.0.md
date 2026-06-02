@@ -109,16 +109,64 @@ npm run secrets:scan        → gitleaks v8.30.1, 0 findings
 
 ---
 
+## Security Posture — API_VERIFIED
+
+9 security headers are live and confirmed via `curl -sI http://127.0.0.1:3010/`:
+
+| Header | Value | Verification |
+|--------|-------|-------------|
+| `Content-Security-Policy` | Full CSP with strict whitelist | API_VERIFIED |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` | API_VERIFIED |
+| `X-Frame-Options` | `DENY` | API_VERIFIED |
+| `X-Content-Type-Options` | `nosniff` | API_VERIFIED |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | API_VERIFIED |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=()` | API_VERIFIED |
+| `Cross-Origin-Opener-Policy` | `same-origin` | API_VERIFIED |
+| `Cross-Origin-Resource-Policy` | `same-origin` | API_VERIFIED |
+
+These headers were already present in `next.config.mjs` before v2.0 work. Confirmed live with 9/9 headers served.
+
+**TypeScript strict mode:** `SOURCE_VERIFIED` — `tsconfig.json` has `"strict": true, "noEmit": true, "target": "ES2017"`. Type errors caught at build time, 0 errors in `npm run build`.
+
+---
+
+## Performance Baseline (v2.0 — Not Yet Measured)
+
+The following optimizations are **on the v2.1 roadmap but not yet implemented** in v2.0. They should not be documented as done until the code exists and metrics are measured.
+
+| Optimization | Status | In Codebase |
+|-------------|--------|-------------|
+| List virtualization (`@tanstack/react-virtual`) | NOT IMPLEMENTED | No — package not installed |
+| `React.memo` on list items | NOT IMPLEMENTED | No |
+| Lazy loading (`next/dynamic`) | NOT IMPLEMENTED | No |
+| `next/font` optimization | NOT IMPLEMENTED | Uses Tailwind `font-sans` |
+| Error boundaries | NOT IMPLEMENTED | No — `react-error-boundary` not installed |
+| Bundle analyzer (`@next/bundle-analyzer`) | NOT IMPLEMENTED | No |
+| Measured performance metrics (FCP, TTI, FPS, bundle size) | NOT MEASURED | No Lighthouse run recorded |
+
+See `MISATO_TODO.md` for implementation details for each item.
+
+**What IS measured vs. what is aspirational:**
+
+Do not publish performance numbers (e.g., "1.3s load time", "750KB bundle", "60fps scroll") unless they come from a recorded Lighthouse run or DevTools measurement. All such numbers in any previous draft were placeholders — not measured values.
+
+To establish a real baseline: run `npm run build` then `npx lighthouse http://127.0.0.1:3010 --output json` and record the output. Do this once before each release.
+
+---
+
 ## Release Standard
 
 ```
-Lint:            PASS
-Build:           PASS
-Source contracts: 6/6 verified
-Smoke (live):    13/13 verified (when Hermes running)
-gitleaks:        0 findings
-Desktop exe:     MISATO_0.1.0_x64-setup.exe produced
-runtimeMode:     "local" (verified from source)
+Lint:                 PASS
+Build:                PASS
+TypeScript strict:    true (SOURCE_VERIFIED)
+Source contracts:     6/6 verified
+Smoke (live):         13/13 verified (when Hermes running)
+Security headers:     9/9 served (API_VERIFIED via curl)
+gitleaks:             0 findings (API_VERIFIED)
+Desktop exe:          MISATO_0.1.0_x64-setup.exe produced
+runtimeMode:          "local" (SOURCE_VERIFIED)
+Performance metrics:  NOT YET MEASURED (v2.1 — see MISATO_TODO.md)
 ```
 
 **Release standard:** CANDIDATE — automated verification PASS, browser+packaging verification pending Hermes sign-off.

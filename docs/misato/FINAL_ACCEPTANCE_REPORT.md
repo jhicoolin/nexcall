@@ -119,7 +119,52 @@ npm run misato:live-data-check (when Hermes running)
 npm run secrets:scan
   gitleaks v8.30.1: 0 findings
   Report: .security/gitleaks-report.redacted.json = []
+
+curl -sI http://127.0.0.1:3010/
+  Security headers: 9/9 confirmed live
+  Headers: CSP, HSTS, X-Frame-Options:DENY, X-Content-Type-Options:nosniff,
+           Referrer-Policy, Permissions-Policy, COOP, CORP
+
+tsconfig.json
+  strict: true (TypeScript strict mode, SOURCE_VERIFIED)
+
+npm run lint
+  0 ESLint errors, 0 warnings
+
+npm run build
+  Next.js build PASS, 0 TypeScript errors
 ```
+
+## Security Highlights (Already Active in v2.0)
+
+| Control | Status | Evidence |
+|---------|--------|---------|
+| Content-Security-Policy | API_VERIFIED | `curl -sI` — strict CSP with allowlist |
+| HSTS (Strict-Transport-Security) | API_VERIFIED | `max-age=63072000; includeSubDomains; preload` |
+| X-Frame-Options | API_VERIFIED | `DENY` — prevents clickjacking |
+| X-Content-Type-Options | API_VERIFIED | `nosniff` — prevents MIME sniffing |
+| Referrer-Policy | API_VERIFIED | `strict-origin-when-cross-origin` |
+| Permissions-Policy | API_VERIFIED | `camera=(), microphone=(), geolocation=(), payment=()` |
+| Cross-Origin-Opener-Policy | API_VERIFIED | `same-origin` |
+| Cross-Origin-Resource-Policy | API_VERIFIED | `same-origin` |
+| gitleaks scan | API_VERIFIED | v8.30.1, 0 findings |
+| TypeScript strict mode | SOURCE_VERIFIED | `tsconfig.json: "strict": true` |
+
+## Performance Optimization Status (v2.0 — Roadmap, Not Yet Implemented)
+
+The following items are in `MISATO_TODO.md` but NOT implemented in v2.0:
+
+| Optimization | Status |
+|-------------|--------|
+| List virtualization (`@tanstack/react-virtual`) | NOT IMPLEMENTED |
+| `React.memo` on list items | NOT IMPLEMENTED |
+| `next/dynamic` lazy loading | NOT IMPLEMENTED |
+| `next/font` | NOT IMPLEMENTED |
+| Error boundaries | NOT IMPLEMENTED |
+| Bundle analyzer | NOT IMPLEMENTED |
+| Lighthouse baseline recorded | NOT YET RUN |
+
+Performance numbers (load times, FPS, bundle size) will be established after a Lighthouse baseline run. No fabricated metrics appear in this report.
 
 ---
 

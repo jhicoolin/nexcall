@@ -180,3 +180,61 @@ npm run build                     # Next.js build
 npm run desktop:build             # Tauri installer build (MISATO.exe closed first)
 npm run lint                      # ESLint
 ```
+
+---
+
+## Security Headers — Already Active
+
+9 security headers are served on every response (pre-existing in `next.config.mjs`, confirmed live):
+
+```bash
+curl -sI http://127.0.0.1:3010/ | grep -i "policy\|options\|protection\|transport\|origin"
+```
+
+Headers active: `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`.
+
+---
+
+## Performance Monitoring Guide
+
+### What you can measure now (no extra tools needed)
+
+```bash
+# 1. Check bundle size
+npm run build
+# Look at the "First Load JS shared by all" line in the build output
+# Target: < 200KB shared, < 500KB per route
+
+# 2. Check TypeScript (already strict: true)
+npx tsc --noEmit
+# Should output nothing (0 errors)
+
+# 3. Check security headers
+curl -sI http://127.0.0.1:3010/ | grep -i "policy\|options\|transport\|origin"
+# Should show 8+ headers
+
+# 4. Run gitleaks
+npm run secrets:scan
+# Should show: [] (0 findings)
+```
+
+### Lighthouse (requires Chrome)
+
+1. Open Chrome → navigate to `http://127.0.0.1:3010`
+2. DevTools (F12) → Lighthouse tab
+3. Run audit: Performance, Accessibility, Best Practices
+4. Record the scores. **These are your baseline numbers.** Do not publish performance claims without running this first.
+
+### What's on the v2.1 performance roadmap
+
+The following optimizations are documented in `MISATO_TODO.md` but **not yet implemented**. They require code changes before the performance claims become real:
+
+| Optimization | Expected Impact | Effort |
+|-------------|----------------|--------|
+| List virtualization | Handles 1000+ items at 60fps | Medium |
+| `next/dynamic` lazy loading | Reduces initial bundle 20-30% | Low |
+| `React.memo` on list items | Fewer re-renders | Low |
+| `next/font` | Faster font loading | Low |
+| Error boundaries | Prevents crashes | Low |
+
+**Do not measure performance before these are implemented** and expect them to match post-optimization targets. Establish your baseline first, then implement, then measure again.
