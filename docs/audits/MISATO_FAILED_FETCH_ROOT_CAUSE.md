@@ -34,7 +34,8 @@ When the preview API base is mistaken for the runtime origin, the shell can drif
 - `/api/misato/events/stream`
 - Desktop smoke script: `npm run misato:smoke` passed against the fresh 3010 server.
 - Browser shell check (`npm run misato:browser-shell-check`) loaded successfully at `http://127.0.0.1:1420`; no page crash was observed in this pass; console/page errors were explicitly checked and none were observed.
-- Runtime-origin contract was verified separately by the smoke/regression checks against `http://127.0.0.1:3010`.
+- Browser-origin contract (`npm run misato:browser-contract-check`) verified the canonical runtime origin, status JSON, command contract, and clean console window against `http://127.0.0.1:3010`.
+- Runtime-origin contract was also verified separately by the smoke/regression checks against `http://127.0.0.1:3010`.
 
 ## Command Contract Follow-Up
 `POST /api/misato/command` now returns both:

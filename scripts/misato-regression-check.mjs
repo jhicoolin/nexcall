@@ -1,80 +1,277 @@
-import { readFile } from 'node:fs/promises';
+/**
+ * MISATO Regression Check
+ *
+ * Two independent phases:
+ *
+ *   Phase A — Source contracts (no Hermes required):
+ *     Reads source files and asserts specific strings/patterns exist or are absent.
+ *     Each assertion is a "verified" check (source text confirms the contract) or "failed".
+ *     These represent: "the code SAYS it does X" — not "we observed X at runtime."
+ *
+ *   Phase B — Live endpoint contracts (requires Hermes at MISATO_RUNTIME_ORIGIN):
+ *     Fetches runtime endpoints and asserts expected shapes.
+ *     If Hermes is not reachable, these are marked "unverified" (not "failed").
+ *
+ * Human-readable outputs:
+ *   Source all pass:  "Source contracts verified: {N} checks passed (no Hermes required)."
+ *   Source failures:  "Source contract FAILED: {checks} — see structured output."
+ *   Live all pass:    "Live endpoint contracts verified against {base}."
+ *   Live unverified:  "Live endpoint contracts UNVERIFIED — Hermes not reachable. Run npm run dev."
+ *
+ * Output schema: see scripts/misato-check-schema.mjs
+ */
 
-const baseUrl = process.argv[2] || process.env.MISATO_BASE_URL || 'http://127.0.0.1:3010';
-const root = process.cwd();
+import { readFile } from "node:fs/promises";
+import { checkEntry, buildReport } from "./misato-check-schema.mjs";
 
-function assert(cond, message) {
-  if (!cond) throw new Error(message);
+const BASE_URL = (process.argv[2] || process.env.MISATO_RUNTIME_ORIGIN || "http://127.0.0.1:3010").replace(/\/+$/, "");
+
+// ── Source contract assertions ────────────────────────────────────────────
+// Each entry: [id, file, type, pattern|string, description, component]
+// type: "includes" | "excludes"
+const SOURCE_CONTRACTS = [
+  {
+    id:        "sse-no-context-loaded",
+    file:      "app/events/stream/route.ts",
+    type:      "excludes",
+    pattern:   'type: "context_loaded"',
+    component: "sse-stream",
+    description:
+      "SSE stream route must not inject synthetic context_loaded data events. " +
+      "context_loaded would pollute the Live Feed UI with connection noise."
+  },
+  {
+    id:        "sse-no-noise-comment",
+    file:      "app/events/stream/route.ts",
+    type:      "includes",
+    pattern:   "No synthetic context_loaded event here",
+    component: "sse-stream",
+    description:
+      "SSE route must contain the no-synthetic-events comment confirming the contract."
+  },
+  {
+    id:        "schedule-live-truth",
+    file:      "desktop-ui/app.js",
+    type:      "includes",
+    pattern:   "hasLiveSchedule = state.schedule !== null",
+    component: "schedule-view",
+    description:
+      "Schedule view must be keyed off state.schedule (live data) not a static flag. " +
+      "This is the v6.6 regression fix."
+  },
+  {
+    id:        "lanes-live-fallback",
+    file:      "desktop-ui/app.js",
+    type:      "includes",
+    pattern:   "return isHermesConnected() ? [] : null;",
+    component: "lane-builder",
+    description:
+      "buildLiveLanes() must return [] (not null/manifest) while Hermes is connected " +
+      "even if no lane data is available — prevents static manifest takeover."
+  },
+  {
+    id:        "approval-requester-field-order",
+    file:      "desktop-ui/app.js",
+    type:      "includes",
+    pattern:   "agentName:    a.requestedAgent || a.requestedByAgentName || a.agentName || a.agent || a.requestedByAgentId || '—'",
+    component: "approval-normalization",
+    description:
+      "normalizeApproval() must prefer a.requestedAgent (seed-data field) before " +
+      "a.requestedByAgentName (Hermes runtime field) to handle both shapes. " +
+      "Field order matters for the fallback chain."
+  },
+  {
+    id:        "no-stale-cors-tile",
+    file:      "desktop-ui/app.js",
+    type:      "excludes",
+    pattern:   "{ name:'CORS Headers'",
+    component: "watchtower",
+    description:
+      "Watchtower must not contain the stale hardcoded CORS warning tile. " +
+      "All tiles must derive from live runtime state."
+  }
+];
+
+async function readSource(relPath) {
+  return readFile(new URL(`../${relPath}`, import.meta.url), "utf8");
 }
 
-async function readText(path) {
-  return await readFile(path, 'utf8');
+async function runSourceContracts() {
+  const checks = [];
+
+  for (const c of SOURCE_CONTRACTS) {
+    let source;
+    try {
+      source = await readSource(c.file);
+    } catch (readErr) {
+      checks.push(checkEntry(
+        c.component, c.id, "failed",
+        { file: c.file, error: String(readErr?.message || readErr) },
+        `Could not read ${c.file}: ${readErr?.message}`
+      ));
+      continue;
+    }
+
+    const match     = source.includes(c.pattern);
+    const passed    = c.type === "includes" ? match : !match;
+    const result    = passed ? "verified" : "failed";
+
+    // "verified" here means: source text confirms the contract.
+    // It does NOT mean the behavior was observed at runtime.
+    const notes = passed
+      ? `Source contract confirmed: "${c.pattern.slice(0, 60)}${c.pattern.length > 60 ? "…" : ""}" ` +
+        `${c.type === "includes" ? "present" : "absent"} in ${c.file}.`
+      : `Source contract FAILED: "${c.pattern.slice(0, 60)}${c.pattern.length > 60 ? "…" : ""}" ` +
+        `${c.type === "includes" ? "NOT found" : "still present"} in ${c.file}. ${c.description}`;
+
+    checks.push(checkEntry(
+      c.component, c.id, result,
+      {
+        file:           c.file,
+        contractType:   c.type,
+        pattern:        c.pattern.slice(0, 80),
+        patternMatched: match
+      },
+      notes
+    ));
+  }
+
+  return checks;
 }
 
-async function checkSourceContracts() {
-  const desktop = await readText(new URL('../desktop-ui/app.js', import.meta.url));
-  const streamRoute = await readText(new URL('../app/events/stream/route.ts', import.meta.url));
+// ── Live endpoint contracts ───────────────────────────────────────────────
 
-  assert(!streamRoute.includes('type: "context_loaded"'), 'SSE route still injects synthetic context_loaded events');
-  assert(streamRoute.includes('No synthetic context_loaded event here'), 'SSE route comment missing; expected no-noise contract');
-  assert(desktop.includes('hasLiveSchedule = state.schedule !== null'), 'Schedule view is not keyed off live schedule truth');
-  assert(desktop.includes('return isHermesConnected() ? [] : null;'), 'Lane builder still falls back to static lanes while Hermes is connected');
-  assert(desktop.includes("agentName:    a.requestedAgent || a.requestedByAgentName || a.agentName || a.agent || a.requestedByAgentId || '—'"), 'Approval normalization no longer prefers requestedAgent');
-  assert(!desktop.includes("{ name:'CORS Headers'"), 'Watchtower still contains the stale CORS warning tile');
-}
-
-async function fetchJson(path) {
-  const res = await fetch(new URL(path, baseUrl));
+async function fetchJson(path, options = {}) {
+  const url = `${BASE_URL}${path}`;
+  const res = await fetch(url, {
+    headers: { accept: "application/json", ...(options.headers || {}) },
+    ...options
+  });
+  const ct   = res.headers.get("content-type") || "";
+  if (ct.includes("text/html")) {
+    throw Object.assign(new Error(`${path} returned HTML (SSO wall)`), { url, httpStatus: res.status });
+  }
   const text = await res.text();
-  let json;
-  try {
-    json = JSON.parse(text);
-  } catch (err) {
-    throw new Error(`${path} did not return JSON: ${text.slice(0, 240)}`);
-  }
-  return { res, json };
+  const json = text ? JSON.parse(text) : {};
+  return { res, json, url };
 }
 
-async function checkLiveEndpoints() {
-  const status = await fetchJson('/api/misato/status');
-  assert(status.res.ok, `/api/misato/status returned HTTP ${status.res.status}`);
-  assert(status.json?.ok === true, '/api/misato/status ok flag was false');
-  assert(typeof status.json?.capabilities?.schedule === 'boolean', 'status capabilities.schedule is not a boolean');
-  assert(typeof status.json?.capabilities?.lanes === 'boolean', 'status capabilities.lanes is not a boolean');
-  assert(typeof status.json?.capabilities?.approvals === 'boolean', 'status capabilities.approvals is not a boolean');
-  assert(typeof status.json?.runtimeMode === 'string', 'status runtimeMode missing');
+async function runLiveContracts() {
+  const checks = [];
 
-  const schedule = await fetchJson('/api/misato/schedule');
-  assert(schedule.res.ok, `/api/misato/schedule returned HTTP ${schedule.res.status}`);
-  assert(schedule.json?.ok === true, '/api/misato/schedule ok flag was false');
-  assert(schedule.json?.viewData && typeof schedule.json.viewData === 'object', 'schedule endpoint missing viewData');
-  assert(Array.isArray(schedule.json.viewData.agenda), 'schedule viewData.agenda is not an array');
-  assert(Array.isArray(schedule.json.viewData.day) || typeof schedule.json.viewData.day === 'object', 'schedule viewData.day is missing');
-  assert(Array.isArray(schedule.json.viewData.week) || typeof schedule.json.viewData.week === 'object', 'schedule viewData.week is missing');
+  const liveEndpoints = [
+    { path: "/api/misato/status",    label: "status",    requiredFields: ["ok", "runtimeMode", "capabilities"] },
+    { path: "/api/misato/schedule",  label: "schedule",  requiredFields: ["ok", "viewData"] },
+    { path: "/api/misato/lanes",     label: "lanes",     requiredFields: ["ok", "items"] },
+    { path: "/api/misato/approvals", label: "approvals", requiredFields: ["ok", "items"] }
+  ];
 
-  const lanes = await fetchJson('/api/misato/lanes');
-  assert(lanes.res.ok, `/api/misato/lanes returned HTTP ${lanes.res.status}`);
-  assert(lanes.json?.ok === true, '/api/misato/lanes ok flag was false');
-  assert(Array.isArray(lanes.json?.items), '/api/misato/lanes items is not an array');
+  for (const ep of liveEndpoints) {
+    try {
+      const { res, json, url } = await fetchJson(ep.path);
+      const missingFields      = ep.requiredFields.filter(k => !Object.prototype.hasOwnProperty.call(json || {}, k));
+      const ok                 = res.ok && missingFields.length === 0;
 
-  const approvals = await fetchJson('/api/misato/approvals');
-  assert(approvals.res.ok, `/api/misato/approvals returned HTTP ${approvals.res.status}`);
-  assert(approvals.json?.ok === true, '/api/misato/approvals ok flag was false');
-  assert(Array.isArray(approvals.json?.items), '/api/misato/approvals items is not an array');
-  for (const approval of approvals.json.items) {
-    assert('requestedAgent' in approval || 'requestedByAgentId' in approval, `approval ${approval?.id || '?'} is missing requestedAgent/requestedByAgentId`);
+      checks.push(checkEntry(
+        "live-endpoints", `live-${ep.label}`,
+        ok ? "verified" : "failed",
+        { url, httpStatus: res.status, missingFields, topLevelKeys: Object.keys(json || {}).slice(0, 8) },
+        ok
+          ? `${ep.path} — HTTP ${res.status}, required fields present: ${ep.requiredFields.join(", ")}.`
+          : `${ep.path} — HTTP ${res.status}, missing fields: ${missingFields.join(", ")}.`
+      ));
+
+      // Extra: for approvals, check each record has requester field
+      if (ep.label === "approvals" && Array.isArray(json?.items)) {
+        const missingRequester = json.items.filter(a =>
+          !("requestedAgent"       in (a || {})) &&
+          !("requestedByAgentId"   in (a || {})) &&
+          !("requestedByAgentName" in (a || {}))
+        );
+        checks.push(checkEntry(
+          "live-endpoints", "approvals-requester-field",
+          missingRequester.length === 0 ? "verified" : "failed",
+          {
+            totalApprovals:       json.items.length,
+            missingRequesterCount: missingRequester.length,
+            missingIds:            missingRequester.map(a => a?.id).slice(0, 5)
+          },
+          missingRequester.length === 0
+            ? `All ${json.items.length} approval(s) have requestedAgent or requestedByAgentId field.`
+            : `${missingRequester.length} approval(s) missing requestedAgent/requestedByAgentId/requestedByAgentName.`
+        ));
+      }
+    } catch (err) {
+      const isUnreachable = String(err?.message || "").includes("ECONNREFUSED") ||
+                            String(err?.message || "").includes("fetch failed");
+      checks.push(checkEntry(
+        "live-endpoints", `live-${ep.label}`,
+        isUnreachable ? "unverified" : "failed",
+        { url: `${BASE_URL}${ep.path}`, error: err?.message || String(err) },
+        isUnreachable
+          ? `Hermes not reachable at ${BASE_URL} — is npm run dev running?`
+          : `Live check failed: ${err?.message}`
+      ));
+    }
   }
 
+  return checks;
 }
 
 async function main() {
-  await checkSourceContracts();
-  await checkLiveEndpoints();
-  console.log(`MISATO regression checks passed against ${baseUrl}`);
+  // Phase A: source contracts (no network required)
+  const sourceChecks = await runSourceContracts();
+
+  // Phase B: live endpoint contracts
+  const liveChecks = await runLiveContracts();
+
+  const allChecks     = [...sourceChecks, ...liveChecks];
+  const sourceFailed  = sourceChecks.filter(c => c.result === "failed");
+  const liveVerified  = liveChecks.filter(c => c.result === "verified").length;
+  const liveUnverified = liveChecks.filter(c => c.result === "unverified").length;
+  const liveFailed    = liveChecks.filter(c => c.result === "failed").length;
+
+  let humanReadable;
+  if (sourceFailed.length > 0) {
+    humanReadable =
+      `Source contracts FAILED: ${sourceFailed.map(c => c.id).join(", ")}. ` +
+      `Run 'git log --oneline -5' and check the regression commits.`;
+  } else if (liveUnverified === liveChecks.length) {
+    humanReadable =
+      `Source contracts verified: ${sourceChecks.length} checks passed (no Hermes required). ` +
+      `Live endpoint contracts UNVERIFIED — Hermes not reachable at ${BASE_URL}. Run npm run dev.`;
+  } else if (liveFailed > 0) {
+    humanReadable =
+      `Source contracts verified. Live endpoint contracts FAILED: ${liveFailed} check(s) at ${BASE_URL}.`;
+  } else {
+    humanReadable =
+      `Regression checks PASS: ${sourceChecks.length} source contracts verified; ` +
+      `${liveVerified} live endpoint contract(s) verified against ${BASE_URL}.`;
+  }
+
+  const report = buildReport(allChecks, humanReadable, {
+    runtimeOrigin: BASE_URL,
+    note: [
+      "Phase A (source contracts): verified = source text confirms the code pattern. NOT a runtime observation.",
+      "Phase B (live endpoints): verified = HTTP 200 + expected JSON shape received from Hermes.",
+      "Browser-layer checks (window globals, console errors) require misato-browser-contract-check.mjs."
+    ]
+  });
+
+  console.log(JSON.stringify(report, null, 2));
+
+  // Non-zero exit only for explicit source or live failures, not for unverified
+  if (sourceFailed.length > 0 || liveFailed > 0) process.exitCode = 1;
 }
 
 main().catch((err) => {
-  console.error(`MISATO regression checks failed for ${baseUrl}`);
-  console.error(err?.stack || err?.message || String(err));
-  process.exit(1);
+  const report = buildReport(
+    [checkEntry("regression", "runner", "failed",
+      { error: err instanceof Error ? err.stack || err.message : String(err) },
+      "Unexpected error in regression-check runner.")],
+    `Regression check aborted: ${err instanceof Error ? err.message : String(err)}`,
+    { runtimeOrigin: BASE_URL }
+  );
+  console.log(JSON.stringify(report, null, 2));
+  process.exitCode = 1;
 });

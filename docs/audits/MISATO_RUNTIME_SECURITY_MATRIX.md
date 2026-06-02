@@ -61,4 +61,5 @@
 - `npm run desktop:build`: PASS
 - `npm run misato:smoke`: PASS against `http://127.0.0.1:3010`
 - Browser shell check (`npm run misato:browser-shell-check`): loaded successfully at `http://127.0.0.1:1420`; no page crash observed in this pass; console/page errors were explicitly checked and none were observed
-- Runtime-origin contract: verified separately by the smoke/regression checks against `http://127.0.0.1:3010`
+- Browser-origin contract (`npm run misato:browser-contract-check`): verified against `http://127.0.0.1:3010` with canonical runtime origin, status JSON, command contract, and clean console window
+- Runtime-origin contract: also verified separately by the smoke/regression checks against `http://127.0.0.1:3010`

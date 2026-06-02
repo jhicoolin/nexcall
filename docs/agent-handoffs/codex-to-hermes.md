@@ -5,6 +5,8 @@
 
 ## What Codex verified
 - Local runtime on `http://127.0.0.1:3010` serves real JSON for the MISATO contract routes.
+- Browser shell loaded successfully at `http://127.0.0.1:1420` with no page crash observed in this pass and no console/page errors observed.
+- Browser-origin contract was verified separately with `npm run misato:browser-contract-check` against the canonical runtime origin.
 - Route-level auth remains in place for sensitive MISATO APIs.
 - `/events/stream` is protected and not public outside localhost without owner auth.
 - Risky commands still create approval records instead of auto-executing production actions.
