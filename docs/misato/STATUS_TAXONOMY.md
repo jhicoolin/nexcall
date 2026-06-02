@@ -1,10 +1,53 @@
 # MISATO Status Taxonomy
-**Version:** 1.0  
+**Version:** 1.1  
 **Branch:** misato-hermes-live-brain  
 **Authority:** Claude UI Agent — this document governs all visible status language across every MISATO surface.
 
-Every status used in the UI, copy deck, API responses, and agent output must come from this table.  
+Every status used in the UI, copy deck, API responses, agent output, **and verification scripts** must come from this table.  
 No ad-hoc status strings. No unlisted colors. No silent states.
+
+---
+
+## Verification Status Axis
+
+Used by verification scripts (`scripts/misato-*.mjs`) and test matrix results.  
+These are distinct from the runtime UI statuses below — they describe the **confidence level** of a check.
+
+| Status | Meaning | Example |
+|--------|---------|---------|
+| `loaded` | Component rendered or responded; no deeper contract asserted | Shell DOM rendered at HTTP 200 |
+| `verified` | Explicit assertion made and passed with observable evidence | `/api/misato/status` returned `runtimeMode` field |
+| `partially_verified` | Some assertions passed; others skipped or infeasible in this pass | Console errors checked; window globals not checked |
+| `unverified` | Check not executed — environment constraint, needs browser, or Hermes offline | Runtime-origin check skipped — Tauri not running |
+| `failed` | Check was executed and assertion explicitly failed | `/api/misato/status` returned HTTP 401 |
+
+**Rule:** Never use `verified` for a check that only confirms a source-code pattern. Use `verified` only when an observable runtime behavior was asserted. For source-text checks, the notes field must say "Source text confirms … NOT a runtime observation."
+
+**Rule:** Never use `failed` for a check that could not run due to environment. Use `unverified` with a note explaining how to run it.
+
+**Script output schema** (machine-readable, emitted by all `scripts/misato-*.mjs`):
+
+```json
+{
+  "schemaVersion": "1.0",
+  "timestamp": "ISO 8601",
+  "checks": [
+    {
+      "component": "runtime-smoke",
+      "check":     "endpoint-status",
+      "result":    "verified",
+      "evidence":  { "url": "...", "httpStatus": 200, "topLevelKeys": [...] },
+      "notes":     "Human-readable explanation of what was checked and what was found.",
+      "timestamp": "ISO 8601"
+    }
+  ],
+  "summary": { "loaded": 0, "verified": 13, "partially_verified": 0, "unverified": 0, "failed": 0 },
+  "ok":            true,
+  "humanReadable": "Runtime smoke PASS: all 13 checks verified against http://127.0.0.1:3010."
+}
+```
+
+---
 
 ---
 

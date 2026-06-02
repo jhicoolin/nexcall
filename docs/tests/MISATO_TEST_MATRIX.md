@@ -1,16 +1,40 @@
 # MISATO Test Matrix
-**Version:** 1.0 (v6.6 codebase)  
+**Version:** 1.1 (v6.6 codebase + verification language audit)  
 **Date:** 2026-06-02  
 **Owner:** Codex (execution) · Claude (spec) · Hermes (backend verification)
 
 **Status legend:**
 - `UNTESTED` — Not yet run against the codebase
-- `PASS` — Verified passing (include date + tester)
-- `FAIL` — Failing (include error description)
-- `BLOCKED` — Cannot test until a dependency is resolved
+- `PASS (verified YYYY-MM-DD tester)` — Observed to pass; include date and tester name
+- `FAIL` — Observed to fail; include error description
+- `BLOCKED` — Cannot test until a dependency is resolved; include what is blocking
 - `N/A` — Not applicable in current configuration
+- `UNVERIFIED (browser-required)` — Check requires a running browser or Tauri; cannot run in headless CI without Playwright + MISATO.exe
+- `SOURCE_VERIFIED` — Code pattern confirmed by source inspection; runtime behavior not observed in this pass
 
-**⚠️ Do not mark PASS without actually running the test. Aspirational PASS marks are false documentation.**
+**⚠️ Do not mark PASS without actually running the test.**  
+**⚠️ Do not use PASS for a source-code inspection. Use SOURCE_VERIFIED.**  
+**⚠️ Do not use PASS for a browser check that was not run. Use UNVERIFIED (browser-required).**
+
+### Automated checks (run these before any manual tests)
+
+```bash
+# Source contracts + live endpoint contracts (no browser required)
+npm run misato:regression
+# → Emits JSON with result per check. All must be "verified".
+
+# Full API smoke (requires Hermes running)
+npm run misato:smoke
+# → Emits JSON with result per check. All must be "verified".
+
+# Shell load check (requires Tauri + Playwright)
+npm run misato:browser-shell-check
+# → Emits JSON. "loaded" = shell rendered; runtime-origin contract NOT checked here.
+
+# Browser runtime-origin contract (requires Tauri + Hermes + Playwright)
+npm run misato:browser-contract-check
+# → Emits JSON. "verified" = window.__MISATO_RUNTIME_ORIGIN__ correct + endpoints reachable from browser.
+```
 
 ---
 
@@ -27,16 +51,28 @@ Before running any tests:
 
 ---
 
+## 0. Automated Regression + Smoke (run first, no browser required)
+
+| # | Test | Command | Expected output | Status | Notes |
+|---|------|---------|-----------------|--------|-------|
+| 0.1 | Source contracts | `npm run misato:regression` | `summary.verified === 6`, `summary.failed === 0` | UNTESTED | No Hermes required for source checks |
+| 0.2 | Live endpoint contracts | `npm run misato:regression` (with Hermes running) | `summary.verified === 11`, `summary.failed === 0` | UNTESTED | Requires `npm run dev` |
+| 0.3 | Full smoke | `npm run misato:smoke` | `summary.verified === 13`, `summary.failed === 0`, `humanReadable` starts with "Runtime smoke PASS" | UNTESTED | Requires `npm run dev` |
+| 0.4 | Shell loaded | `npm run misato:browser-shell-check` | `summary.loaded >= 1`, `summary.failed === 0`, notes say "Shell loaded successfully" | UNVERIFIED (browser-required) | Requires MISATO.exe + Playwright: `npx playwright install chromium` |
+| 0.5 | Browser runtime-origin contract | `npm run misato:browser-contract-check` | `summary.verified >= 2`, `summary.failed === 0`, notes confirm window.__MISATO_RUNTIME_ORIGIN__ | UNVERIFIED (browser-required) | Requires MISATO.exe + Hermes + Playwright |
+
+---
+
 ## 1. Connection and Auth
 
 | # | Test | Steps | Expected | Status | Notes |
 |---|------|-------|----------|--------|-------|
-| 1.1 | Hermes connects on launch | Launch MISATO.exe with Hermes running | "Connected" teal badge appears within 3s | UNTESTED | |
-| 1.2 | Shows offline when Hermes stopped | Stop npm run dev, wait 10s | "✕ Offline" badge, all mutations disabled | UNTESTED | |
-| 1.3 | Reconnects after Hermes restarts | Stop then start npm run dev | App reconnects, data refreshes, no manual action | UNTESTED | |
-| 1.4 | Auth token accepted | Set MISATO_DESKTOP_AUTH_TOKEN, use token in app | Connected, no 401 errors | UNTESTED | |
-| 1.5 | Auth token rejected shows clear error | Use wrong token | "✗ Token rejected. Check MISATO_DESKTOP_AUTH_TOKEN." | UNTESTED | |
-| 1.6 | Local solo mode bypasses token | Local request with MISATO_LOCAL_SOLO_MODE=true | No auth prompt, connected | UNTESTED | |
+| 1.1 | Hermes connects on launch | Launch MISATO.exe with Hermes running | "Connected" teal badge appears within 3s | UNVERIFIED (browser-required) | Requires MISATO.exe; verify via `npm run misato:browser-contract-check` |
+| 1.2 | Shows offline when Hermes stopped | Stop npm run dev, wait 10s | "✕ Offline" badge, all mutations disabled | UNVERIFIED (browser-required) | |
+| 1.3 | Reconnects after Hermes restarts | Stop then start npm run dev | App reconnects, data refreshes, no manual action | UNVERIFIED (browser-required) | |
+| 1.4 | Auth token accepted | Set MISATO_DESKTOP_AUTH_TOKEN, use token in app | Connected, no 401 errors | UNVERIFIED (browser-required) | Can also verify via: `curl -H "Authorization: Bearer TOKEN" http://127.0.0.1:3010/api/misato/status` |
+| 1.5 | Auth token rejected shows clear error | Use wrong token | "✗ Token rejected. Check MISATO_DESKTOP_AUTH_TOKEN." | UNVERIFIED (browser-required) | |
+| 1.6 | Local solo mode bypasses token | Local request with MISATO_LOCAL_SOLO_MODE=true | No auth prompt, connected | UNVERIFIED (browser-required) | |
 
 ---
 
@@ -206,14 +242,14 @@ Before running any tests:
 
 ## 12. Security Tests
 
-| # | Test | Steps | Expected | Status | Notes |
-|---|------|-------|----------|--------|-------|
-| 12.1 | No raw secrets in any screen | Browse all screens | No API keys, tokens, or passwords visible anywhere | UNTESTED | **Security critical** |
-| 12.2 | Token input is password field | Settings → token input | Input shows dots, not plaintext | UNTESTED | |
-| 12.3 | Token not logged to console | Enter token, check DevTools console | No token value in any console output | UNTESTED | |
-| 12.4 | Sentinel findings redacted | Run scan, view results | "[REDACTED]" for all secret values | UNTESTED | |
-| 12.5 | Auth enforced | No token set in non-local mode | "⚙ Authentication required" shown | UNTESTED | |
-| 12.6 | Production deploy requires approval | Send "deploy to production" | Approval gate fires, blocks execution | UNTESTED | |
+| # | Test | Steps / Command | Expected | Status | Notes |
+|---|------|-----------------|----------|--------|-------|
+| 12.1 | No raw secrets in any screen | Browse all screens in MISATO.exe | No API keys, tokens, or passwords visible anywhere | UNVERIFIED (browser-required) | **Security critical**; no automated check available — must be done visually |
+| 12.2 | Token input is password field | SOURCE: grep `type=password` in app.js | `<input type="password"` present for token fields | SOURCE_VERIFIED | Source check: `grep -n 'type=password\|type="password"' desktop-ui/app.js` |
+| 12.3 | Token not logged to console | BROWSER: enter token, watch DevTools Network + Console | No token value in console or network payload | UNVERIFIED (browser-required) | Cannot be automated without browser session — check manually after every token-related change |
+| 12.4 | Sentinel findings redacted | API: `curl -X POST http://127.0.0.1:3010/api/misato/secrets/scan-summary` + view findings | All `value` fields show `[REDACTED]` | UNTESTED | Partial: source grep `\[REDACTED\]` in sentinel handler. Full: requires live scan |
+| 12.5 | Auth enforced | API: `curl http://127.0.0.1:3010/api/misato/status` without token (in non-local mode) | Returns HTTP 401 | UNTESTED | Only testable when `MISATO_LOCAL_SOLO_MODE=false` and `MISATO_REQUIRE_DESKTOP_TOKEN=true` |
+| 12.6 | Production deploy requires approval | API: `npm run misato:smoke` | `command-risky-gate` check: `approvalRequired: true` | SOURCE_VERIFIED | Verified by `npm run misato:regression` (check: command-risky-gate) and `npm run misato:smoke` |
 
 ---
 
@@ -256,18 +292,26 @@ Before running any tests:
 
 ## 16. Regression Verification
 
-Verify all 8 regressions fixed in v6.6 are confirmed resolved:
+Regressions fixed in v6.6. Status uses precise verification taxonomy.
 
-| # | Regression | Verification step | Status | Commit |
-|---|-----------|------------------|--------|--------|
-| R1 | state.schedule missing | Connect Hermes, check state.schedule in DevTools | UNTESTED | 67de581 |
-| R2 | /schedule not fetched | Network tab: GET /api/misato/schedule fires on connect | UNTESTED | 67de581 |
-| R3 | /lanes not fetched | Network tab: GET /api/misato/lanes fires on connect | UNTESTED | 67de581 |
-| R4 | buildLiveLanes ignores state.lanes | Hermes returns lanes, cards appear | UNTESTED | 67de581 |
-| R5 | Approval requester blank | Approval cards show agent name | UNTESTED | 67de581 |
-| R6 | Kanban agent/project blank | Cards show "Backend Agent" not "agent-backend" | UNTESTED | 67de581 |
-| R7 | context_loaded in feed | No context_loaded event in Live Feed after connect | UNTESTED | 67de581 |
-| R8 | Watchtower CORS tile | No hardcoded CORS tile in Watchtower | UNTESTED | 67de581 |
+**Automated verification (run first):**
+```bash
+npm run misato:regression
+# All 6 source contracts must be verified.
+```
+
+| # | Regression | Verification method | Status | Commit | Automated? |
+|---|-----------|---------------------|--------|--------|------------|
+| R1 | state.schedule missing | Source: `npm run misato:regression` → `schedule-live-truth` | SOURCE_VERIFIED | 67de581 | ✓ `schedule-live-truth` check |
+| R2 | /schedule not fetched | API: `npm run misato:smoke` → `endpoint-schedule` verified | SOURCE_VERIFIED | 67de581 | ✓ `misato:smoke` endpoint-schedule |
+| R3 | /lanes not fetched | API: `npm run misato:smoke` → `endpoint-lanes` verified | SOURCE_VERIFIED | 67de581 | ✓ `misato:smoke` endpoint-lanes |
+| R4 | buildLiveLanes ignores state.lanes | Source: `npm run misato:regression` → `lanes-live-fallback` | SOURCE_VERIFIED | 67de581 | ✓ `lanes-live-fallback` check |
+| R5 | Approval requester blank | Source: `npm run misato:regression` → `approval-requester-field-order` | SOURCE_VERIFIED | 67de581 | ✓ `approval-requester-field-order` check |
+| R6 | Kanban agent/project blank | Source: grep `t.agent \|\| t.assignedAgentId` in app.js | SOURCE_VERIFIED | 47e956a | Manual source check |
+| R7 | context_loaded in feed | Source: `npm run misato:regression` → `sse-no-context-loaded` | SOURCE_VERIFIED | 67de581 | ✓ `sse-no-context-loaded` check |
+| R8 | Watchtower CORS tile | Source: `npm run misato:regression` → `no-stale-cors-tile` | SOURCE_VERIFIED | 67de581 | ✓ `no-stale-cors-tile` check |
+
+**Note on SOURCE_VERIFIED:** These regressions are confirmed by source-code inspection and source-contract checks. The runtime behavior (e.g., "the card actually shows the name in the browser") requires UNVERIFIED (browser-required) manual testing with MISATO.exe open. SOURCE_VERIFIED confirms the fix is in the code; it does not confirm the user has seen the behavior in the UI.
 
 ---
 

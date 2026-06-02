@@ -26,10 +26,20 @@
 - Do not render raw tokens or secret values anywhere in the shell.
 
 ## Verification snapshot
-- `npm run lint`: PASS
-- `npm run build`: PASS
-- `npm run desktop:build`: PASS
-- `npm run misato:smoke`: PASS
-- Browser shell check (`npm run misato:browser-shell-check`): loaded successfully at `http://127.0.0.1:1420`; no page crash observed in this pass; console/page errors were explicitly checked and none were observed
-- Browser-origin contract (`npm run misato:browser-contract-check`): verified against `http://127.0.0.1:3010` with canonical runtime origin, status JSON, command contract, and clean console window
-- Runtime-origin contract: also verified separately by the smoke/regression checks against `http://127.0.0.1:3010`
+
+Each line uses the verification taxonomy from `docs/misato/STATUS_TAXONOMY.md`.  
+`PASS` is not used here — each item states exactly what was checked and how.
+
+- `npm run lint`: SOURCE_VERIFIED — command confirmed 0 ESLint errors, 0 warnings
+- `npm run build`: SOURCE_VERIFIED — Next.js build completed with 0 type errors
+- `npm run desktop:build`: SOURCE_VERIFIED — Tauri build produced MISATO.exe; run with MISATO.exe closed
+- `npm run misato:regression`: API_VERIFIED — `summary.verified: 11, failed: 0`; 6 source contracts + 5 live endpoint contracts; JSON evidence available
+- `npm run misato:smoke`: API_VERIFIED — `summary.verified: 13, failed: 0`; all endpoints + risky command gate confirmed at `http://127.0.0.1:3010`; JSON evidence available
+- Browser shell check (`npm run misato:browser-shell-check`): **loaded** at `http://127.0.0.1:1420`; no console errors within 1s; `runtime-origin-contract` check: **UNVERIFIED** (not checked in browser-shell-check pass — run `misato:browser-contract-check` separately)
+- Browser-origin contract (`npm run misato:browser-contract-check`): UNVERIFIED (browser-required) — not recorded in this handoff; run when MISATO.exe and Hermes are both live: `npm run misato:browser-contract-check`
+- Console error absence (full session): UNVERIFIED (browser-required) — not assertable without a running browser session; check manually in DevTools Console
+
+**What "loaded" means vs "verified":**  
+`loaded` = the shell opened without HTTP error; DOM rendered.  
+`verified` = an explicit assertion was made with observable evidence (e.g., endpoint returned expected field).  
+`UNVERIFIED` = check was not run in this pass; not a failure — run the listed command to verify.

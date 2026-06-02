@@ -592,6 +592,56 @@ All loading states follow this exact pattern:
 
 ---
 
+## Verification Status Messages
+
+Used in CLI output, handoff docs, and operator-facing tooling.  
+These messages avoid overclaiming. They distinguish what was observed from what was assumed.
+
+### Shell loaded (not runtime-verified)
+
+```
+Shell loaded successfully; runtime-origin contract UNVERIFIED — run misato:browser-contract-check to confirm.
+```
+
+### Shell loaded and runtime-origin verified
+
+```
+Shell loaded; runtime-origin contract verified: window.__MISATO_RUNTIME_ORIGIN__ === "http://127.0.0.1:3010"; canonical endpoints reachable.
+```
+
+### Shell loaded; console not checked
+
+```
+Shell loaded successfully; console errors not checked in this pass — mark as UNVERIFIED. Run npm run misato:browser-shell-check for automated check.
+```
+
+### Source contract confirmed (not runtime observation)
+
+```
+Source contract verified: {pattern} present/absent in {file}. NOT a runtime observation — behavior not observed in a running browser.
+```
+
+### Endpoint API verified
+
+```
+Endpoint contract verified: {method} {url} returned HTTP 200 with expected fields {fields}. Evidence: see JSON output.
+```
+
+### Check unverified due to environment
+
+```
+{Check name} UNVERIFIED: {reason — e.g., "Tauri shell not running", "Hermes offline"}.
+To verify: {exact command or steps}.
+```
+
+### Check failed
+
+```
+{Check name} FAILED: {assertion} — evidence: {observable fact}.
+```
+
+---
+
 ## Regression Explanation Format
 
 When a bug is found and fixed, the user-facing explanation follows this format:

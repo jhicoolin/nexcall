@@ -1,8 +1,21 @@
 # MISATO Live UI Wiring Matrix
-**Version:** 6.6  
+**Version:** 6.6.1  
 **Branch:** misato-hermes-live-brain  
 **Date:** 2026-06-02  
 **Author:** Claude UI Agent
+
+### Status key for this matrix
+
+| Label | Meaning |
+|-------|---------|
+| `SOURCE_VERIFIED` | Code pattern confirmed by source inspection (grep/read). Not a runtime observation. |
+| `API_VERIFIED` | Endpoint tested by `npm run misato:regression` or `npm run misato:smoke`; expected shape received. |
+| `UNVERIFIED (browser-required)` | Requires running MISATO.exe + browser. Not yet observed. |
+| `UNTESTED` | Not yet checked by any method. |
+| `BLOCKED` | Cannot test until dependency resolved. |
+
+**No entry in this matrix uses the unqualified label `PASS`.**  
+`PASS` without a verification method is ambiguous and may overclaim. Use the labels above.
 
 ---
 
@@ -10,15 +23,15 @@
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Single hermesBase() source | PASS | 127.0.0.1:3010 canonical |
-| apiGet HTML rejection | PASS | Rejects 200 HTML (SSO wall) |
-| hermesMutate error surfacing | PASS | URL + reason shown in toast |
-| Fetch error shows endpoint | PASS | All errors include endpoint URL |
-| No tokens logged | PASS | Password inputs only |
-| loadAllFromHermes fetches /schedule | PASS | Added in v6.6 — commit 67de581 |
-| loadAllFromHermes fetches /lanes | PASS | Added in v6.6 — commit 67de581 |
-| state.schedule initialized | PASS | Added in v6.6 |
-| context_loaded filtered from feed | PASS | Added to FEED_NOISE_TYPES in v6.6 |
+| Single hermesBase() source | SOURCE_VERIFIED | Source: `hermesBase()` returns `127.0.0.1:3010` canonically |
+| apiGet HTML rejection | SOURCE_VERIFIED | Source: `ct.includes("text/html")` guard in apiGet |
+| hermesMutate error surfacing | SOURCE_VERIFIED | Source: `e.url` included in every catch block |
+| Fetch error shows endpoint | SOURCE_VERIFIED | Source: all catch blocks include endpoint URL in toast |
+| No tokens logged | SOURCE_VERIFIED | Source: grep `type=password` — no console.log of token value |
+| loadAllFromHermes fetches /schedule | SOURCE_VERIFIED + API_VERIFIED | Source: Promise.all includes `hermesApi('schedule')`. API: `misato:regression` live-schedule check. |
+| loadAllFromHermes fetches /lanes | SOURCE_VERIFIED + API_VERIFIED | Source: Promise.all includes `hermesApi('lanes')`. API: `misato:regression` live-lanes check. |
+| state.schedule initialized | SOURCE_VERIFIED | Source: `misato:regression` `schedule-live-truth` check. Commit 67de581. |
+| context_loaded filtered from feed | SOURCE_VERIFIED | Source: `misato:regression` `sse-no-context-loaded` check. |
 
 ---
 
