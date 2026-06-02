@@ -1903,7 +1903,7 @@ function renderKanban() {
                 <span class="kanban-card-agent">${esc(t.agent || t.assignedAgentId || '—')}</span>
                 ${priorityBadge(t.priority)}
               </div>
-              ${t.status==='Blocked'?`<div class="kanban-card-blocker">⚠ Blocked${t.linkedApprovalId?' — approval pending':' — requires approval'}</div>`:''}
+              ${t.status==='Blocked'?`<div class="kanban-card-blocker">⊘ Blocked${t.linkedApprovalId?` · approval #${t.linkedApprovalId} pending`:' · requires owner approval'}</div>`:''}
               <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px">${esc(t.project || t.projectId || '—')}</div>
               <div class="kanban-card-actions">
                 <button class="kc-action" data-task-id="${esc(t.id)}" data-task-status="${esc(nextStatus)}" title="Move to ${nextStatus}">→ ${esc(nextStatus)}</button>
