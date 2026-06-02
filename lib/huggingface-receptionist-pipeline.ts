@@ -1,3 +1,4 @@
+import "server-only";
 import type { ClientConfig } from "@/lib/client-directory";
 import { extractBookingIntent, maybeFireBookingWebhook } from "@/lib/booking-intent";
 import { mulawBase64ToWavBuffer, wavArrayBufferToMulawBase64 } from "@/lib/audio-codecs";

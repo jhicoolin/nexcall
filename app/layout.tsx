@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
@@ -66,7 +67,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
         {/* Vanilla-JS fallback: if React fails to hydrate (broken extension,
             GPU driver, etc.) the buttons still do something useful.
             Runs in capture phase ONLY if no __reactFiber is attached. */}

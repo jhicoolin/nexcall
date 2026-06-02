@@ -1,3 +1,4 @@
+import "server-only";
 import { mkdirSync, readFileSync, writeFileSync, existsSync, appendFileSync } from "node:fs";
 import { join } from "node:path";
 import { approvals as seedApprovals, councilAgents, logs as seedLogs, tasks as seedTasks } from "../mock/data";

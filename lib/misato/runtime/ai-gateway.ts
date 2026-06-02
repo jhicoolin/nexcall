@@ -1,3 +1,4 @@
+import "server-only";
 /** AI Gateway — lightweight OpenRouter/Vercel AI Gateway client */
 
 const GATEWAY_BASE = "https://openrouter.ai/api/v1";

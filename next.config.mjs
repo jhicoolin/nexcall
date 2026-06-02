@@ -1,3 +1,9 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true"
+});
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -8,7 +14,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://api.elevenlabs.io https://api.cal.com https://api.vapi.ai https://*.upstash.io https://*.inngest.com https://api.inngest.com wss://*.livekit.cloud wss://*.twilio.com",
+  "connect-src 'self' http://127.0.0.1:3010 http://localhost:3010 https://api.stripe.com https://checkout.stripe.com https://api.elevenlabs.io https://api.cal.com https://api.vapi.ai https://*.upstash.io https://*.inngest.com https://api.inngest.com wss://*.livekit.cloud wss://*.twilio.com",
   "media-src 'self' blob: data:",
   "frame-src 'self' https://checkout.stripe.com",
   "upgrade-insecure-requests"
@@ -36,6 +42,10 @@ const securityHeaders = [
     value: "nosniff"
   },
   {
+    key: "X-XSS-Protection",
+    value: "1; mode=block"
+  },
+  {
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin"
   },
@@ -56,6 +66,14 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: process.cwd(),
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion", "@tanstack/react-table"]
+  },
+  env: {
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION || process.env.npm_package_version || "development",
+    NEXT_PUBLIC_ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV || "development"
+  },
   images: {
     remotePatterns: [
       {
@@ -78,4 +96,4 @@ const nextConfig = {
   }
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

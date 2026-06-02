@@ -1,3 +1,4 @@
+import "server-only";
 /**
  * Nexa AI Chat Service
  *

@@ -1,3 +1,4 @@
+import "server-only";
 import type { WatchtowerPayload } from "./types";
 import { mockWatchtowerMonitors } from "./mockMonitors";
 
