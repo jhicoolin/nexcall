@@ -1,25 +1,44 @@
 # Codex to Hermes
 
 ## Branch
-- `misato-codex-live-ui-qa`
+- `misato-hermes-live-brain`
 
-## Verified
-- Route-level auth is present across sensitive MISATO endpoints.
-- `/api/misato/events/stream` and `/events/stream` are protected outside localhost (`401` non-local probe).
-- Live mutations verified end-to-end (tasks, approvals, mission create/dispatch, agent assignment with valid IDs).
-- Risky commands remain approval-gated and do not auto-execute production actions.
-- Status contract returns runtime/auth/persistence fields expected by desktop clients.
-- `npm run lint`, `npm run build`, `npm run desktop:build` all pass.
+## What Codex verified
+- Local runtime on `http://127.0.0.1:3010` serves real JSON for the MISATO contract routes.
+- Route-level auth remains in place for sensitive MISATO APIs.
+- `/events/stream` is protected and not public outside localhost without owner auth.
+- Risky commands still create approval records instead of auto-executing production actions.
+- Local smoke verification passed against the canonical runtime origin.
+- Desktop packaging passed after a clean rebuild.
 
-## Remaining Blockers / Risks
-1. Local runtime target drift can still create false `Failed to fetch` symptoms when desktop/UI hits the wrong process/port or stale branch runtime.
-2. Some API consumers still need strict single-source runtime base URL discipline to avoid HTML-route fallback parsing.
+## What Codex changed
+- Centralized runtime origin handling in the desktop shell.
+- Separated runtime origin from preview API base handling.
+- Patched the command endpoint to return the stable top-level runtime contract while preserving the legacy payload.
+- Removed connected-state mock fallbacks from live watchtower, sentinel, lanes, and command surfaces.
 
-## Recommended Hermes Actions
-1. Enforce one canonical local runtime base URL in shared mission log and runtime startup scripts.
-2. Keep command response compatibility stable (`approvalRequired`, approval records, timeline fields).
-3. Keep event taxonomy stable for UI filtering (`command.*`, `task.*`, `approval.*`, `mission_*`, `log.created`).
+## Remaining guidance for Hermes
+1. Keep `http://127.0.0.1:3010` as the single daily-use runtime origin.
+2. Do not let preview API URLs overwrite the runtime origin.
+3. Keep the command contract stable:
+   - `missionSummary`
+   - `projectDetected`
+   - `hermesPlan`
+   - `agentsAssigned`
+   - `councilFeedback`
+   - `subtasksCreated`
+   - `risksDetected`
+   - `approvalRequired`
+   - `approvalReason`
+   - `logsCreated`
+   - `moduleStatus`
+   - `result`
+4. Keep event filtering honest: connection noise should not surface as user-facing activity.
 
-## Safety Notes
-- No raw tokens/secrets were emitted in audited JSON outputs.
-- Public NexCall pages were not modified in this pass.
+## Remaining risks
+- A stale local runtime process can still create false fetch failures if the desktop points at the wrong server.
+- Any HTML fallthrough at API boundaries should be treated as a base-path mismatch and fail explicitly.
+
+## Safety note
+- No raw tokens or secrets were emitted in the verified outputs.
+- Public NexCall pages were not modified.

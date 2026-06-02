@@ -1,5 +1,4 @@
 import { getRecentEvents, subscribeEvents } from "../../../lib/misato/runtime/event-bus";
-import { publishEvent } from "../../../lib/misato/runtime/event-bus";
 import { assertOwnerJson } from "../../../lib/misato/owner-guard";
 import { buildMisatoCorsHeaders, misatoOptionsResponse, withMisatoCors } from "../../../lib/misato/http/cors";
 
@@ -47,14 +46,7 @@ export async function GET(request: Request) {
         );
       }, 15000);
 
-      publishEvent({
-        eventId: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        type: "context_loaded",
-        source: "misato.runtime",
-        payload: { stream: "connected" }
-      });
-
+      // No synthetic context_loaded event here: the stream should only carry real runtime activity.
       // @ts-ignore
       controller.oncancel = () => {
         closed = true;

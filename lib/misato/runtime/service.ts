@@ -45,6 +45,17 @@ function refreshApprovalCount(store: any) {
   store.runtime.approvalsPending = store.approvals.filter((a: any) => String(a.status).toLowerCase() === "pending").length;
 }
 
+function normalizeApprovalRecord(approval: any) {
+  const requestedByAgentId = approval.requestedByAgentId || approval.requestedAgentId || approval.agentId || null;
+  const requestedAgent = approval.requestedAgent || approval.requestedByAgentName || approval.agentName || approval.agent || requestedByAgentId || "—";
+  return {
+    ...approval,
+    requestedByAgentId,
+    requestedByAgentName: approval.requestedByAgentName || requestedAgent,
+    requestedAgent
+  };
+}
+
 function logEvent(store: any, message: string, source = "misato.runtime", severity: "info" | "warn" | "error" = "info", type = "log.created", payload: Record<string, unknown> = {}) {
   const log = {
     id: rid("log"),
@@ -56,7 +67,7 @@ function logEvent(store: any, message: string, source = "misato.runtime", severi
     payload: sanitizePayload(payload)
   };
   store.logs.unshift(log);
-  emit("log.created", source, { message, ...payload }, severity);
+  emit(type, source, { message, ...payload }, severity);
   return log;
 }
 
@@ -97,7 +108,12 @@ export function getHealth() {
 
 export function getRuntimeSnapshot() {
   const store = loadStore();
-  return { agents: store.agents || [], tasks: store.tasks || [], approvals: store.approvals || [], logs: store.logs || [] };
+  return {
+    agents: store.agents || [],
+    tasks: store.tasks || [],
+    approvals: (store.approvals || []).map(normalizeApprovalRecord),
+    logs: store.logs || []
+  };
 }
 
 export function getEvents(limit = 200) {
@@ -531,7 +547,7 @@ export function dispatchAgent(payload: any) {
 
 export function getApprovalStats() {
   const store = loadStore();
-  const approvals = store.approvals || [];
+  const approvals = (store.approvals || []).map(normalizeApprovalRecord);
   return {
     pending: approvals.filter((a: any) => String(a.status).toLowerCase() === "pending").length,
     approved: approvals.filter((a: any) => String(a.status).toLowerCase() === "approved").length,
@@ -585,21 +601,37 @@ export function approvalAction(payload: any) {
   const action = String(payload?.action || "").toLowerCase();
   const approval = store.approvals.find((a: any) => a.id === id);
   if (!approval) return { ok: false, error: "approval_not_found" as const };
-  const map: any = { approve: "Approved", approved: "Approved", reject: "Rejected", rejected: "Rejected", defer: "Deferred", deferred: "Deferred" };
+  const map: Record<string, "Approved" | "Rejected" | "Deferred"> = {
+    approve: "Approved",
+    approved: "Approved",
+    reject: "Rejected",
+    rejected: "Rejected",
+    defer: "Deferred",
+    deferred: "Deferred"
+  };
   if (!map[action]) return { ok: false, error: "invalid_action" as const };
   approval.status = map[action];
   approval.updatedAt = nowIso();
   approval.decisionAt = nowIso();
   approval.decisionBy = payload?.decisionBy || "owner";
   refreshApprovalCount(store);
+
+  const approvalResolvedPayload = {
+    approvalId: id,
+    decision: action,
+    approval: normalizeApprovalRecord(approval)
+  };
+
   const evtType = action.startsWith("approv") ? "approval.approved" : action.startsWith("reject") ? "approval.rejected" : "approval.deferred";
-  emit(evtType, "misato.approvals", { approvalId: id, approval }, evtType === "approval.approved" ? "info" : "warn");
+  emit(evtType, "misato.approvals", { approvalId: id, approval: normalizeApprovalRecord(approval) }, evtType === "approval.approved" ? "info" : "warn");
+  emit("approval_resolved", "misato.approvals", approvalResolvedPayload, "info");
+  emit("status_change", "misato.approvals", { entity: "approval", approvalId: id, status: approval.status, approval: normalizeApprovalRecord(approval) }, "info");
   logEvent(store, `Approval ${String(approval.status).toLowerCase()}: ${approval.title}`, "misato.approvals");
   saveStore(store);
-  return { ok: true, approval };
+  return { ok: true, approval: normalizeApprovalRecord(approval) };
 }
 
-export function resolveApproval(approvalId: string, decision: "approved" | "rejected", resolvedBy = "owner") {
+export function resolveApproval(approvalId: string, decision: "approved" | "rejected" | "deferred", resolvedBy = "owner") {
   return approvalAction({ approvalId, action: decision, decisionBy: resolvedBy });
 }
 

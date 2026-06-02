@@ -43,15 +43,15 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => ({}))) as {
       approvalId?: string;
-      decision?: "approved" | "rejected";
+      decision?: "approved" | "rejected" | "deferred";
       resolvedBy?: string;
     };
 
     const approvalId = (body.approvalId || "").trim();
     const decision = body.decision;
-    if (!approvalId || (decision !== "approved" && decision !== "rejected")) {
+    if (!approvalId || (decision !== "approved" && decision !== "rejected" && decision !== "deferred")) {
       return withMisatoCors(
-        NextResponse.json({ ok: false, error: "invalid_request", hint: "approvalId and decision (approved|rejected) are required." }, { status: 400 }),
+        NextResponse.json({ ok: false, error: "invalid_request", hint: "approvalId and decision (approved|rejected|deferred) are required." }, { status: 400 }),
         request
       );
     }

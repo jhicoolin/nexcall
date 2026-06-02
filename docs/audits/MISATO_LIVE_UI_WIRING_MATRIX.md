@@ -1,8 +1,8 @@
 # MISATO Live UI Wiring Matrix
-**Version:** app.js v6.5  
-**Branch:** misato-claude-live-ui-wiring  
-**Date:** 2026-05-26  
-**Author:** Claude UI Agent  
+**Version:** 6.6  
+**Branch:** misato-hermes-live-brain  
+**Date:** 2026-06-02  
+**Author:** Claude UI Agent
 
 ---
 
@@ -13,8 +13,12 @@
 | Single hermesBase() source | PASS | 127.0.0.1:3010 canonical |
 | apiGet HTML rejection | PASS | Rejects 200 HTML (SSO wall) |
 | hermesMutate error surfacing | PASS | URL + reason shown in toast |
-| Fetch error shows endpoint | PASS | All errors include `e.url` |
+| Fetch error shows endpoint | PASS | All errors include endpoint URL |
 | No tokens logged | PASS | Password inputs only |
+| loadAllFromHermes fetches /schedule | PASS | Added in v6.6 — commit 67de581 |
+| loadAllFromHermes fetches /lanes | PASS | Added in v6.6 — commit 67de581 |
+| state.schedule initialized | PASS | Added in v6.6 |
+| context_loaded filtered from feed | PASS | Added to FEED_NOISE_TYPES in v6.6 |
 
 ---
 
@@ -60,11 +64,16 @@
 ### Schedule
 | Control | Endpoint | Status |
 |---------|----------|--------|
-| Agenda tab | tasks with `scheduledAt` | PASS |
-| Day tab | tasks with `scheduledAt` → hour buckets | PASS |
-| Week tab | tasks with `scheduledAt` → date buckets | PASS |
+| `/schedule` fetched on connect | `GET /api/misato/schedule` | PASS — added v6.6 |
+| `state.schedule` populated | n/a | PASS — added v6.6 |
+| Agenda tab uses viewData.agenda | `state.schedule.viewData.agenda` | PASS — added v6.6 |
+| Day tab uses viewData.day | `state.schedule.viewData.day` | PASS — added v6.6 |
+| Week tab uses viewData.week | `state.schedule.viewData.week` | PASS — added v6.6 |
+| Tab switching instant (no refetch) | local state | PASS |
+| Fallback to tasks when /schedule fails | `state.tasks[].scheduledAt` | PASS |
+| Unscheduled count shown | `state.schedule.unscheduledTasks` | PASS — shown when Hermes connected |
 | Tab state | `state.scheduleView` | PASS — wired and stateful |
-| Waiting state (no scheduledAt) | n/a | PASS — honest message |
+| Waiting state (no scheduledAt) | n/a | PASS — honest "no scheduled tasks" message |
 | Mock banner suppression | n/a | PASS |
 | + New Task | modal → `POST /api/misato/tasks/create` | PASS |
 
@@ -72,6 +81,9 @@
 | Control | Endpoint | Status |
 |---------|----------|--------|
 | Load tasks | `GET /api/misato/tasks` | PASS |
+| Agent name from agentId | `agentNameFromId()` | PASS — added v6.6 (fixes blank agent) |
+| Project from projectId | `t.project || t.projectId` | PASS — added v6.6 (fixes blank project) |
+| Blocked badge shows linkedApprovalId | `t.linkedApprovalId` | PASS — v6.6 |
 | Status cycle | `POST /api/misato/tasks/update` | PASS |
 | Priority cycle | `POST /api/misato/tasks/update` | PASS |
 | Delete task | `POST /api/misato/tasks/delete` | PASS |
@@ -83,14 +95,13 @@
 |---------|----------|--------|
 | Load approvals | `GET /api/misato/approvals` | PASS |
 | Filter tabs | `state.approvalFilter` | PASS — wired |
-| Pending filter | local filter | PASS |
-| Approved/Rejected/Deferred filters | local filter | PASS |
+| Pending/Approved/Rejected/Deferred/All | local filter | PASS |
 | Dedup by ID | local dedup | PASS — approval spam collapsed |
 | Approve button | `POST /api/misato/approvals/action` | PASS |
 | Reject button | `POST /api/misato/approvals/action` | PASS |
 | Defer button | `POST /api/misato/approvals/action` | PASS |
-| Card normalizes `requestedByAgentName` | local | PASS |
-| Card normalizes `riskLevel` | local | PASS |
+| requestedAgent fallback | `a.requestedAgent` in chain | PASS — added v6.6 (fixes blank requester) |
+| riskLevel normalization | L-notation → High/Medium/Low | PASS |
 | safeExecutionMode badge | `a.safeExecutionMode` | PASS |
 | Mock banner suppression | n/a | PASS |
 | Loading state | n/a | PASS |
@@ -98,7 +109,12 @@
 ### Watchtower
 | Control | Endpoint | Status |
 |---------|----------|--------|
-| Tiles | health + status state | PASS |
+| Hermes tile | live state | PASS |
+| SSE Stream tile | `state.sseState` | PASS |
+| Auth Gate tile | live mode | PASS — shows "Local Solo" when Hermes connected |
+| Queue Depth tile | tasks state | PASS |
+| Runtime Mode tile | `runtimeCtx.runtimeMode` | PASS — replaces stale CORS tile (v6.6) |
+| CORS hardcoded tile | removed | PASS — removed in v6.6 |
 | Service cards | `GET /api/misato/watchtower` | PASS |
 | Agent state map | `/api/misato/agents` | PASS |
 | Recent incidents | SSE risk events + logs | PASS |
@@ -113,7 +129,7 @@
 | scanAvailable panel | `data.scanAvailable` | PASS |
 | Findings list | `data.findings` | PASS — no raw secrets shown |
 | Severity counts | `data.critical/high/warnings` | PASS — normalized |
-| Scan Now button | `POST /api/misato/secrets/scan-summary` | PASS — **fixed endpoint** |
+| Scan Now button | `POST /api/misato/secrets/scan-summary` | PASS — correct endpoint |
 | Button disabled when unavailable | `!scanAvailable` | PASS |
 | Error shows endpoint URL | `e.url` in toast | PASS |
 | Mock banner suppression | n/a | PASS |
@@ -131,14 +147,15 @@
 | Control | Endpoint | Status |
 |---------|----------|--------|
 | SSE connection | `GET /api/misato/events/stream` | PASS |
-| Noise filtering | FEED_NOISE_TYPES Set | PASS — heartbeat/stream events filtered |
+| Noise filtering | FEED_NOISE_TYPES Set | PASS — heartbeat/stream/context_loaded filtered |
+| context_loaded filtered | FEED_NOISE_TYPES | PASS — added v6.6 |
 | Deduplication | eventId-based | PASS |
 | Filter: ALL | all events | PASS |
 | Filter: ALERTS | risk_detected + sev=warn/error | PASS |
 | Filter: AGENTS | agent_assigned, status_change | PASS |
 | Filter: CMDS | command_received, plan_generated | PASS |
 | Filter: TASKS | task_updated | PASS |
-| Filter: APPV | approval_requested, approval_resolved | PASS — new |
+| Filter: APPV | approval_requested, approval_resolved | PASS |
 | Pause / Follow Live | local state | PASS |
 | SSE fallback polling | 15s poll of `/logs` | PASS |
 
@@ -152,9 +169,14 @@
 ### Lanes
 | Control | Status |
 |---------|--------|
-| Live lanes from agent branch/lane fields | PASS — uses live when available |
-| Static manifest fallback | PASS |
-| Mock banner suppressed when Hermes connected | PASS — shows waiting state instead |
+| `/lanes` fetched on connect | PASS — added v6.6 |
+| state.lanes populated | PASS — added v6.6 |
+| Live lanes from state.lanes.items | PASS — priority source v6.6 |
+| Fallback to agent.branch field | PASS — secondary source |
+| Static manifest fallback | PASS — only when both above unavailable |
+| Honest waiting state when connected, no data | PASS — shows "Hermes connected · waiting" NOT mock |
+| Mock banner suppressed when Hermes connected | PASS |
+| normalizeLaneItem() maps backend shape | PASS — added v6.6 |
 
 ### Obsidian Mirror
 | Control | Endpoint | Status |
@@ -187,13 +209,56 @@
 
 ---
 
-## Pending / blocked
+## v6.6 Regressions Fixed
 
-| Item | Blocked by |
-|------|-----------|
-| Schedule Day/Week populated | Hermes needs `scheduledAt` in tasks |
-| Lanes fully live | Hermes needs `branch`/`lane` in agents |
-| Active model badge | Hermes needs `activeModel` in `/status` |
-| Obsidian live sync | Owner needs `OBSIDIAN_VAULT_PATH` + Hermes `/obsidian/sync` |
-| Progress bar on agents | Hermes needs `progress` field in agents |
-| `desktop:build` result | Must run with MISATO.exe closed |
+All 8 diagnosed regressions from the blueprint diagnostic are fixed:
+
+| # | Regression | Fix | Commit |
+|---|-----------|-----|--------|
+| 1 | state.schedule missing | Added to state initialization | 67de581 |
+| 2 | loadAllFromHermes skips /schedule | Added to Promise.all | 67de581 |
+| 3 | loadAllFromHermes skips /lanes | Added to Promise.all | 67de581 |
+| 4 | buildLiveLanes ignores state.lanes | Rewrote with priority chain | 67de581 |
+| 5 | Approval requester blank | Added a.requestedAgent to fallback chain | 67de581 |
+| 6 | Kanban reads wrong field names | agentId+assignedAgentId fallback added | 67de581 |
+| 7 | context_loaded pollutes feed | Added to FEED_NOISE_TYPES | 67de581 |
+| 8 | Watchtower CORS tile stale/hardcoded | Replaced with Runtime Mode tile | 67de581 |
+
+---
+
+## Pending / Blocked
+
+| Item | Blocked by | Status |
+|------|-----------|--------|
+| Schedule Day/Week live data | Hermes needs `scheduledAt` in tasks | BLOCKED — documented in handoff |
+| Lanes fully live | Hermes needs /lanes endpoint with items | BLOCKED — endpoint must return real data |
+| Active model badge | Hermes needs `activeModel` in `/status` | BLOCKED |
+| Agent progress bars | Hermes needs `progress` field in agents | BLOCKED |
+| Obsidian live sync | Owner needs OBSIDIAN_VAULT_PATH + Hermes `/obsidian/sync` | BLOCKED |
+| `desktop:build` result | Must run with MISATO.exe closed | BLOCKED — Codex to verify |
+| Full test matrix | Codex has not run it yet | BLOCKED — all items UNTESTED |
+
+---
+
+## Blueprint Documentation (new in v6.6)
+
+All blueprint documents written to `docs/misato/`:
+
+| Document | Purpose |
+|----------|---------|
+| `STATUS_TAXONOMY.md` | 13-state vocabulary with CSS classes, hex codes, ARIA labels |
+| `SYSTEM_PROMPT.md` | Production MISATO system prompt (verbatim) |
+| `TRUST_POLICY.md` | MCP trust tiers, token handling, destructive tool gates |
+| `FIELD_NORMALIZATION.md` | Normalizer functions for all API shapes |
+| `HOOKS.md` | Hook policies + TypeScript implementation guide |
+| `UX_COPY_DECK.md` | All user-facing copy strings (approval, error, loading, success) |
+| `ARCHITECTURE.md` | System diagram, data flow, consistency rules |
+| `ACCEPTANCE_GATES.md` | 12 pass/fail release gates with Given/When/Then criteria |
+| `REGRESSION_FORMAT.md` | Regression report format with examples |
+| `OWNERSHIP_MATRIX.md` | Hermes/Claude/Codex ownership per feature |
+
+Subagent prompts written to `docs/subagents/`:
+`runtime-auditor.md`, `dashboard-polisher.md`, `approval-guardian.md`, `obsidian-scribe.md`, `schedule-reconciler.md`, `scan-triager.md`
+
+TypeScript hooks implemented in `lib/misato/hooks/`:
+`destructive-tool-guard.ts`, `ledger-write.ts`, `subagent-lifecycle.ts`, `error-recovery.ts`, `index.ts`

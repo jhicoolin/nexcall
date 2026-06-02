@@ -110,7 +110,6 @@ const MOCK_WATCHTOWER = {
     { name:'SSE Event Stream',     meta:'Offline',       ok:false },
     { name:'Vercel Preview API',   meta:'Not tested',    ok:null  },
     { name:'Desktop Auth Token',   meta:'Not set',       ok:false },
-    { name:'CORS Headers',         meta:'Fix pending',   ok:false },
     { name:'Discord Bot',          meta:'Mock only',     ok:null  },
     { name:'Obsidian Sync',        meta:'Not configured',ok:null  }
   ]
@@ -215,6 +214,8 @@ const COMMAND_STAGES = [
 // Single source of truth for the local Hermes default.
 // 127.0.0.1 is used explicitly — 'localhost' can resolve to ::1 (IPv6) on
 // Windows, causing "Failed to fetch" even when Hermes is listening on IPv4.
+const RUNTIME_CONFIG = window.__MISATO_RUNTIME_CONFIG__ || {};
+const RUNTIME_DEFAULT_ORIGIN = RUNTIME_CONFIG.defaultRuntimeOrigin || 'http://127.0.0.1:3010';
 const HERMES_DEFAULT_HOST = '127.0.0.1';
 const HERMES_DEFAULT_PORT = '3010';
 
@@ -231,18 +232,69 @@ function normalizeHermesPort(port) {
   return value;
 }
 
+function normalizeRuntimeOrigin(raw) {
+  const normalize = RUNTIME_CONFIG.normalizeRuntimeOrigin;
+  if (typeof normalize === 'function') return normalize(raw);
+  const value = String(raw || '').trim();
+  if (!value) return RUNTIME_DEFAULT_ORIGIN;
+  try {
+    const url = new URL(value.includes('://') ? value : `http://${value}`);
+    if (!url.port) url.port = '3010';
+    const pathname = url.pathname.replace(/\/+$/, '');
+    if (pathname && pathname !== '/') return RUNTIME_DEFAULT_ORIGIN;
+    if (url.hostname === 'localhost' || url.hostname === '0.0.0.0') url.hostname = '127.0.0.1';
+    return `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}`;
+  } catch {
+    return RUNTIME_DEFAULT_ORIGIN;
+  }
+}
+
+function normalizeApiBaseUrl(raw) {
+  const normalize = RUNTIME_CONFIG.normalizeApiBaseUrl;
+  if (typeof normalize === 'function') return normalize(raw);
+  const value = String(raw || '').trim().replace(/\/+$/, '');
+  if (!value) return '';
+  try {
+    const url = new URL(value.includes('://') ? value : `http://${value}`);
+    const pathname = url.pathname.replace(/\/+$/, '');
+    if (!pathname || pathname === '/') {
+      url.pathname = '/api/misato';
+    } else if (!pathname.endsWith('/api/misato')) {
+      url.pathname = `${pathname}/api/misato`;
+    }
+    return `${url.origin}${url.pathname}`.replace(/\/+$/, '');
+  } catch {
+    return value.endsWith('/api/misato') ? value : `${value}/api/misato`;
+  }
+}
+
+function splitRuntimeOrigin(raw) {
+  const split = RUNTIME_CONFIG.splitRuntimeOrigin;
+  if (typeof split === 'function') return split(raw);
+  const origin = normalizeRuntimeOrigin(raw);
+  const url = new URL(origin);
+  return { origin, host: url.hostname, port: url.port || '3010' };
+}
+
 // ── State ──────────────────────────────────────────────────────
-const injectedBase = (window.__MISATO_API_BASE_URL__ || '').trim();
+const injectedRuntimeOrigin = normalizeRuntimeOrigin(
+  RUNTIME_CONFIG.runtimeOrigin || window.__MISATO_RUNTIME_ORIGIN__ || ''
+);
+const injectedPreviewBaseUrl = normalizeApiBaseUrl(
+  RUNTIME_CONFIG.previewApiBaseUrl || window.__MISATO_PREVIEW_API_BASE_URL__ || window.__MISATO_API_BASE_URL__ || ''
+);
+const injectedRuntimeParts = splitRuntimeOrigin(injectedRuntimeOrigin);
 const state = {
   // ── Hermes connection (primary) ──────────────────────────────
-  hermesHost:    storage.get('misato_hermes_host', HERMES_DEFAULT_HOST),
-  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', HERMES_DEFAULT_PORT)),
+  hermesOrigin:  normalizeRuntimeOrigin(storage.get('misato_runtime_origin', injectedRuntimeOrigin)),
+  hermesHost:    storage.get('misato_hermes_host', injectedRuntimeParts.host || HERMES_DEFAULT_HOST),
+  hermesPort:    normalizeHermesPort(storage.get('misato_hermes_port', injectedRuntimeParts.port || HERMES_DEFAULT_PORT)),
   // 'unknown' | 'finding' | 'connected' | 'not-running' | 'failed'
   hermesState:   'unknown',
   hermesHealth:  null,   // { status, version, uptime, agents, tasks, events }
 
   // ── Preview / token (secondary, collapsed Advanced) ──────────
-  baseUrl:       storage.get('misato_api_base_url', injectedBase),
+  baseUrl:       normalizeApiBaseUrl(storage.get('misato_api_base_url', injectedPreviewBaseUrl)),
   token:         storage.get('misato_desktop_auth_token', ''),
   bypassToken:   storage.get('misato_vercel_bypass_token', ''),
   // Not configured | Testing… | Connected | Unauthorized | Vercel Protected | 404 / Wrong URL | Failed
@@ -384,8 +436,14 @@ function connCls(label) {
 
 // ── Hermes Base URL ────────────────────────────────────────────
 function hermesBase() {
-  // 127.0.0.1:3010 is canonical. Fallback guards against empty state after storage clear.
-  return `http://${(state.hermesHost||HERMES_DEFAULT_HOST).trim()}:${(state.hermesPort||HERMES_DEFAULT_PORT).trim()}`;
+  const origin = normalizeRuntimeOrigin(
+    state.hermesOrigin || `http://${(state.hermesHost||HERMES_DEFAULT_HOST).trim()}:${(state.hermesPort||HERMES_DEFAULT_PORT).trim()}`
+  );
+  state.hermesOrigin = origin;
+  const parts = splitRuntimeOrigin(origin);
+  state.hermesHost = parts.host;
+  state.hermesPort = parts.port;
+  return origin;
 }
 // Prefixed helper for all Hermes data/mutation routes (/api/misato/*)
 // Exception: /health stays flat — it is the unauthenticated discovery probe.
@@ -433,8 +491,12 @@ function saveHermesHostPort() {
   const h = document.getElementById('cfg-hermes-host')?.value?.trim() || HERMES_DEFAULT_HOST;
   const p = normalizeHermesPort(document.getElementById('cfg-hermes-port')?.value?.trim() || HERMES_DEFAULT_PORT);
   const changed = h !== state.hermesHost || p !== state.hermesPort;
-  state.hermesHost = h; state.hermesPort = p;
+  const origin = normalizeRuntimeOrigin(`http://${h}:${p}`);
+  state.hermesOrigin = origin;
+  state.hermesHost = splitRuntimeOrigin(origin).host;
+  state.hermesPort = splitRuntimeOrigin(origin).port;
   storage.set('misato_hermes_host', h); storage.set('misato_hermes_port', p);
+  storage.set('misato_runtime_origin', origin);
   // If target changed while SSE is open, restart the stream to the new endpoint.
   // Without this, mutations go to the new host:port but SSE events still come from the old one.
   if (changed && state.hermesState === 'connected') { stopSSE(); startSSE(); }
@@ -673,7 +735,7 @@ function sseLiveLabel() {
   if (state.sseState === 'connecting') return { text:'○ SSE…',     color:'var(--accent-amber)' };
   if (state.sseState === 'error' && isHermesConnected()) return { text:'● POLLING',  color:'var(--accent-amber)' };
   if (state.sseState === 'error')      return { text:'● SSE ERR',  color:'var(--accent-red)' };
-  if (isHermesConnected() && state.logs) return { text:'● HERMES', color:'var(--accent-blue)' };
+  if (isHermesConnected()) return { text:'● HERMES', color:'var(--accent-blue)' };
   return { text:'● MOCK', color:'var(--accent-slate)' };
 }
 
@@ -797,7 +859,7 @@ function headers() {
 function endpoint(path) {
   const base = isHermesConnected()
     ? hermesBase()
-    : state.baseUrl.replace(/\/+$/, '');
+    : normalizeApiBaseUrl(state.baseUrl);
   return `${base}/${path.replace(/^\/+/, '')}`;
 }
 async function apiGet(path) {
@@ -951,21 +1013,22 @@ function runtimeStatus() {
     allowedMutationMode:  hermesUp ? (ctx.mutationMode || 'full CRUD') : 'read-only',
     agentCount:           ctx.agentCount ?? ctx.agents ?? null,
     taskCount:            ctx.taskCount  ?? ctx.tasks  ?? null,
-    desktopTokenRequired: !hermesUp && !!state.baseUrl,
+    desktopTokenRequired: !hermesUp && !!normalizeApiBaseUrl(state.baseUrl),
     productionLocked:     true
   };
 }
 
 // ── Test Connection (Preview/token path) ───────────────────────
 async function testConnection() {
-  if (!state.baseUrl) {
-    state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Set API Base URL in the Advanced section.' };
+  const previewBase = normalizeApiBaseUrl(state.baseUrl);
+  if (!previewBase) {
+    state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Set the preview API base URL in the Advanced section.' };
     render(); return;
   }
   state.connTest = { label:'Testing…', cls:'testing', httpStatus:null, checkedAt:null, error:'', nextFix:'' };
   render();
   try {
-    const url = `${state.baseUrl.replace(/\/+$/,'')}/status`;
+    const url = `${previewBase}/status`;
     const res = await fetch(url, { method:'GET', headers:headers() });
     const ct  = res.headers.get('content-type') || '';
     const ts  = now();
@@ -1052,7 +1115,11 @@ function saveConfig() {
   const url   = document.getElementById('cfg-url')?.value?.trim()    || '';
   const token = document.getElementById('cfg-token')?.value?.trim()  || '';
   const byp   = document.getElementById('cfg-bypass')?.value?.trim() || '';
-  if (url) { state.baseUrl = url; storage.set('misato_api_base_url', url); }
+  if (url) {
+    const normalizedUrl = normalizeApiBaseUrl(url);
+    state.baseUrl = normalizedUrl;
+    storage.set('misato_api_base_url', normalizedUrl);
+  }
   if (token && token !== '••••••••••••••••') { state.token = token; storage.set('misato_desktop_auth_token', token); }
   if (byp   && byp   !== '••••••••••••••••') { state.bypassToken = byp; storage.set('misato_vercel_bypass_token', byp); }
   state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Click Test Connection to verify.' };
@@ -1268,7 +1335,7 @@ function renderConfigPanel() {
             ${state.token||state.bypassToken ? `<span class="badge badge-slate" style="margin-left:8px">configured</span>` : ''}
           </summary>
           <div class="advanced-body">
-            <p class="config-note" style="margin-bottom:12px">Use this for cloud preview testing only. Local Hermes is the preferred daily path.</p>
+            <p class="config-note" style="margin-bottom:12px">Use this for cloud preview testing only. Local Hermes defaults to <code>http://127.0.0.1:3010</code> and stays the daily path.</p>
             <div class="col gap-10">
               <div class="input-group">
                 <label class="input-label" for="cfg-url">MISATO API Base URL</label>
@@ -1381,7 +1448,7 @@ function renderOverview() {
       <div class="grid-3">
         <div class="card">
           <div class="card-header"><span class="card-title">Recent Alerts</span><button class="btn btn-ghost btn-sm" data-nav="logs">Logs →</button></div>
-          ${(state.logs || MOCK_LOGS).filter(l=>{
+          ${(state.logs || (hermes ? [] : MOCK_LOGS)).filter(l=>{
               const sev = (l.sev||l.level||l.severity||'').toLowerCase();
               return sev==='warn'||sev==='warning'||sev==='error';
             }).slice(0,4).map(l=>`
@@ -1412,7 +1479,7 @@ function renderOverview() {
 function renderCommand() {
   const connected = isConnected();
   const hermes    = isHermesConnected();
-  const agents    = state.agents || MOCK_AGENTS;
+  const agents    = state.agents || (hermes ? [] : MOCK_AGENTS);
   const active    = agents.filter(a=>a.state==='active'||a.state==='thinking').slice(0,3);
   const modeLabel = hermes ? `Hermes LOCAL SOLO · ${state.hermesHost}:${state.hermesPort}` : state.connTest.label === 'Connected' ? 'Vercel Preview' : 'Not connected';
   const hasTimeline = state.commandTimeline.length > 0;
@@ -1599,7 +1666,7 @@ function renderAgentDex() {
 // Look up an agent name from state.agents by agentId, falling back gracefully.
 function agentNameFromId(agentId) {
   if (!agentId) return null;
-  const agents = state.agents || MOCK_AGENTS;
+  const agents = state.agents || (isHermesConnected() ? [] : MOCK_AGENTS);
   const found = agents.find(a => a.agentId === agentId || a.id === agentId);
   return found?.name || null;
 }
@@ -1768,13 +1835,14 @@ function renderSchedule() {
   // 1. state.schedule.viewData (from GET /api/misato/schedule — richest)
   // 2. normalizeScheduleItems(state.tasks) (tasks with scheduledAt)
   // 3. MOCK_SCHEDULE (when fully disconnected)
-  const vd = state.schedule?.viewData;
-  const isMock = !state.schedule && !state.tasks && !hermes;
+  const hasLiveSchedule = state.schedule !== null;
+  const vd = state.schedule?.viewData || null;
+  const isMock = !hasLiveSchedule && !state.tasks && !hermes;
 
   // For Agenda: use backend agenda array, or fall back to derived items
-  const agendaItems = vd?.agenda
-    ? vd.agenda.map(toScheduleItem)
-    : (normalizeScheduleItems(state.tasks) || (!hermes ? MOCK_SCHEDULE : null));
+  const agendaItems = hasLiveSchedule
+    ? (Array.isArray(vd?.agenda) ? vd.agenda.map(toScheduleItem) : [])
+    : (normalizeScheduleItems(state.tasks) || (!hermes ? MOCK_SCHEDULE : []));
   const unscheduled = state.schedule?.unscheduledTasks ?? null;
 
   let content;
@@ -1797,8 +1865,8 @@ function renderSchedule() {
       <button class="btn btn-primary btn-sm" id="btn-add-task" style="margin-left:8px">+ New Task</button>`)}
     <div class="workspace-body">
       ${isMock ? mockBanner('connect Hermes for live schedule') : ''}
-      ${hermes && !state.schedule && !state.tasks ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading schedule from Hermes…</div>` : ''}
-      ${hermes && state.schedule && !vd?.agenda?.length && !agendaItems?.length
+      ${hermes && !hasLiveSchedule && !state.tasks ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading schedule from Hermes…</div>` : ''}
+      ${hermes && hasLiveSchedule && !agendaItems.length
           ? `<div class="waiting-hermes">◎ Hermes connected · ${unscheduled ?? 0} task${unscheduled !== 1 ? 's' : ''} without <code>scheduledAt</code>. Use + New Task to create a scheduled item.</div>`
           : ''}
       ${content || ''}
@@ -1858,7 +1926,7 @@ function renderWatchtower() {
   const h       = state.hermesHealth;
   const agents  = state.agents || (hermes ? [] : MOCK_AGENTS);
   const tasks   = state.tasks  || (hermes ? [] : MOCK_TASKS);
-  const wt      = state.watchtower || MOCK_WATCHTOWER;
+  const wt      = state.watchtower || (hermes ? { services: [] } : MOCK_WATCHTOWER);
   const isMock  = !state.watchtower && !hermes;
 
   const ctx = state.runtimeCtx || {};
@@ -1875,7 +1943,7 @@ function renderWatchtower() {
       <div class="health-tile-sub">${esc(t.sub)}</div>
     </div>`).join('');
 
-  const services = (wt.services || MOCK_WATCHTOWER.services).map(s=>`
+  const services = (wt.services || (hermes ? [] : MOCK_WATCHTOWER.services)).map(s=>`
     <div class="wt-service-row">
       <div class="auth-mode-led" style="background:${s.ok===true?'var(--accent-teal)':s.ok===false?'var(--accent-amber)':'var(--surface-4)'}"></div>
       <div class="wt-service-name">${esc(s.name)}</div>
@@ -1920,7 +1988,7 @@ function renderWatchtower() {
                 <span style="flex:1;font-size:11px;color:var(--text-secondary)">${esc(e.payload?.message||e.payload?.action||'')}</span>
               </div>`).join('');
           }
-          const fallbackLogs = (state.logs || MOCK_LOGS);
+          const fallbackLogs = state.logs || (hermes ? [] : MOCK_LOGS);
           const incidents    = fallbackLogs.filter(l=>{
             const sev = (l.sev||l.level||l.severity||'').toLowerCase();
             return sev==='warn'||sev==='warning'||sev==='error';
@@ -1943,7 +2011,7 @@ function renderWatchtower() {
 // ── Screen 7: Secret Sentinel ──────────────────────────────────
 function renderSentinel() {
   const hermes = isHermesConnected();
-  const data   = state.sentinel || MOCK_SENTINEL;
+  const data   = state.sentinel || (hermes ? { findings: [], remediation: [], gitleaksInstalled: null, scanAvailable: true, lastScanAt: null } : MOCK_SENTINEL);
   const isMock = !state.sentinel && !hermes;
   const { findings, lastScanAt } = data;
   const gitleaksInstalled = data.gitleaksInstalled;
@@ -2176,8 +2244,9 @@ function normalizeLaneItem(lane) {
 
 function buildLiveLanes() {
   // Priority 1: dedicated /lanes endpoint — returns rich lane data
-  if (state.lanes?.items?.length) {
-    return state.lanes.items.map(normalizeLaneItem);
+  if (state.lanes !== null) {
+    const items = Array.isArray(state.lanes?.items) ? state.lanes.items : [];
+    return items.map(normalizeLaneItem);
   }
   // Priority 2: agents with branch/lane fields (enriched by Hermes)
   if (state.agents?.length) {
@@ -2197,13 +2266,14 @@ function buildLiveLanes() {
       }));
     }
   }
-  return null; // fall back to static manifest
+  return isHermesConnected() ? [] : null;
 }
 
 function renderLanes() {
   const liveLanes  = buildLiveLanes();
-  const lanes      = liveLanes || AGENT_LANES;
-  const isMock     = !liveLanes;
+  const hermes     = isHermesConnected();
+  const lanes      = liveLanes ?? (hermes ? [] : AGENT_LANES);
+  const isMock     = liveLanes === null;
   const cards = lanes.map(l=>`
     <div class="lane-card ${l.cls}">
       <div class="row-between">
@@ -2220,9 +2290,9 @@ function renderLanes() {
   return `
     ${renderSectionHeader('Lanes',`${lanes.length} lane${lanes.length!==1?'s':''}${isMock?' · static manifest':' · live'}`)}
     <div class="workspace-body">
-      ${isMock && !isHermesConnected() ? mockBanner('connect Hermes for live lane state') : ''}
-      ${isMock && isHermesConnected() ? `<div class="waiting-hermes">◎ Hermes connected — waiting on agent branch/lane fields. Showing static manifest. Hermes can enrich agents with <code>branch</code> or <code>lane</code> fields to make this screen live.</div>` : ''}
-      <div class="grid-2">${cards}</div>
+      ${isMock ? mockBanner('connect Hermes for live lane state') : ''}
+      ${hermes && !state.lanes ? `<div class="waiting-hermes">◎ Hermes connected — waiting on live lane records. No static manifest is shown while Hermes is up.</div>` : ''}
+      ${lanes.length ? `<div class="grid-2">${cards}</div>` : `<div class="empty-state"><div class="empty-state-icon">⟂</div><div class="empty-state-title">No live lanes yet</div><div class="empty-state-msg">${hermes ? 'Hermes is connected but has not published lane records yet.' : 'Connect Hermes to load lane records.'}</div></div>`}
     </div>`;
 }
 
@@ -2239,7 +2309,7 @@ function normalizeApproval(a) {
     status,
     // Field name varies by source:
     // runtime-created: requestedByAgentId (no name) | seed data: requestedAgent
-    agentName:    a.requestedByAgentName || a.agentName || a.agent || a.requestedAgent || '—',
+    agentName:    a.requestedAgent || a.requestedByAgentName || a.agentName || a.agent || a.requestedByAgentId || '—',
     requestedAt:  a.requestedAt || a.createdAt || '—',
     decisionAt:   a.decisionAt || a.resolvedAt || null,
     doesNotAutoExecute: !!(a.safeExecutionMode || a.doesNotAutoExecuteProduction)
@@ -2636,7 +2706,7 @@ function bind() {
   // Agent card click → drawer
   document.querySelectorAll('[data-agent]').forEach(el => {
     el.addEventListener('click', () => {
-      const agents = state.agents || MOCK_AGENTS;
+      const agents = state.agents || (isHermesConnected() ? [] : MOCK_AGENTS);
       const found  = agents.find(a => a.id === el.dataset.agent);
       state.selectedAgent = state.selectedAgent?.id === el.dataset.agent ? null : (found || null);
       render();

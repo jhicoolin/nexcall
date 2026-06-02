@@ -1,41 +1,33 @@
 # Codex to Claude
 
-## Preserve these UI behaviors
-- Keep local-first connection flow intact
-- Keep token values masked
-- Keep the Vercel path optional, not primary
-- Keep the live feed rendering real runtime events, not dummy logs
-
-## Error states to preserve
-- Not configured
-- Testing
-- Connected
-- Unauthorized
-- Vercel Protected
-- Wrong URL / 404
-- Failed
+## Preserve in the UI
+- Local-first connection flow.
+- Masked token fields.
+- Optional preview API path.
+- Honest live event rendering.
+- Clear disconnected / unauthorized / protected / wrong-URL states.
 
 ## Do not overwrite
-- `Accept: application/json` shell requests for `/agents`, `/approvals`, and `/logs`
-- The adapter shape for `{ ok, items }`
-- The approval gate behavior for risky commands
-- The task/agent/approval mutation routes
+- The shell requests to `/agents`, `/approvals`, and `/logs` when they use `Accept: application/json`.
+- The `{ ok, items }` adapter shape for live collections.
+- The approval gate behavior for risky commands.
+- The command response parsing that prefers live runtime fields over mock text.
 
-## What is already fixed underneath
-- `/api/misato/status` now returns the runtime fields the desktop shell expects
-- `/api/misato/approvals/action` exists for compatibility
-- `/misato-runtime/*` routes are now auth-guarded
+## What is now true underneath
+- The desktop runtime origin is canonicalized separately from the preview API base.
+- The local runtime target defaults to `http://127.0.0.1:3010`.
+- `POST /api/misato/command` now returns both the stable top-level fields and the legacy payload.
+- Live watchtower, sentinel, lanes, and command surfaces no longer fall back to mock values while Hermes is connected.
 
-## What to check in the UI
-- The shell should show live data when present
-- Mock fallbacks should stay clearly labeled
-- The desktop shell should not render secrets or tokens
+## UI check list
+- If the shell is connected to Hermes, do not show mock banners or fake live success states.
+- If a fetch hits HTML instead of JSON, surface the mismatch explicitly.
+- Keep the desktop UI pointed at the local runtime by default; preview mode stays advanced / optional.
+- Do not render raw tokens or secret values anywhere in the shell.
 
-## 2026-05-25 Safety Verification Update
-- Backend contract on local runtime `3010` is live for:
-  - task CRUD
-  - agent assignment
-  - approval action
-  - mission create/dispatch
-- Treat intermittent `500` from alternate local dev runtime (`3000`) as runtime-process health, not route contract failure.
-- Keep UI honest: if runtime health probe fails, do not show connected state for action controls.
+## Verification snapshot
+- `npm run lint`: PASS
+- `npm run build`: PASS
+- `npm run desktop:build`: PASS
+- `npm run misato:smoke`: PASS
+- Browser check of `http://127.0.0.1:1420`: PASS with no console errors

@@ -1,32 +1,58 @@
 # MISATO Failed Fetch Root Cause
 
 ## Branch
-- `misato-codex-live-ui-qa`
+- `misato-hermes-live-brain`
 
 ## Confirmed Root Cause
-`Failed to fetch` is no longer reproduced on the current branch when the backend is launched from this workspace. The remaining real-world trigger is runtime-target mismatch:
+The `Failed to fetch` symptom comes from runtime-target drift, not from a currently broken MISATO route. The desktop shell must treat the Hermes runtime origin and the preview API base as separate values:
 
-1. A stale local runtime process can be alive on one port while the desktop points to another runtime contract.
-2. If the shell hits a route outside the live backend contract (for example, a page route returning HTML instead of JSON), frontend parsing can surface a generic fetch failure.
+- `MISATO_RUNTIME_ORIGIN` / `window.__MISATO_RUNTIME_ORIGIN__` -> local Hermes host and port
+- `MISATO_API_BASE_URL` / `window.__MISATO_API_BASE_URL__` -> preview API base for fallback only
 
-This is an environment/runtime-target mismatch, not a current route-auth regression.
+When the preview API base is mistaken for the runtime origin, the shell can drift to the wrong path or stale server and surface a generic fetch failure.
 
-## What Was Verified
-- Fresh local server (`next dev -p 4010`) serves all MISATO API endpoints with JSON.
-- Non-local host simulation returns `401` JSON for protected routes (including SSE).
-- Command, tasks, approvals, missions, and stream routes all respond under the current source.
+## Fix Applied
+- Centralized the runtime origin in `desktop-ui/runtime-config.js`
+- Defaulted Hermes origin to `http://127.0.0.1:3010`
+- Stopped treating preview API URLs as runtime origins
+- Updated `src-tauri/src/main.rs` so empty env values do not clobber saved config
+- Normalized preview API base URLs separately from runtime origin values
+- Removed connected-state mock fallbacks from the live watchtower / sentinel / lanes / command surfaces
 
-## Evidence (2026-05-25)
-- `GET /api/misato/status`: `200`
-- `POST /api/misato/command` (daily): `200`
-- `POST /api/misato/command` (risky): `200` with `approvalRequired: true`
-- `POST /api/misato/tasks/create|update|delete`: `200`
-- `POST /api/misato/agents/assign`: `200` (with valid `taskId` and `agentId`)
-- `POST /api/misato/approvals/action`: `200` (with valid `approvalId`)
-- `POST /api/misato/missions/create|dispatch`: `200` (with valid `missionId` and `agentId`)
-- `GET /api/misato/events/stream` with non-local host header: `401`
+## Verification
+- Fresh local runtime on `http://127.0.0.1:3010` serves real JSON for:
+  - `/health`
+  - `/api/misato/status`
+  - `/api/misato/agents`
+  - `/api/misato/tasks`
+  - `/api/misato/approvals`
+  - `/api/misato/logs`
+  - `/api/misato/watchtower`
+  - `/api/misato/secrets`
+  - `/api/misato/schedule`
+  - `/api/misato/lanes`
+  - `/api/misato/events/stream`
+- Desktop smoke script: `npm run misato:smoke` passed against the fresh 3010 server.
+- Browser-level check of `http://127.0.0.1:1420` loaded the MISATO desktop shell with no page errors.
+
+## Command Contract Follow-Up
+`POST /api/misato/command` now returns both:
+- the legacy payload used by the current UI
+- the stable top-level fields required by the live runtime contract:
+  - `missionSummary`
+  - `projectDetected`
+  - `hermesPlan`
+  - `agentsAssigned`
+  - `councilFeedback`
+  - `subtasksCreated`
+  - `risksDetected`
+  - `approvalRequired`
+  - `approvalReason`
+  - `logsCreated`
+  - `moduleStatus`
+  - `result`
 
 ## Operational Guidance
-- Keep one local runtime base URL as truth for daily use.
-- Restart local runtime after branch switch before desktop smoke tests.
-- Treat HTML responses from API calls as endpoint/base mismatch and fail fast in UI with explicit diagnostics.
+- Keep one canonical local runtime origin for daily use: `http://127.0.0.1:3010`
+- Never let preview API URLs overwrite the runtime origin
+- Treat HTML page fallthrough on API requests as a mismatch, not a successful response
