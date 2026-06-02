@@ -285,7 +285,8 @@ const state = {
   modal:          null,  // { type, data } — current open modal or null
   logFilter:      'all', // 'all' | 'info' | 'warn' | 'error'
   scheduleView:   'agenda', // 'agenda' | 'day' | 'week'
-  approvalFilter: 'pending' // 'pending' | 'approved' | 'rejected' | 'deferred' | 'all'
+  approvalFilter: 'pending', // 'pending' | 'approved' | 'rejected' | 'deferred' | 'all'
+  schedule:       null  // from GET /api/misato/schedule — { viewData: { agenda, day, week }, unscheduledTasks }
 };
 
 // ── Utility Helpers ────────────────────────────────────────────
@@ -456,14 +457,16 @@ async function loadAllFromHermes() {
       }
       return r.json();
     }).catch(() => null);
-  const [agents, tasks, approvals, logs, watchtower, sentinel, runtimeCtx] = await Promise.all([
+  const [agents, tasks, approvals, logs, watchtower, sentinel, runtimeCtx, schedule, lanes] = await Promise.all([
     safeGet(hermesApi('agents')),
     safeGet(hermesApi('tasks')),
     safeGet(hermesApi('approvals')),
     safeGet(hermesApi('logs')),
     safeGet(hermesApi('watchtower')),
     safeGet(hermesApi('secrets')),
-    safeGet(hermesApi('status'))   // runtime context: mode, counts, localSoloMode, etc.
+    safeGet(hermesApi('status')),    // runtime context: mode, counts, localSoloMode, activeModel, etc.
+    safeGet(hermesApi('schedule')),  // schedule viewData: { agenda, day, week }
+    safeGet(hermesApi('lanes'))      // lane cards: { items: [...] }
   ]);
   const normalizedAgents = normalizeItemsResponse(agents).map(normalizeCouncilAgent);
   const normalizedTasks = normalizeItemsResponse(tasks);
@@ -476,6 +479,9 @@ async function loadAllFromHermes() {
   if (watchtower)                 state.watchtower  = normalizeWatchtower(watchtower);
   if (sentinel)                   state.sentinel    = sentinel;
   if (runtimeCtx)                 state.runtimeCtx  = runtimeCtx;
+  // Schedule and lanes are optional — only overwrite if we got a valid response
+  if (schedule?.ok)               state.schedule    = schedule;
+  if (lanes?.ok)                  state.lanes       = lanes;
   render();
 }
 
@@ -696,11 +702,14 @@ function toFeedEvent(log, i) {
 }
 
 // Event types that are too noisy for the default live feed.
-// Heartbeats and stream lifecycle events are filtered from all views.
+// Heartbeats, stream lifecycle, and connection events are filtered from all views.
+// Note: SSE heartbeats use named events (`event: heartbeat`) so never reach onmessage,
+// but include the type anyway for defence-in-depth.
 const FEED_NOISE_TYPES = new Set([
   'runtime.heartbeat', 'runtime_heartbeat', 'heartbeat',
   'stream.connected',  'stream_connected',
   'stream.reconnect',  'stream_reconnect',
+  'context_loaded',    // fires on every SSE connection open — not a real event
   'ping', 'pong'
 ]);
 
@@ -1586,21 +1595,38 @@ function renderAgentDex() {
 }
 
 // ── Screen 4: Schedule ─────────────────────────────────────────
+
+// Look up an agent name from state.agents by agentId, falling back gracefully.
+function agentNameFromId(agentId) {
+  if (!agentId) return null;
+  const agents = state.agents || MOCK_AGENTS;
+  const found = agents.find(a => a.agentId === agentId || a.id === agentId);
+  return found?.name || null;
+}
+
+// Normalise a raw task or schedule-entry into the shape schedule renderers expect.
+function toScheduleItem(t) {
+  const agentName = t.agent || t.assignee || agentNameFromId(t.ownerAgentId || t.assignedAgentId) || '—';
+  const timeStr = t.time
+    || (t.scheduledAt ? new Date(t.scheduledAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—');
+  return {
+    scheduledAt: t.scheduledAt || null,
+    hourStr:     t.hour || (t.scheduledAt ? String(new Date(t.scheduledAt).getHours()) : null),
+    time:        timeStr,
+    title:       t.title || t.name || '—',
+    agent:       agentName,
+    priority:    t.priority || 'Medium',
+    status:      t.status || 'Scheduled',
+    live:        !!(t.liveAt || t.status === 'Doing')
+  };
+}
+
+// Fallback: derive schedule items from task list (used only when /schedule not available)
 function normalizeScheduleItems(tasks) {
-  // Try to use live tasks that have scheduledAt / time fields.
-  // Hermes may emit tasks with scheduledAt (ISO) or time (string range).
   if (!tasks) return null;
   const scheduled = tasks.filter(t => t.scheduledAt || t.time || t.scheduledFor);
   if (!scheduled.length) return null;
-  return scheduled.map(t => ({
-    time:       t.time || (t.scheduledAt ? new Date(t.scheduledAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '—'),
-    scheduledAt: t.scheduledAt || t.scheduledFor || null,
-    title:      t.title || t.name || '—',
-    agent:      t.agent || t.assignee || '—',
-    priority:   t.priority || 'Medium',
-    status:     t.status || 'Scheduled',
-    live:       !!(t.liveAt || t.status === 'Doing')
-  }));
+  return scheduled.map(toScheduleItem);
 }
 
 function renderAgendaItem(s) {
@@ -1614,50 +1640,61 @@ function renderAgendaItem(s) {
     </div>`;
 }
 
-function renderScheduleAgenda(items, hermes) {
+function renderScheduleAgenda(items, hermes, totalUnscheduled) {
   if (!items || !items.length) return `
     <div class="empty-state">
       <div class="empty-state-icon">◷</div>
       <div class="empty-state-title">${hermes ? 'No scheduled tasks' : 'No tasks with schedule data'}</div>
-      <div class="empty-state-msg">${hermes ? 'Tasks with scheduledAt fields will appear here. Add one below.' : 'Connect Hermes and add tasks with scheduledAt to see the live schedule.'}</div>
+      <div class="empty-state-msg">
+        ${hermes
+          ? `${totalUnscheduled != null ? `${totalUnscheduled} tasks without scheduledAt. ` : ''}Create a scheduled task with + New Task.`
+          : 'Connect Hermes and add tasks with scheduledAt to see the live schedule.'}
+      </div>
     </div>`;
   return `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Today — ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
-        <span class="badge ${hermes?'badge-teal':'badge-blue'}">${items.length} tasks${hermes?' · LIVE':''}</span>
+        <span class="badge ${hermes?'badge-teal':'badge-blue'}">${items.length} task${items.length!==1?'s':''}${hermes?' · LIVE':''}</span>
       </div>
       ${items.map(s => renderAgendaItem(s)).join('')}
     </div>`;
 }
 
-function renderScheduleDay(items) {
-  // Build hour buckets for 6 AM – 10 PM
+function renderScheduleDay(agendaItems, dayViewMap) {
   const HOURS = Array.from({length:17}, (_,i) => i + 6); // 6..22
   const now = new Date();
   const nowH = now.getHours();
+  const todayKey = now.toISOString().slice(0, 10);
 
-  function getItemHour(item) {
-    if (item.scheduledAt) return new Date(item.scheduledAt).getHours();
-    const m = (item.time||'').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
-    if (!m) return null;
-    let h = parseInt(m[1],10);
-    if (m[3]?.toUpperCase()==='PM' && h<12) h+=12;
-    if (m[3]?.toUpperCase()==='AM' && h===12) h=0;
-    return h;
+  // Prefer the structured day map from /schedule; fall back to scanning agenda items
+  let tasksByHour = {};
+  if (dayViewMap && dayViewMap[todayKey]) {
+    // Backend format: { "YYYY-MM-DD": [{ id, title, hour: "14", ... }] }
+    for (const item of dayViewMap[todayKey]) {
+      const h = parseInt(item.hour, 10);
+      if (!isNaN(h)) { (tasksByHour[h] = tasksByHour[h] || []).push(toScheduleItem(item)); }
+    }
+  } else if (agendaItems?.length) {
+    // Fallback: derive from agenda items
+    for (const item of agendaItems) {
+      const h = item.scheduledAt ? new Date(item.scheduledAt).getHours() : null;
+      if (h != null) { (tasksByHour[h] = tasksByHour[h] || []).push(item); }
+    }
   }
 
+  const totalToday = Object.values(tasksByHour).reduce((sum, arr) => sum + arr.length, 0);
   return `
     <div class="card" style="padding:0;overflow:hidden">
       <div class="card-header" style="padding:12px 14px">
         <span class="card-title">Day — ${now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
-        <span class="badge badge-slate">${(items||[]).length} scheduled</span>
+        <span class="badge badge-slate">${totalToday} scheduled today</span>
       </div>
       <div class="schedule-day-grid" style="padding:0 12px 16px">
         ${HOURS.map(h => {
           const isNow = h === nowH;
           const label = `${h%12||12}${h<12?'a':'p'}`;
-          const hourItems = (items||[]).filter(i => getItemHour(i) === h);
+          const hourItems = tasksByHour[h] || [];
           return `
             <div class="schedule-day-hour ${isNow?'now-row':''}">
               ${isNow?`<div class="schedule-now-stripe"></div>`:''}
@@ -1666,7 +1703,7 @@ function renderScheduleDay(items) {
                 ${hourItems.map(i=>`
                   <div class="schedule-day-task priority-${(i.priority||'medium').toLowerCase()}">
                     <span style="flex:1">${esc(i.title)}</span>
-                    <span class="schedule-day-task-agent">${esc(i.agent)}</span>
+                    <span class="schedule-day-task-agent">${esc(i.agent||'—')}</span>
                   </div>`).join('')}
               </div>
             </div>`;
@@ -1675,22 +1712,28 @@ function renderScheduleDay(items) {
     </div>`;
 }
 
-function renderScheduleWeek(items) {
+function renderScheduleWeek(agendaItems, weekViewMap) {
   const today    = new Date();
   const todayIdx = today.getDay(); // 0=Sun
-  const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_ABBR   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAY_FULL   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-  const cols = DAY_NAMES.map((name, i) => {
+  const cols = DAY_ABBR.map((abbr, i) => {
     const diff = i - todayIdx;
-    const d    = new Date(today);
+    const d = new Date(today);
     d.setDate(today.getDate() + diff);
     const isToday = i === todayIdx;
-    const dStr = d.toISOString().split('T')[0];
-    const dayItems = (items||[]).filter(item => {
-      if (!item.scheduledAt) return false;
-      return item.scheduledAt.startsWith(dStr);
-    });
-    return { name, date: d, isToday, items: dayItems };
+
+    let dayItems = [];
+    if (weekViewMap && weekViewMap[DAY_FULL[i]]) {
+      // Backend format: { "Monday": [...tasks] }
+      dayItems = weekViewMap[DAY_FULL[i]].map(toScheduleItem);
+    } else if (agendaItems?.length) {
+      // Fallback: filter agenda by date
+      const dStr = d.toISOString().slice(0, 10);
+      dayItems = agendaItems.filter(item => item.scheduledAt?.startsWith(dStr));
+    }
+    return { abbr, date: d, isToday, items: dayItems };
   });
 
   const hasAny = cols.some(c => c.items.length);
@@ -1698,13 +1741,13 @@ function renderScheduleWeek(items) {
     <div class="card" style="padding:0;overflow:hidden">
       <div class="card-header" style="padding:12px 14px">
         <span class="card-title">Week of ${cols[0].date.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${cols[6].date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
-        ${!hasAny ? `<span class="badge badge-slate">No scheduled items with dates</span>` : ''}
+        ${!hasAny ? `<span class="badge badge-slate">No items this week</span>` : ''}
       </div>
       <div class="schedule-week-grid" style="padding:12px">
         ${cols.map(c => `
           <div class="schedule-week-day ${c.isToday?'today':''}">
             <div class="schedule-week-day-header">
-              ${c.name} <span class="schedule-week-day-date">${c.date.getDate()}</span>
+              ${c.abbr} <span class="schedule-week-day-date">${c.date.getDate()}</span>
             </div>
             ${c.items.length ? c.items.map(i=>`
               <div class="schedule-week-task">
@@ -1713,21 +1756,35 @@ function renderScheduleWeek(items) {
               </div>`).join('') : `<div class="schedule-week-empty">—</div>`}
           </div>`).join('')}
       </div>
-      ${!hasAny ? `<div style="padding:8px 12px 12px;font-size:11px;color:var(--text-tertiary);text-align:center">Tasks need a <code>scheduledAt</code> ISO date to appear in week view. Add one via + New Task.</div>` : ''}
+      ${!hasAny ? `<div style="padding:0 12px 12px;font-size:11px;color:var(--text-tertiary);text-align:center">Tasks need a <code>scheduledAt</code> ISO date to appear in Week view.</div>` : ''}
     </div>`;
 }
 
 function renderSchedule() {
-  const hermes    = isHermesConnected();
-  const liveItems = normalizeScheduleItems(state.tasks);
-  const items     = liveItems || (!hermes ? MOCK_SCHEDULE : null);
-  const isMock    = !liveItems && !hermes;
-  const view      = state.scheduleView || 'agenda';
+  const hermes = isHermesConnected();
+  const view   = state.scheduleView || 'agenda';
+
+  // Source priority:
+  // 1. state.schedule.viewData (from GET /api/misato/schedule — richest)
+  // 2. normalizeScheduleItems(state.tasks) (tasks with scheduledAt)
+  // 3. MOCK_SCHEDULE (when fully disconnected)
+  const vd = state.schedule?.viewData;
+  const isMock = !state.schedule && !state.tasks && !hermes;
+
+  // For Agenda: use backend agenda array, or fall back to derived items
+  const agendaItems = vd?.agenda
+    ? vd.agenda.map(toScheduleItem)
+    : (normalizeScheduleItems(state.tasks) || (!hermes ? MOCK_SCHEDULE : null));
+  const unscheduled = state.schedule?.unscheduledTasks ?? null;
 
   let content;
-  if (view === 'day')    content = renderScheduleDay(items || []);
-  else if (view === 'week') content = renderScheduleWeek(items || []);
-  else                   content = renderScheduleAgenda(items, hermes);
+  if (view === 'day') {
+    content = renderScheduleDay(agendaItems, vd?.day || null);
+  } else if (view === 'week') {
+    content = renderScheduleWeek(agendaItems, vd?.week || null);
+  } else {
+    content = renderScheduleAgenda(agendaItems, hermes, unscheduled);
+  }
 
   const viewLabel = view.charAt(0).toUpperCase() + view.slice(1);
   return `
@@ -1740,8 +1797,10 @@ function renderSchedule() {
       <button class="btn btn-primary btn-sm" id="btn-add-task" style="margin-left:8px">+ New Task</button>`)}
     <div class="workspace-body">
       ${isMock ? mockBanner('connect Hermes for live schedule') : ''}
-      ${hermes && !state.tasks ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading schedule from Hermes…</div>` : ''}
-      ${hermes && state.tasks && !liveItems ? `<div class="waiting-hermes">◎ Hermes connected — tasks loaded but no <code>scheduledAt</code> fields found. Waiting on Hermes /schedule endpoint or task scheduledAt data.</div>` : ''}
+      ${hermes && !state.schedule && !state.tasks ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading schedule from Hermes…</div>` : ''}
+      ${hermes && state.schedule && !vd?.agenda?.length && !agendaItems?.length
+          ? `<div class="waiting-hermes">◎ Hermes connected · ${unscheduled ?? 0} task${unscheduled !== 1 ? 's' : ''} without <code>scheduledAt</code>. Use + New Task to create a scheduled item.</div>`
+          : ''}
       ${content || ''}
     </div>`;
 }
@@ -1771,11 +1830,11 @@ function renderKanban() {
             <div class="kanban-card ${left}">
               <div class="kanban-card-title">${esc(t.title)}</div>
               <div class="kanban-card-footer">
-                <span class="kanban-card-agent">${esc(t.agent)}</span>
+                <span class="kanban-card-agent">${esc(t.agent || t.assignedAgentId || '—')}</span>
                 ${priorityBadge(t.priority)}
               </div>
-              ${t.status==='Blocked'?`<div class="kanban-card-blocker">⚠ Blocked — requires approval</div>`:''}
-              <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px">${esc(t.project)}</div>
+              ${t.status==='Blocked'?`<div class="kanban-card-blocker">⚠ Blocked${t.linkedApprovalId?' — approval pending':' — requires approval'}</div>`:''}
+              <div style="font-size:10px;color:var(--text-tertiary);margin-top:4px">${esc(t.project || t.projectId || '—')}</div>
               <div class="kanban-card-actions">
                 <button class="kc-action" data-task-id="${esc(t.id)}" data-task-status="${esc(nextStatus)}" title="Move to ${nextStatus}">→ ${esc(nextStatus)}</button>
                 <button class="kc-action" data-task-id="${esc(t.id)}" data-task-priority="${esc(nextPriority)}" title="Set ${nextPriority}">${esc(nextPriority)} ↑</button>
@@ -1802,12 +1861,13 @@ function renderWatchtower() {
   const wt      = state.watchtower || MOCK_WATCHTOWER;
   const isMock  = !state.watchtower && !hermes;
 
+  const ctx = state.runtimeCtx || {};
   const tiles = [
     { label:'Hermes',       value: hermes?'Connected':'Offline',           sub: hermes ? `${state.hermesHost}:${state.hermesPort}` : 'Start npm run dev',       cls: hermes?'ok':'bad'  },
-    { label:'SSE Stream',   value: state.sseState==='connected'?'Live':state.sseState==='connecting'?'Connecting':'Offline', sub: state.sseState==='connected'?`${state.feedEvents.length} events`:'No stream',  cls: state.sseState==='connected'?'ok':''  },
-    { label:'Auth Gate',    value: state.token?'Configured':'Not set',     sub: 'x-misato-desktop-token',                                                        cls: state.token?'ok':'' },
-    { label:'Queue Depth',  value: tasks.filter(t=>t.status==='Doing').length, sub:`${tasks.filter(t=>t.status==='Blocked').length} blocked`,                   cls: tasks.filter(t=>t.status==='Blocked').length?'warn':'' },
-    { label:'CORS',         value: 'WARN',                                  sub:'Fix pending — redeploy required',                                               cls:'warn' }
+    { label:'SSE Stream',   value: state.sseState==='connected'?'Live':state.sseState==='connecting'?'Connecting':'Offline', sub: state.sseState==='connected'?`${state.feedEvents.length} events`:'Polling fallback',  cls: state.sseState==='connected'?'ok':''  },
+    { label:'Auth Gate',    value: hermes ? 'Local Solo' : state.token?'Token':'Not set', sub: hermes ? 'No token required' : 'x-misato-desktop-token',         cls: hermes?'ok':state.token?'ok':'' },
+    { label:'Queue Depth',  value: hermes && !state.tasks ? '…' : tasks.filter(t=>t.status==='Doing').length, sub:tasks.filter(t=>t.status==='Blocked').length?`${tasks.filter(t=>t.status==='Blocked').length} blocked`:'No blockers', cls:tasks.filter(t=>t.status==='Blocked').length?'warn':'' },
+    { label:'Runtime Mode', value: ctx.runtimeMode || (hermes ? 'LOCAL' : 'OFFLINE'), sub: hermes ? `v${state.hermesHealth?.version||'?'} · uptime ${fmtUptime(state.hermesHealth?.uptime)}` : 'Not connected', cls: hermes?'ok':'' }
   ].map(t=>`
     <div class="health-tile ${t.cls||''}">
       <div class="health-tile-label">${esc(t.label)}</div>
@@ -2087,16 +2147,45 @@ function renderIntegrations() {
 }
 
 // ── Screen 10: Lanes ───────────────────────────────────────────
+// Maps backend lane item to the shape renderLanes() expects.
+function normalizeLaneItem(lane) {
+  const idSuffix = String(lane.id || '').replace(/^lane-/, '');
+  const st = String(lane.status || 'ready').toLowerCase();
+  const blockers = Array.isArray(lane.blockers) && lane.blockers.length
+    ? lane.blockers.map(b => typeof b === 'string' ? b : (b.title || String(b))).join(', ')
+    : (typeof lane.blockers === 'string' ? lane.blockers : 'None');
+  return {
+    id:          lane.id || idSuffix,
+    cls:         idSuffix || 'default',
+    name:        lane.name || '—',
+    branch:      lane.branch || '—',
+    status:      lane.status || 'ready',
+    statusCls:   st === 'active'   ? 'badge-teal'
+               : st === 'blocked'  ? 'badge-red'
+               : st === 'thinking' ? 'badge-blue'
+               : 'badge-slate',
+    currentTask: lane.current || lane.currentTask || '—',
+    lastHandoff: lane.lastHandoff || (lane.tasksDone != null ? `${lane.tasksDone}/${lane.tasksTotal || '?'} tasks done` : '—'),
+    blockers,
+    next:        lane.next || '—',
+    owns:        Array.isArray(lane.owns)
+                   ? lane.owns
+                   : [lane.ownerAgentName || lane.ownerAgentId || '—']
+  };
+}
+
 function buildLiveLanes() {
-  // If Hermes provides agent data with branch/lane info, prefer it.
-  // Otherwise fall back to the static AGENT_LANES manifest.
-  // Hermes agents with a 'branch' field can be mapped to lane cards.
-  if (state.agents && state.agents.length) {
-    const hermesBranchAgents = state.agents.filter(a => a.branch || a.lane);
-    if (hermesBranchAgents.length) {
-      return hermesBranchAgents.map(a => ({
+  // Priority 1: dedicated /lanes endpoint — returns rich lane data
+  if (state.lanes?.items?.length) {
+    return state.lanes.items.map(normalizeLaneItem);
+  }
+  // Priority 2: agents with branch/lane fields (enriched by Hermes)
+  if (state.agents?.length) {
+    const branchAgents = state.agents.filter(a => a.branch || a.lane);
+    if (branchAgents.length) {
+      return branchAgents.map(a => ({
         id:          a.id,
-        cls:         a.id,
+        cls:         String(a.id || '').split('-').pop() || 'default',
         name:        a.name,
         branch:      a.branch || a.lane || '—',
         status:      a.state || 'unknown',
@@ -2108,7 +2197,7 @@ function buildLiveLanes() {
       }));
     }
   }
-  return null; // fall back to static
+  return null; // fall back to static manifest
 }
 
 function renderLanes() {
@@ -2148,7 +2237,9 @@ function normalizeApproval(a) {
     description: a.description || a.details || a.reason || a.summary || '—',
     risk,
     status,
-    agentName:    a.requestedByAgentName || a.agentName || a.agent || '—',
+    // Field name varies by source:
+    // runtime-created: requestedByAgentId (no name) | seed data: requestedAgent
+    agentName:    a.requestedByAgentName || a.agentName || a.agent || a.requestedAgent || '—',
     requestedAt:  a.requestedAt || a.createdAt || '—',
     decisionAt:   a.decisionAt || a.resolvedAt || null,
     doesNotAutoExecute: !!(a.safeExecutionMode || a.doesNotAutoExecuteProduction)
