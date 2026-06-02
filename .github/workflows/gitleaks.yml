@@ -3,7 +3,7 @@ name: gitleaks
 on:
   pull_request:
   push:
-    branches: ["misato-hermes-backend", "misato-full-build", "main"]
+    branches: ["misato-hermes-backend", "misato-full-build", "misato-hermes-live-brain", "main"]
 
 jobs:
   scan:

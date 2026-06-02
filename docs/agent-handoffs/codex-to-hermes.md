@@ -44,3 +44,25 @@
 ## Safety note
 - No raw tokens or secrets were emitted in the verified outputs.
 - Public NexCall pages were not modified.
+
+## Desktop packaging verification
+- `npm run desktop:build` passed after the tray/single-instance/autostart shell changes.
+- `npm run misato:desktop-packaging-check` now reports structural proof separately from runtime behavior.
+- Verified structurally:
+  - canonical runtime origin remains `http://127.0.0.1:3010`
+  - preview API base stays separate
+  - tray menu restore/hide handlers are present
+  - single-instance plugin is registered
+  - window-state plugin is registered
+  - autostart plugin is registered
+  - `misato-desktop.exe` and the NSIS installer both exist
+- Still unverified on-host:
+  - tray click/restore interaction
+  - second-instance suppression in an interactive Windows launch
+  - autostart enablement at the OS level
+  - updater wiring is not present in this branch
+
+## Secret Sentinel status
+- `gitleaks` is not installed on this host, so the live redacted repo scan is still blocked.
+- Repo-local scripts are fail-soft and the `.gitignore` rules already protect `.security/`, redacted reports, and SARIF outputs.
+- The GitHub workflow now includes `misato-hermes-live-brain` in its push branch list.

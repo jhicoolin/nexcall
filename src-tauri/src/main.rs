@@ -1,9 +1,25 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::Manager;
+use tauri::{
+    menu::MenuBuilder,
+    tray::{TrayIconBuilder, TrayIconEvent},
+    Manager, WindowEvent,
+};
 
 fn js_escape(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "").replace('\r', "")
+    value
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "")
+        .replace('\r', "")
+}
+
+fn show_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
 }
 
 fn main() {
@@ -36,6 +52,55 @@ fn main() {
                     script.push_str("if (!localStorage.getItem('misato_runtime_origin')) { localStorage.setItem('misato_runtime_origin', window.__MISATO_RUNTIME_ORIGIN__); }");
                 }
                 let _ = window.eval(script.as_str());
+            }
+
+            #[cfg(desktop)]
+            {
+                let _ = app.handle().plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+                    show_main_window(app);
+                }));
+
+                let _ = app.handle().plugin(tauri_plugin_window_state::Builder::default().build());
+                let _ = app.handle().plugin(tauri_plugin_autostart::init(
+                    tauri_plugin_autostart::MacosLauncher::default(),
+                    None,
+                ));
+
+                let menu = MenuBuilder::new(app)
+                    .text("show-window", "Show MISATO")
+                    .separator()
+                    .text("quit", "Quit")
+                    .build()?;
+
+                let tray_icon = app.default_window_icon().cloned().unwrap();
+
+                let _tray = TrayIconBuilder::new()
+                    .icon(tray_icon)
+                    .menu(&menu)
+                    .show_menu_on_left_click(true)
+                    .on_menu_event(move |app, event| match event.id().as_ref() {
+                        "show-window" => show_main_window(app),
+                        "quit" => app.exit(0),
+                        _ => {}
+                    })
+                    .on_tray_icon_event(move |app, event| {
+                        if let TrayIconEvent::Click { button, .. } = event {
+                            if button == tauri::tray::MouseButton::Left {
+                                show_main_window(app.app_handle());
+                            }
+                        }
+                    })
+                    .build(app)?;
+
+                if let Some(window) = app.get_webview_window("main") {
+                    let tray_window = window.clone();
+                    let _ = window.on_window_event(move |event| {
+                        if let WindowEvent::CloseRequested { api, .. } = event {
+                            api.prevent_close();
+                            let _ = tray_window.hide();
+                        }
+                    });
+                }
             }
 
             Ok(())
