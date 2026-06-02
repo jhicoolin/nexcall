@@ -21,6 +21,8 @@
     "misato:browser-contract-check": "node scripts/misato-browser-contract-check.mjs",
     "misato:smoke": "node scripts/misato-runtime-smoke.mjs",
     "misato:regression": "node scripts/misato-regression-check.mjs",
+    "misato:live-data-check": "node scripts/misato-live-data-check.mjs",
+    "misato:process-watcher": "node scripts/misato-process-watcher.mjs",
     "misato:desktop-packaging-check": "node scripts/misato-desktop-packaging-check.mjs",
     "misato:desktop-acceptance": "node scripts/misato-desktop-acceptance.mjs",
     "misato:updater-check": "node -e \"console.log('TODO: MISATO updater wiring not implemented yet'); process.exit(0)\"",
