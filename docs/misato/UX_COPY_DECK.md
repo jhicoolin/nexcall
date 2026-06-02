@@ -1,10 +1,15 @@
 # MISATO UX Copy Deck
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 2026-06-02  
 **Owner:** Claude UI Agent  
 **Status:** PRODUCTION — all user-facing strings must come from this document
 
 No ad-hoc copy. No invented error messages. If a string isn't here, add it here first.
+
+**Related documents:**
+- `docs/misato/UX_COPY_INVENTORY.md` — full inventory of app.js strings with before/after rewrites
+- `docs/misato/VERIFICATION_GLOSSARY.md` — precise definitions for verification status labels
+- `docs/misato/SUBAGENT_PROMPT_POLISH.md` — user-facing language for each subagent's output
 
 ---
 
@@ -662,4 +667,104 @@ After:  Approval cards show the agent name that requested the action (e.g., "Ver
 What got worse: Nothing. Purely additive fix.
 Impact: All users who viewed approval cards were missing context for who requested action. Medium severity.
 Fix in progress: Committed in 67de581. Verified with seed data shapes.
+```
+
+---
+
+## Connection and Hermes State Copy (v1.1 additions)
+
+### Topbar indicator
+
+| State | Copy | Icon |
+|-------|------|------|
+| Hermes connected, SSE live | `● HERMES · 127.0.0.1:3010 · v{version} · ↑{uptime}` | teal |
+| Hermes connected, SSE polling | `● POLLING · Hermes connected · SSE reconnecting` | amber |
+| Hermes offline | `HERMES OFFLINE · npm run dev` | red ⚠ |
+| Not started | `NOT STARTED` | gray — |
+
+### Toast: Hermes state
+
+```
+◎ Hermes offline — start npm run dev to reconnect.     [was: "Hermes not connected."]
+⬡ Hermes disconnected · start npm run dev to reconnect.    [was: "Disconnected from Hermes."]
+◎ Refreshing live data from Hermes…                    [was: "Refreshing…"]
+◎ Refreshing…                                          [for Watchtower refresh button]
+```
+
+### Toast: Task mutations
+
+```
+✓ Task created: {task.title}                           [was: "Task created."]
+◎ Local update only · Hermes offline. Reconnect to persist.    [was: "Task updated locally…"]
+✕ Task deleted.                                        [was: "Task deleted."]
+⊘ High-risk delete blocked · Approval queued for owner review.
+◎ Removed locally · Hermes offline — will reappear on reconnect.
+```
+
+### Toast: Scan
+
+```
+◌ Scanning repository for secrets…                    [was: "Scan requested…"]
+✓ Scan complete · {critical} critical · {high} high · {warnings} warnings   [no change]
+✗ Scan failed · {message} · Endpoint: {url}
+```
+
+### Toast: Obsidian Mirror
+
+```
+⟳ Syncing to Obsidian vault…                          [was: "Syncing Obsidian vault…"]
+✓ Synced · {filesWritten} files · Just now              [no change]
+✗ Obsidian sync failed: {message} · Endpoint: {url}    [no change]
+```
+
+### Toast: Settings / Config
+
+```
+✓ Configuration saved.                                 [was: "Configuration saved." — added icon]
+⚠ Title is required to create a task.                 [was: "Title is required."]
+```
+
+### Toast: Approval
+
+```
+✓ Approval #{id} approved by owner.
+✗ Approval #{id} rejected.
+○ Approval #{id} deferred.
+✗ Approval action failed · {message} · {url}           [was: "Failed: {message}\nURL: {url}"]
+```
+
+### Empty states: Approvals
+
+```
+All gates clear · No pending approvals                 [was: "No pending approvals" + "All gates clear."]
+No {filter} approvals · Switch filters to see other states   [was: "Nothing to show for this filter."]
+```
+
+### Empty states: Schedule
+
+```
+No scheduled tasks · Add scheduledAt to tasks to see them here    [was: "No scheduled tasks"]
+No schedule data · Connect Hermes and add tasks with dates         [was: "No tasks with schedule data"]
+```
+
+### Loading states (canonical — all use this pattern)
+
+```
+◌ Loading {feature} from Hermes…
+```
+
+| Screen | Exact copy |
+|--------|-----------|
+| AgentDex | `◌ Loading agents from Hermes…` |
+| Schedule | `◌ Loading schedule from Hermes…` |
+| Approvals | `◌ Loading approvals from Hermes…` |
+| Sentinel | `◌ Loading scan status from Hermes…` |
+| Kanban | `◌ Loading tasks from Hermes…` |
+| Watchtower | `◌ Loading health status from Hermes…` |
+
+### Kanban: Blocked badge
+
+```
+⊘ Blocked · approval #{linkedApprovalId} pending     [was: "⚠ Blocked — approval pending"]
+⊘ Blocked · requires owner approval                  [was: "⚠ Blocked — requires approval"]
 ```

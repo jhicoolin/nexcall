@@ -896,7 +896,7 @@ async function hermesMutate(method, path, body) {
 async function resolveApproval(id, action) {
   // action: 'approve' | 'reject' | 'defer'
   // Contract: POST /api/misato/approvals/action { approvalId, action }
-  if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+  if (!isHermesConnected()) { showToast('◎ Hermes offline — start npm run dev to reconnect.', '⚠'); return; }
   try {
     await hermesMutate('POST', 'api/misato/approvals/action', { approvalId: id, action });
     // Optimistic: remove from local list
@@ -910,7 +910,7 @@ async function resolveApproval(id, action) {
     // Refresh full approval list in background
     loadAllFromHermes();
   } catch (e) {
-    const msg = e.url ? `Failed: ${e.message}\nURL: ${e.url}` : e.message;
+    const msg = e.url ? `✗ Approval action failed · ${e.message} · ${e.url}` : `✗ Approval action failed · ${e.message}`;
     showToast(msg, '⚠');
   }
 }
@@ -918,7 +918,7 @@ async function resolveApproval(id, action) {
 // ── Task CRUD ──────────────────────────────────────────────────
 async function createTask(data) {
   // Contract: POST /api/misato/tasks/create { title, project, priority, status, agent }
-  if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
+  if (!isHermesConnected()) { showToast('◎ Hermes offline — start npm run dev to reconnect.', '⚠'); return; }
   try {
     const task = await hermesMutate('POST', 'api/misato/tasks/create', {
       title:    data.title,
@@ -988,7 +988,7 @@ async function deleteTask(id) {
   try {
     await hermesMutate('POST', 'api/misato/tasks/delete', { taskId: id });
     state.tasks = (state.tasks || []).filter(t => t.id !== id);
-    showToast('Task deleted.', '✕');
+    showToast('✕ Task deleted.', '✕');
     render();
   } catch (e) {
     // Do NOT remove locally on failure — task is still live on Hermes, removing here is a lie.
@@ -1126,7 +1126,7 @@ function saveConfig() {
   if (byp   && byp   !== '••••••••••••••••') { state.bypassToken = byp; storage.set('misato_vercel_bypass_token', byp); }
   state.connTest = { label:'Not configured', cls:'unconfigured', httpStatus:null, checkedAt:null, error:'', nextFix:'Click Test Connection to verify.' };
   render();
-  showToast('Configuration saved.', '◎');
+  showToast('✓ Configuration saved.', '◎');
 }
 
 // ── Toast ──────────────────────────────────────────────────────
@@ -1166,7 +1166,7 @@ function buildTopBarHermesHTML() {
     return `<div class="topbar-hermes finding"><span class="hermes-dot">○</span><span class="hermes-label">CONNECTING…</span></div>`;
   }
   if (state.hermesState === 'not-running') {
-    return `<div class="topbar-hermes offline"><span class="hermes-dot">⚠</span><span class="hermes-label">HERMES OFFLINE</span></div>`;
+    return `<div class="topbar-hermes offline"><span class="hermes-dot">⚠</span><span class="hermes-label">HERMES OFFLINE · npm run dev</span></div>`;
   }
   return `<div class="topbar-hermes idle"><span class="hermes-dot">—</span><span class="hermes-label">NOT STARTED</span></div>`;
 }
@@ -2060,7 +2060,7 @@ function renderSentinel() {
     ${renderSectionHeader('Secret Sentinel','Security scan — repo scope only',`<button class="btn btn-secondary btn-sm" id="btn-scan-now" ${!hermes||!scanAvailable?'disabled title="Hermes must be running with scan endpoint"':''}>Scan Now</button>`)}
     <div class="workspace-body">
       ${isMock ? mockBanner('connect Hermes for live scan results') : ''}
-      ${hermes && !state.sentinel ? `<div class="hermes-loading"><div class="loading-dot"></div> Fetching scan status from Hermes…</div>` : ''}
+      ${hermes && !state.sentinel ? `<div class="hermes-loading"><div class="loading-dot"></div> Loading scan status from Hermes…</div>` : ''}
       ${statusPanel}
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
         ${[
@@ -2668,7 +2668,7 @@ function bind() {
     state.hermesHealth = null;
     state.agents = state.tasks = state.approvals = state.logs = state.watchtower = state.sentinel = null;
     render();
-    showToast('Disconnected from Hermes.', '⬡');
+    showToast('⬡ Hermes disconnected · start npm run dev to reconnect.', '⬡');
   });
 
   // Advanced details
@@ -2680,7 +2680,7 @@ function bind() {
 
   // Refresh — use loadAllFromHermes (data fetch) not discoverHermes (health probe)
   document.getElementById('btn-refresh')?.addEventListener('click', () => {
-    if (isHermesConnected()) { loadAllFromHermes(); showToast('Refreshing…', '◎'); }
+    if (isHermesConnected()) { loadAllFromHermes(); showToast('◎ Refreshing live data from Hermes…', '◎'); }
     else { testConnection(); }
   });
 
@@ -2761,7 +2761,7 @@ function bind() {
     const agent    = document.getElementById('m-agent')?.value?.trim() || '';
     const priority = document.getElementById('m-priority')?.value || 'Medium';
     const status   = document.getElementById('m-status')?.value || 'Idea';
-    if (!title) { showToast('Title is required.', '⚠'); return; }
+    if (!title) { showToast('⚠ Title is required to create a task.', '⚠'); return; }
     createTask({ title, project, agent, priority, status, risk:'Low', approvalRequired:false });
   });
 
@@ -2810,7 +2810,7 @@ function bind() {
   // Contract: POST /api/misato/secrets/scan-summary  (not sentinel/scan)
   document.getElementById('btn-scan-now')?.addEventListener('click', async () => {
     if (!isHermesConnected()) { showToast('Hermes not connected — start npm run dev.', '⚠'); return; }
-    showToast('Scan requested…', '◆');
+    showToast('◌ Scanning repository for secrets…', '◆');
     try {
       const result = await hermesMutate('POST', 'api/misato/secrets/scan-summary', {});
       if (result) {
@@ -2836,7 +2836,7 @@ function bind() {
 
   // Watchtower / Sentinel refresh via a shared "Refresh data" flow
   document.getElementById('btn-refresh-data')?.addEventListener('click', () => {
-    if (isHermesConnected()) { loadAllFromHermes(); showToast('Refreshing data…', '◎'); }
+    if (isHermesConnected()) { loadAllFromHermes(); showToast('◎ Refreshing…', '◎'); }
   });
 
   // Schedule view toggle (Day / Agenda / Week)
@@ -2866,8 +2866,8 @@ function bind() {
 
   // Obsidian — Sync Now
   document.getElementById('btn-obsidian-sync')?.addEventListener('click', async () => {
-    if (!isHermesConnected()) { showToast('Hermes not connected.', '⚠'); return; }
-    showToast('Syncing Obsidian vault…', '⬡');
+    if (!isHermesConnected()) { showToast('◎ Hermes offline — start npm run dev to reconnect.', '⚠'); return; }
+    showToast('⟳ Syncing to Obsidian vault…', '⬡');
     try {
       const syncResult = await hermesMutate('POST', 'api/misato/obsidian/sync', {});
       // UX Copy Deck: show item count when available

@@ -158,3 +158,94 @@ These require hands-on Windows testing or a running MCP bus:
 | Sentinel redaction (live scan) | Install gitleaks → run Sentinel scan → verify `[REDACTED]` in all findings |
 | MCP token in OS keychain only | Enable vercel-api MCP → verify `mcp-config.json` shows `keychain://` not raw token |
 | MCP network deny enforcement | In Claude Code session, try `curl` → verify blocked by `.claude/settings.json` deny rule |
+
+---
+
+## Enterprise Controls Not Yet Implemented
+
+MISATO is a local-first, single-operator system. The following enterprise controls from the enterprise deployment checklist are NOT implemented because they are appropriate for multi-user, multi-team organizational deployments — not for a solo operator local runtime.
+
+Each item is marked "Not Yet Implemented" with a rationale and a path to implementation if the use case expands.
+
+### 1. Shadow AI Discovery
+
+**Description:** Deploy tools to detect unapproved AI systems running on employee machines.  
+**Status:** NOT YET IMPLEMENTED  
+**Rationale:** MISATO is the only AI system for this operator. Shadow AI discovery is a multi-employee organizational control — irrelevant for a single-operator local runtime.  
+**Path to implement if needed:** When MISATO expands to team use, deploy a network monitoring tool (e.g., Netskope, Zscaler) to identify unauthorized AI API calls from employee devices.
+
+---
+
+### 2. Browser-Level Data Loss Prevention (DLP)
+
+**Description:** Prevent copy/paste of sensitive data (secrets, PII, financial data) into browser-based AI tools via browser extension or proxy.  
+**Status:** NOT YET IMPLEMENTED  
+**Rationale:** MISATO is accessed only by the owner in a controlled local environment. Browser-level DLP is designed for preventing employees from accidentally sharing sensitive data with public AI tools — not applicable to a controlled single-operator setup.  
+**Existing coverage:** `.claude/settings.json` deny rules block reading `.env` and `secrets/` directories in Claude Code sessions.  
+**Path to implement if needed:** Deploy a browser extension or corporate proxy with DLP policy when MISATO is expanded to team or enterprise use.
+
+---
+
+### 3. AI Usage Policy Documentation
+
+**Description:** Formal written policy governing who may use AI agents, what data they may access, and what actions they may take.  
+**Status:** PARTIALLY IMPLEMENTED  
+**What exists:** `docs/misato/TRUST_POLICY.md` (MCP tier policy), `.claude/settings.json` (deny rules), `docs/misato/SYSTEM_PROMPT.md` (behavioral guardrails), approval gate for L2+ actions.  
+**What's missing:** A formal "Acceptable Use Policy" document stating operator intent, data handling rules, and what the AI should never do.  
+**Path to implement:** Create `docs/misato/ACCEPTABLE_USE_POLICY.md` when expanding to team use. Draft should cover: data categories allowed in prompts, prohibited operations, incident response process.
+
+---
+
+### 4. Governance Committee
+
+**Description:** A designated group responsible for approving AI agent access, reviewing audit logs, and enforcing AI usage policy.  
+**Status:** NOT APPLICABLE (single operator)  
+**Rationale:** With a single owner-operator, governance is the owner's personal judgment. The approval gate, run ledger, and ownership matrix serve this function.  
+**Path to implement if needed:** When expanding to team use, designate 2–3 reviewers with access to the run ledger and authority to approve/reject agent capabilities.
+
+---
+
+### 5. SIEM / Compliance Monitoring Integration
+
+**Description:** Connect agent action logs to a Security Information and Event Management (SIEM) system for real-time threat detection and compliance reporting.  
+**Status:** NOT YET IMPLEMENTED  
+**Rationale:** MISATO's run ledger (`.misato-runtime/events.jsonl`) is the audit trail. For a local single-operator system, this is sufficient. SIEM integration is appropriate when compliance requirements (SOC 2, ISO 27001, HIPAA) apply.  
+**What exists:** Immutable run ledger with sanitized payloads, redacted secrets, and structured event types.  
+**Path to implement:** Ship events from `events.jsonl` to a SIEM (e.g., Datadog, Elastic) via a log forwarder when compliance requirements emerge.
+
+---
+
+### 6. Multi-Factor Authentication on Agent Actions
+
+**Description:** Require MFA (TOTP, hardware key, biometric) before executing high-risk agent actions.  
+**Status:** NOT YET IMPLEMENTED  
+**Rationale:** The approval gate (L2+ actions require owner approval) provides a manual confirmation step. In a local desktop app, full MFA implementation would require integration with Windows Hello or a TOTP library.  
+**Existing coverage:** L4 actions (deploy, auth, production changes) require explicit owner approval before execution.  
+**Path to implement:** Integrate Windows Hello or TOTP into the Tauri approval flow for production-grade MFA.
+
+---
+
+### 7. Principle of Least Privilege Enforcement for Agents
+
+**Description:** Each agent should have only the minimum permissions required for its designated role.  
+**Status:** PARTIALLY IMPLEMENTED  
+**What exists:**
+- Agent registry (`lib/misato/subagents/registry.ts`) includes `approvalRequiredFor` per agent
+- `.claude/settings.json` deny rules apply globally to all Claude Code sessions
+- MCP Tier 1–4 trust model controls external tool access
+**What's missing:** Per-agent tool restrictions at runtime (agents currently share the same MCP catalog). Each agent should have its own tool allowlist.  
+**Path to implement:** Add `allowedMcps: string[]` and `deniedMcps: string[]` to the `SubagentRole` type in `registry.ts` and enforce these at the MCP tool bus layer.
+
+---
+
+### Summary Table
+
+| Enterprise Control | Status | Rationale |
+|-------------------|--------|-----------|
+| Shadow AI discovery | NOT APPLICABLE | Single operator |
+| Browser-level DLP | NOT APPLICABLE | Controlled environment |
+| AI usage policy | PARTIALLY IMPLEMENTED | Trust policy + guardrails exist; formal policy doc missing |
+| Governance committee | NOT APPLICABLE | Single operator |
+| SIEM integration | NOT YET IMPLEMENTED | Local-first; add when compliance required |
+| Multi-factor auth on agent actions | NOT YET IMPLEMENTED | Approval gate covers manual confirmation |
+| Per-agent least-privilege enforcement | PARTIALLY IMPLEMENTED | Global controls exist; per-agent tool restrictions missing |
