@@ -931,6 +931,7 @@ select.input { appearance: none; cursor: pointer; }
 .wt-service-row.bad  { background: rgba(224,68,78,0.04);  }
 
 /* ── Overview model tile ───────────────────────────────────────── */
+/* ── Model tile — live AI (violet, credentials configured) ──────── */
 .model-tile {
   background: var(--accent-violet-bg);
   border: 1px solid rgba(139,92,246,0.2);
@@ -941,6 +942,19 @@ select.input { appearance: none; cursor: pointer; }
 .model-tile-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); }
 .model-tile-value { font-size: 13px; font-weight: 700; color: var(--accent-violet); line-height: 1.2; }
 .model-tile-sub   { font-size: 11px; color: var(--text-secondary); }
+
+/* ── Model tile — fallback (amber, no credentials) ──────────────── */
+.model-tile-fallback {
+  background: rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-top: 2px solid var(--accent-amber);
+}
+.model-tile-fallback .model-tile-value,
+.model-tile-fallback-value { color: var(--accent-amber) !important; }
+.model-tile-hint {
+  font-size: 10px; color: var(--accent-amber); opacity: 0.8;
+  line-height: 1.4; margin-top: 2px;
+}
 
 /* ── Connected loading placeholder ────────────────────────────── */
 .hermes-loading {

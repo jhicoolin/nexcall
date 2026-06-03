@@ -372,6 +372,45 @@ function statusBadge(s) {
   const m = { Done:'badge-teal', Doing:'badge-blue', Blocked:'badge-red', Idea:'badge-slate', Active:'badge-teal', Planning:'badge-violet', Maintenance:'badge-slate' };
   return `<span class="badge ${m[s]||'badge-slate'}">${esc(s)}</span>`;
 }
+
+/**
+ * modelStatus() — derives honest model/credential state from Hermes runtime context.
+ *
+ * Rules:
+ *   - Never present "deterministic-fallback" as a real model name.
+ *   - modelReady === false means no AI credentials are configured.
+ *   - isFallback drives styling: amber = fallback, teal = live AI.
+ *   - configHint is shown to the owner when credentials are missing.
+ */
+function modelStatus() {
+  const ctx = state.runtimeCtx || {};
+  const raw     = ctx.activeModel   || ctx.model    || null;
+  const provider = ctx.modelProvider || null;
+  const ready   = ctx.modelReady === true;
+
+  // Treat any "deterministic-fallback" value as the fallback condition,
+  // regardless of which field it appears in.
+  const isFallback = !ready
+    || !raw
+    || raw    === 'deterministic-fallback'
+    || provider === 'deterministic-fallback';
+
+  return {
+    ready,
+    isFallback,
+    // Display name shown in UI — never show the internal "deterministic-fallback" token
+    displayName:     isFallback ? '— No AI model —' : raw,
+    providerDisplay: isFallback ? 'Deterministic classifier' : (provider || 'Unknown provider'),
+    badgeCls:        isFallback ? 'badge-amber' : 'badge-teal',
+    tileCls:         isFallback ? 'model-tile-fallback' : 'model-tile-live',
+    // Credential state label for UI surfaces
+    credentialState: ready ? 'configured' : 'missing',
+    // Hint shown when fallback is active — never null when isFallback is true
+    configHint:      isFallback
+      ? 'Set AI_GATEWAY_API_KEY in Hermes environment to enable live AI responses.'
+      : null
+  };
+}
 function agentStateBadge(s) {
   const m = { active:'badge-teal', complete:'badge-slate', thinking:'badge-blue', blocked:'badge-red', idle:'badge-slate' };
   return `<span class="badge ${m[s]||'badge-slate'}">${esc(s)}</span>`;
@@ -465,7 +504,7 @@ async function discoverHermes() {
       // at /health) must not be treated as a live Hermes connection.
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) {
-        console.warn(`[MISATO] /health returned ${ct.split(';')[0].trim()} — not a JSON runtime`);
+        console.info(`[MISATO] /health returned ${ct.split(';')[0].trim()} — not a JSON runtime`);
         state.hermesState = 'not-running';
       } else {
         let health = {};
@@ -481,7 +520,7 @@ async function discoverHermes() {
   } catch (e) {
     // Surface connection refused vs other errors so dead ports are identifiable
     const isRefused = e?.message?.includes('fetch') || e?.name === 'AbortError';
-    console.warn(`[MISATO] discoverHermes failed: ${e?.message || e} (target: ${hermesBase()}/health)`);
+    console.info(`[MISATO] discoverHermes failed: ${e?.message || e} (target: ${hermesBase()}/health)`);
     state.hermesState = state.hermesState === 'finding' ? 'not-running' : state.hermesState;
   }
   render();
@@ -1388,7 +1427,7 @@ function renderOverview() {
   const isMock  = !state.agents && !hermes;
   // Show model info from status endpoint
   const ctx     = state.runtimeCtx || {};
-  const activeModel = ctx.activeModel || ctx.model || ctx.aiModel || null;
+  const ms      = modelStatus();   // derived model/credential state — never shows "deterministic-fallback" as a real model
   const active  = hermes && h?.agents?.active != null ? h.agents.active : agents.filter(a=>a.state==='active'||a.state==='thinking').length;
   const blocked = tasks.filter(t=>t.status==='Blocked').length;
   const pending = appr.length;
@@ -1406,11 +1445,15 @@ function renderOverview() {
       <div class="health-tile-sub">${esc(t.sub)}</div>
     </div>`).join('');
 
-  const modelTile = activeModel ? `
-    <div class="model-tile">
-      <div class="model-tile-label">Active Model</div>
-      <div class="model-tile-value">${esc(activeModel)}</div>
-      <div class="model-tile-sub">${esc(ctx.runtimeMode || 'Hermes local')}</div>
+  // Model tile: only rendered when Hermes is connected (we have runtimeCtx).
+  // When fallback is active, show amber tile with configure hint — never show "deterministic-fallback" as a model name.
+  // When a real model is active, show the model name in teal.
+  const modelTile = hermes ? `
+    <div class="model-tile ${ms.tileCls}">
+      <div class="model-tile-label">AI Model</div>
+      <div class="model-tile-value ${ms.isFallback ? 'model-tile-fallback-value' : ''}">${esc(ms.displayName)}</div>
+      <div class="model-tile-sub">${esc(ms.providerDisplay)}</div>
+      ${ms.isFallback ? `<div class="model-tile-hint">⚠ ${esc(ms.configHint)}</div>` : ''}
     </div>` : '';
 
   const agentRows = agents.slice(0,6).map(a=>`
@@ -1433,7 +1476,7 @@ function renderOverview() {
     <div class="workspace-body">
       ${state.hermesState === 'not-running' ? renderHermesSetupCard() : ''}
       ${isMock && state.hermesState !== 'unknown' ? mockBanner() : ''}
-      <div class="health-strip section-gap" style="grid-template-columns:repeat(${activeModel?6:5},1fr);${state.hermesState==='not-running'?'opacity:0.45;pointer-events:none':''}">
+      <div class="health-strip section-gap" style="grid-template-columns:repeat(${hermes?6:5},1fr);${state.hermesState==='not-running'?'opacity:0.45;pointer-events:none':''}">
         ${healthTiles}
         ${modelTile}
       </div>
@@ -1493,14 +1536,21 @@ function renderCommand() {
         <span class="cmd-message-ts">${fmtTime(m.ts)}</span>
       </div>
       <div class="cmd-message-body" style="white-space:pre-wrap">${esc(m.text)}</div>
-      ${(m.role === 'misato' && !m.error && (m.modelUsed || m.responseSource)) ? `
-        <div class="cmd-message-meta">
-          ${m.modelUsed ? `<span class="badge badge-violet cmd-model-badge">${esc(m.modelUsed)}</span>` : ''}
-          ${m.responseSource === 'deterministic-fallback' ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note">deterministic fallback</span>` : ''}
-        </div>` : ''}
+      ${(m.role === 'misato' && !m.error) ? (() => {
+          // Show model attribution only when we have something meaningful to say.
+          // Never display "deterministic-fallback" as a model name — show it as a fallback state.
+          const isRealModel = m.modelUsed && m.modelUsed !== 'deterministic-fallback';
+          const isFallbackResp = m.responseSource === 'deterministic-fallback' || (!isRealModel && m.responseSource);
+          if (!isRealModel && !isFallbackResp) return '';
+          return `<div class="cmd-message-meta">
+            ${isRealModel ? `<span class="badge badge-violet cmd-model-badge">${esc(m.modelUsed)}</span>` : ''}
+            ${isFallbackResp ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note" title="No AI model configured. Set AI_GATEWAY_API_KEY to enable live responses.">⚠ fallback response</span>` : ''}
+          </div>`;
+        })() : ''}
     </div>`).join('');
 
   const rs = runtimeStatus();
+  const cmdMs = modelStatus();  // model/credential state for command center
   return `
     ${renderSectionHeader('Command Center','Active control surface',`<button class="btn btn-ghost btn-sm" id="btn-clear-msgs">Clear</button>`)}
     <div class="workspace-body">
@@ -1513,7 +1563,10 @@ function renderCommand() {
           <span class="badge ${rs.hermesConnected?'badge-teal':rs.runtimeMode==='VERCEL PREVIEW'?'badge-blue':'badge-slate'}">${esc(rs.runtimeMode)}</span>
           <span class="badge badge-slate" style="font-size:9px">${esc(rs.allowedMutationMode)}</span>
           ${rs.sseAvailable ? `<span class="badge badge-teal" style="font-size:9px">SSE</span>` : `<span class="badge badge-amber" style="font-size:9px">POLLING</span>`}
-          ${!connected ? `<button class="btn btn-secondary btn-sm" data-nav="config">Configure →</button>` : ''}
+          ${connected ? (cmdMs.isFallback
+            ? `<span class="badge badge-amber" style="font-size:9px" title="${esc(cmdMs.configHint)}">FALLBACK MODE</span>`
+            : `<span class="badge badge-teal" style="font-size:9px" title="${esc(cmdMs.providerDisplay)}">${esc(cmdMs.displayName)}</span>`)
+            : `<button class="btn btn-secondary btn-sm" data-nav="config">Configure →</button>`}
         </div>
       </div>
       <div class="cmd-layout section-gap">
@@ -2896,7 +2949,7 @@ async function hermesHealthPing() {
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) {
         // 200 HTML at /health means the wrong server answered (Next.js page route, proxy, etc.)
-        console.warn(`[MISATO] health ping got ${ct.split(';')[0].trim()} — treating as offline`);
+        console.info(`[MISATO] health ping got ${ct.split(';')[0].trim()} — treating as offline`);
         state.hermesState = 'not-running';
         state.hermesHealth = null;
         stopSSE();
@@ -2914,7 +2967,7 @@ async function hermesHealthPing() {
     }
   } catch (e) {
     // Network error — Hermes went away or port is dead
-    console.warn(`[MISATO] health ping failed: ${e?.message} (target: ${hermesBase()}/health)`);
+    console.info(`[MISATO] health ping failed: ${e?.message} (target: ${hermesBase()}/health)`);
     state.hermesState = 'not-running';
     state.hermesHealth = null;
     stopSSE();
