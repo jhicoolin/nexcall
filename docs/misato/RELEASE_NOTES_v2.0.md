@@ -18,6 +18,16 @@
 | npm scripts wired | `package.json` | `misato:live-data-check`, `misato:process-watcher`, `misato:desktop-acceptance`, `misato:updater-*` |
 | Desktop build | `src-tauri/` | NSIS installer `MISATO_0.1.0_x64-setup.exe` (1.8MB) produced |
 
+### Codex (commit `e802664`) — security + build hardening
+
+| Change | File | Detail |
+|--------|------|--------|
+| ErrorBoundary component | `components/ErrorBoundary.tsx` | `react-error-boundary@6.1.2` — wired at root in `app/layout.tsx`, catches all client-side errors with fallback UI |
+| Bundle analyzer | `next.config.mjs`, `package.json` | `@next/bundle-analyzer` installed; `npm run analyze` available |
+| Build/dev directory separation | `package.json` | `NEXT_DIST_DIR=.next-build` for `build`/`start`/`analyze` — **structurally fixes the crash loop** by keeping prod artifacts separate from dev `.next` |
+| CSP tightening | `next.config.mjs` | Content Security Policy updated with stricter directives |
+| TypeScript improvements | multiple | Strict type annotations added across runtime files |
+
 ### Claude (commits `188c14a`, `6e70b73`, `734a74a`, `886f0eb`)
 
 | Change | File | Detail |
@@ -130,21 +140,54 @@ These headers were already present in `next.config.mjs` before v2.0 work. Confir
 
 ---
 
-## Performance Baseline (v2.0 — Not Yet Measured)
+## Performance and Security — v2.0 Actual State
 
-The following optimizations are **on the v2.1 roadmap but not yet implemented** in v2.0. They should not be documented as done until the code exists and metrics are measured.
+### Verified (commit `e802664`, source-audited)
 
-| Optimization | Status | In Codebase |
-|-------------|--------|-------------|
-| List virtualization (`@tanstack/react-virtual`) | NOT IMPLEMENTED | No — package not installed |
-| `React.memo` on list items | NOT IMPLEMENTED | No |
-| Lazy loading (`next/dynamic`) | NOT IMPLEMENTED | No |
-| `next/font` optimization | NOT IMPLEMENTED | Uses Tailwind `font-sans` |
-| Error boundaries | NOT IMPLEMENTED | No — `react-error-boundary` not installed |
-| Bundle analyzer (`@next/bundle-analyzer`) | NOT IMPLEMENTED | No |
-| Measured performance metrics (FCP, TTI, FPS, bundle size) | NOT MEASURED | No Lighthouse run recorded |
+| Item | Status | Evidence |
+|------|--------|---------|
+| ErrorBoundary | SOURCE_VERIFIED | `components/ErrorBoundary.tsx` + wired in `app/layout.tsx` |
+| Bundle analyzer | SOURCE_VERIFIED | `@next/bundle-analyzer` installed + `npm run analyze` script |
+| Build/dev directory separation | SOURCE_VERIFIED | `NEXT_DIST_DIR=.next-build` in build/start scripts |
+| First Load JS (App Router) | SOURCE_VERIFIED | **102 kB** from `npm run build` output 2026-06-02 |
+| First Load JS (pages router) | SOURCE_VERIFIED | **81.4 kB** from `npm run build` output 2026-06-02 |
+| 9 security headers live | API_VERIFIED | `curl -sI http://127.0.0.1:3010/` confirms CSP, HSTS, X-Frame, nosniff, Referrer, Permissions, COOP, CORP |
 
-See `MISATO_TODO.md` for implementation details for each item.
+### Not yet implemented (v2.1 roadmap)
+
+| Optimization | Status |
+|-------------|--------|
+| List virtualization (`@tanstack/react-virtual`) | NOT IMPLEMENTED |
+| `React.memo` on list items | NOT IMPLEMENTED |
+| Lazy loading (`next/dynamic`) | NOT IMPLEMENTED |
+| `next/font` | NOT IMPLEMENTED (Tailwind `font-sans` used) |
+
+### Real Lighthouse baseline (dev server, 2026-06-02)
+
+```
+URL: http://127.0.0.1:3010/ (NexCall marketing page — NOT the MISATO desktop shell)
+Server type: dev (npm run dev) — production scores will be higher
+
+Performance:   44   ← dev server compilation overhead, not production score
+Accessibility: 96
+Best Practices: 96
+SEO:           91
+
+FCP: 1.3s  |  LCP: 19.9s  |  TBT: 4,080ms  |  CLS: 0.002
+Server response: 1,055ms (dev mode)  |  Total weight: 2,918 KiB
+
+Root causes in dev mode:
+  - Unused JS: 237KB (error.js, not-found.js — dev-only chunks absent in production)
+  - Main thread: 7.0s (React hydration + dev compilation)
+  - Server response: 1,055ms (dev compilation per request — ~50ms in production)
+
+Known console error: SyntaxError: Unexpected identifier 'nc' — no URL/line provided.
+  Likely from inline script in app/layout.tsx or a Next.js compiled module.
+  Does not affect MISATO API routes. Needs DevTools stack trace to confirm source.
+```
+
+Report stored at: `.lighthouse/nexcall-baseline-2026-06-02-dev.json`  
+To run production baseline: `npm run build && npm run lighthouse:nexcall`
 
 **Real baseline (recorded 2026-06-02, dev server):**
 

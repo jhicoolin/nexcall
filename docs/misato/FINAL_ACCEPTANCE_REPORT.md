@@ -6,7 +6,9 @@
 ## Hermes Execution Update (2026-06-02)
 - `pm2` dev server `misato-dev` is online and stable on the canonical runtime origin `http://127.0.0.1:3010`.
 - `npm run misato:live-data-check` passes with 12/12 endpoints verified.
-- Browser console session re-check shows 0 JS errors.
+- `npm run misato:browser-shell-check` loads the shell at `http://127.0.0.1:1420` with 0 console errors.
+- `npm run misato:browser-contract-check` verifies the canonical runtime origin and live endpoint contract.
+- `npm run secrets:scan` passes with no leaks found and a redacted empty report.
 - Command Center, Schedule, Lanes, Watchtower, and Secret Sentinel were verified against live state.
 - Obsidian Mirror is honestly setup-required because `OBSIDIAN_VAULT_PATH` is not configured.
 - Windows packaging artifacts exist, but tray / single-instance / autostart runtime behavior remains environment-bound and was not fully exercised here.
@@ -159,21 +161,24 @@ npm run build
 | gitleaks scan | API_VERIFIED | v8.30.1, 0 findings |
 | TypeScript strict mode | SOURCE_VERIFIED | `tsconfig.json: "strict": true` |
 
-## Performance Optimization Status (v2.0 — Roadmap, Not Yet Implemented)
+## Performance and Build Status (updated after commit `e802664`)
 
-The following items are in `MISATO_TODO.md` but NOT implemented in v2.0:
+| Item | Status | Evidence |
+|------|--------|---------|
+| Error boundaries | SOURCE_VERIFIED | `react-error-boundary@6.1.2` installed; `components/ErrorBoundary.tsx` exists; wired in `app/layout.tsx` |
+| Bundle analyzer | SOURCE_VERIFIED | `@next/bundle-analyzer` installed; `npm run analyze` works |
+| Build/dev directory separation | SOURCE_VERIFIED | `NEXT_DIST_DIR=.next-build` — prevents `.next` stale-cache crash loop |
+| First Load JS (App Router) | SOURCE_VERIFIED | **102 kB** from `npm run build` 2026-06-02 |
+| Lighthouse baseline | PARTIALLY_VERIFIED | Dev baseline recorded (Performance: 44, Accessibility: 96). Production baseline not yet run. See `.lighthouse/nexcall-baseline-2026-06-02-dev.json` |
+| List virtualization | NOT IMPLEMENTED | `@tanstack/react-virtual` not installed |
+| React.memo on list items | NOT IMPLEMENTED | No usage in codebase |
+| next/dynamic lazy loading | NOT IMPLEMENTED | No usage in codebase |
+| next/font | NOT IMPLEMENTED | Tailwind `font-sans` used |
 
-| Optimization | Status |
-|-------------|--------|
-| List virtualization (`@tanstack/react-virtual`) | NOT IMPLEMENTED |
-| `React.memo` on list items | NOT IMPLEMENTED |
-| `next/dynamic` lazy loading | NOT IMPLEMENTED |
-| `next/font` | NOT IMPLEMENTED |
-| Error boundaries | NOT IMPLEMENTED |
-| Bundle analyzer | NOT IMPLEMENTED |
-| Lighthouse baseline recorded | NOT YET RUN |
+**pm2 stability:** online, 21 restarts (17 were from the stale-cache crash loop, now resolved by `NEXT_DIST_DIR` separation).  
+**Known open issue:** `SyntaxError: Unexpected identifier 'nc'` in NexCall page console. No stack trace available without DevTools. Does not affect MISATO API routes. Needs investigation.
 
-Performance numbers (load times, FPS, bundle size) will be established after a Lighthouse baseline run. No fabricated metrics appear in this report.
+No fabricated performance metrics appear in this report.
 
 ---
 

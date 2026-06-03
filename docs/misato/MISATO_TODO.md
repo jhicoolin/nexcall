@@ -11,7 +11,8 @@ This document tracks what was intentionally NOT done in v2.0 and why. Nothing he
 
 ## Performance Optimization Roadmap (v2.1)
 
-None of the items below are implemented in v2.0. They are the correct next step after the v2.0 release is stable. Each includes exact implementation instructions.
+Items marked SOURCE_VERIFIED were confirmed implemented by source audit of commit `e802664`.
+Items marked NOT IMPLEMENTED were confirmed absent from the codebase at time of last audit.
 
 ### P1: List Virtualization — HIGH IMPACT
 
@@ -82,10 +83,10 @@ const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 ---
 
-### P5: Error Boundaries — IMPORTANT FOR PRODUCTION
+### P5: Error Boundaries — SOURCE_VERIFIED (commit `e802664`)
 
-**Status:** NOT IMPLEMENTED — `react-error-boundary` not installed  
-**When to implement:** Before first real user deployment (not just owner use)  
+**Status:** SOURCE_VERIFIED — `react-error-boundary@6.1.2` installed; `components/ErrorBoundary.tsx` created; wired at root in `app/layout.tsx` wrapping `{children}`  
+**When to implement:** Already implemented. Confirm visually by triggering a client-side error and verifying the fallback renders instead of crashing.  
 **Implementation:**
 ```bash
 npm install react-error-boundary
@@ -111,28 +112,19 @@ function ErrorFallback({ error }: { error: Error }) {
 
 ---
 
-### P6: Bundle Analyzer — MONITORING TOOL
+### P6: Bundle Analyzer — SOURCE_VERIFIED (commit `e802664`)
 
-**Status:** NOT IMPLEMENTED — `@next/bundle-analyzer` not installed  
-**When to implement:** Before optimizing bundle size (need to know what's large first)  
-**Implementation:**
+**Status:** SOURCE_VERIFIED — `@next/bundle-analyzer@16.2.7` installed; wired in `next.config.mjs` via `bundleAnalyzer` import; `npm run analyze` script present in `package.json`  
+**To run:**
 ```bash
-npm install -D @next/bundle-analyzer
+npm run analyze
+# Opens interactive bundle visualization in browser
+# Uses NEXT_DIST_DIR=.next-build (separate from dev .next dir)
 ```
-```js
-// next.config.mjs:
-import withBundleAnalyzer from '@next/bundle-analyzer';
-const analyzed = withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
-export default analyzed(nextConfig);
-```
-```bash
-# To run:
-ANALYZE=true npm run build
-```
-**Add to package.json:**
-```json
-"analyze": "ANALYZE=true next build"
-```
+**Real bundle baseline (from `npm run build`, 2026-06-02):**
+- First Load JS (App Router): **102 kB** (below 200KB target — healthy)
+- Pages router (shim): **81.4 kB**
+- Target: keep shared bundle under 150KB
 
 ---
 
