@@ -124,3 +124,37 @@ npm run lint:        PASS (0 errors)
 npm run build:       PASS (102 kB First Load JS)
 misato:regression:   11/11 verified (6 source + 5 live)
 ```
+
+---
+
+## Update — 2026-06-03 second pass
+
+### Current runtime truth verified
+
+```
+activeModel:      "deepseek/deepseek-v4-flash"
+modelProvider:    "vercel-ai-gateway"
+credentialState:  "resolved"
+fallbackReason:   null
+resolvedModel:    "deepseek/deepscek-v4-flash"
+modelReady:       true
+```
+
+### Outstanding mismatch (Hermes to investigate)
+
+Command response still returns `responseSource: "deterministic-fallback"` despite credentials being resolved.
+
+For `daily_summary` and `greeting` intents this may be by design — they are handled by `deterministicClassify()` without calling the live AI. If that is intentional, Hermes should document it clearly. If the live AI should be invoked for these intents, investigate why `classifyCommand()` falls back.
+
+Current UI handles this correctly: the amber "⚠ fallback response" badge shows but the tooltip is now context-aware — when `credentialState: "resolved"`, it says "This response used pattern-matching. deepseek/deepseek-v4-flash is configured and active for supported intents." It no longer tells users to set a key they already set.
+
+### What Claude changed in this pass
+
+1. `runtimeStatus()` now reads `localSoloMode`, `runtimeStatus`, `persistenceMode`, `desktopTokenRequired`, `productionLocked` from Hermes ctx instead of hardcoding them.
+2. `runtimeStatus()` now exposes `runtimeOrigin` and `runtimeStatus` as explicit return fields.
+3. Fallback badge tooltip is now credential-state-aware (different message when credentials resolved vs missing).
+4. Command Center `modeLabel` now reads `localSoloMode` from Hermes instead of hardcoding "LOCAL SOLO".
+
+### No action required from Hermes for these changes
+
+All changes are UI-only. Hermes provides the fields; the UI now reads them correctly.

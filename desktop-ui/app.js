@@ -1054,21 +1054,33 @@ function runtimeStatus() {
   const sseUp     = state.sseState === 'connected';
   const previewUp = state.connTest.label === 'Connected';
   // state.runtimeCtx is populated from GET /api/misato/status.
-  // Use it to enrich the runtime label when Hermes reports a specific mode.
+  // Prefer Hermes-provided fields over inferred values.
   const ctx = state.runtimeCtx || {};
-  const hermesMode = ctx.mode || ctx.runtimeMode || null;
+  const hermesMode = ctx.runtimeMode || ctx.mode || null;
+
+  // localSoloMode: prefer the Hermes field; fall back to hermesUp (local implies solo)
+  const localSoloMode = ctx.localSoloMode === true || hermesUp;
+
+  // runtimeOrigin: the canonical backend URL this session is connected to
+  const runtimeOrigin = state.hermesOrigin
+    || `http://${state.hermesHost || 'unknown'}:${state.hermesPort || '3010'}`;
+
   return {
-    runtimeMode:          hermesUp ? (hermesMode || 'LOCAL SOLO') : previewUp ? 'VERCEL PREVIEW' : 'DISCONNECTED',
+    // Hermes-reported runtime status field
+    runtimeStatus:        ctx.runtimeStatus || (hermesUp ? 'connected' : 'disconnected'),
+    runtimeMode:          hermesUp ? (hermesMode || 'local') : previewUp ? 'VERCEL PREVIEW' : 'DISCONNECTED',
     hermesConnected:      hermesUp,
-    localSoloMode:        hermesUp,
+    localSoloMode,
+    runtimeOrigin,
     sseAvailable:         sseUp,
-    persistenceMode:      hermesUp ? 'Hermes local' : 'none',
+    persistenceMode:      ctx.persistenceMode || (hermesUp ? 'filesystem' : 'none'),
     authMode:             hermesUp ? 'none required' : state.token ? 'desktop token' : 'no auth',
     allowedMutationMode:  hermesUp ? (ctx.mutationMode || 'full CRUD') : 'read-only',
     agentCount:           ctx.agentCount ?? ctx.agents ?? null,
     taskCount:            ctx.taskCount  ?? ctx.tasks  ?? null,
-    desktopTokenRequired: !hermesUp && !!normalizeApiBaseUrl(state.baseUrl),
-    productionLocked:     true
+    desktopTokenRequired: ctx.desktopTokenRequired ?? (!hermesUp && !!normalizeApiBaseUrl(state.baseUrl)),
+    // productionLocked: read from Hermes; do not hardcode true
+    productionLocked:     ctx.productionLocked === true
   };
 }
 
@@ -1541,8 +1553,22 @@ function renderCommand() {
   const hermes    = isHermesConnected();
   const agents    = state.agents || (hermes ? [] : MOCK_AGENTS);
   const active    = agents.filter(a=>a.state==='active'||a.state==='thinking').slice(0,3);
-  const modeLabel = hermes ? `Hermes LOCAL SOLO · ${state.hermesHost}:${state.hermesPort}` : state.connTest.label === 'Connected' ? 'Vercel Preview' : 'Not connected';
+  // Derive mode label from Hermes truth — localSoloMode from /api/misato/status, not hardcoded
+  const localSoloActive = (state.runtimeCtx || {}).localSoloMode === true;
+  const modeLabel = hermes
+    ? `Hermes${localSoloActive ? ' LOCAL SOLO' : ''} · ${state.hermesHost}:${state.hermesPort}`
+    : state.connTest.label === 'Connected' ? 'Vercel Preview' : 'Not connected';
   const hasTimeline = state.commandTimeline.length > 0;
+
+  // Build credential-aware fallback tooltip once per render.
+  // When credentials ARE resolved, the deterministic path is used by design for some intents
+  // (e.g. greeting, daily_summary). The tooltip must not tell users to set a key they already set.
+  const sessionCredResolved = (state.runtimeCtx || {}).credentialState === 'resolved'
+    && (state.runtimeCtx || {}).modelReady === true;
+  const sessionModel = (state.runtimeCtx || {}).activeModel;
+  const fallbackTooltip = sessionCredResolved
+    ? `This response used pattern-matching. ${sessionModel ? sessionModel + ' is configured' : 'AI model is configured'} and active for supported intents.`
+    : 'No AI model configured. Set AI_GATEWAY_API_KEY in Hermes to enable live AI responses.';
 
   const msgs = state.messages.map(m=>`
     <div class="cmd-message cmd-message-${m.role==='user'?'user':'resp'}${m.error?' cmd-message-error':''}">
@@ -1553,18 +1579,18 @@ function renderCommand() {
       <div class="cmd-message-body" style="white-space:pre-wrap">${esc(m.text)}</div>
       ${(m.role === 'misato' && !m.error) ? (() => {
           // responseSource is the authoritative signal of what actually ran.
-          //   "hermes-ai"              → real AI was invoked; show model badge
-          //   "deterministic-fallback" → deterministic path was used; show fallback badge
+          //   "hermes-ai"              → real AI was invoked; show model badge (violet)
+          //   "deterministic-fallback" → deterministic path was used; show fallback badge (amber)
           // modelUsed reflects the configured model (may be set even when fallback ran).
-          // Never show both simultaneously — they would be contradictory.
-          const usedLiveAI  = m.responseSource === 'hermes-ai';
+          // Never show both simultaneously — they are contradictory.
+          const usedLiveAI   = m.responseSource === 'hermes-ai';
           const usedFallback = m.responseSource === 'deterministic-fallback';
-          const modelLabel  = usedLiveAI && m.modelUsed && m.modelUsed !== 'deterministic-fallback'
+          const modelLabel   = usedLiveAI && m.modelUsed && m.modelUsed !== 'deterministic-fallback'
             ? m.modelUsed : null;
           if (!usedLiveAI && !usedFallback) return '';
           return `<div class="cmd-message-meta">
             ${modelLabel   ? `<span class="badge badge-violet cmd-model-badge" title="${esc(m.modelUsed)}">${esc(modelLabel)}</span>` : ''}
-            ${usedFallback ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note" title="Classification used deterministic path. Set AI_GATEWAY_API_KEY in Hermes to route to live AI.">⚠ fallback response</span>` : ''}
+            ${usedFallback ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note" title="${esc(fallbackTooltip)}">⚠ fallback response</span>` : ''}
           </div>`;
         })() : ''}
     </div>`).join('');
