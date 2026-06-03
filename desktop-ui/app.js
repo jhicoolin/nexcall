@@ -379,18 +379,28 @@ function statusBadge(s) {
  * Rules:
  *   - Never present "deterministic-fallback" as a real model name.
  *   - modelReady === false means no AI credentials are configured.
+ *   - Prefer Hermes-provided credentialState and fallbackReason when present.
  *   - isFallback drives styling: amber = fallback, teal = live AI.
  *   - configHint is shown to the owner when credentials are missing.
+ *
+ * New Hermes fields consumed (from /api/misato/status):
+ *   ctx.credentialState: "resolved" | "missing" — authoritative credential state from Hermes
+ *   ctx.fallbackReason: string | null — why fallback is active, when applicable
+ *   ctx.resolvedModel: string — the actual resolved model (same as activeModel when resolved)
  */
 function modelStatus() {
   const ctx = state.runtimeCtx || {};
-  const raw     = ctx.activeModel   || ctx.model    || null;
+  const raw     = ctx.resolvedModel || ctx.activeModel || ctx.model || null;
   const provider = ctx.modelProvider || null;
   const ready   = ctx.modelReady === true;
+  // Prefer Hermes-provided credentialState if available; infer from modelReady otherwise.
+  const credState = ctx.credentialState || (ready ? 'resolved' : 'missing');
+  const fallbackReason = ctx.fallbackReason || null;
 
   // Treat any "deterministic-fallback" value as the fallback condition,
   // regardless of which field it appears in.
-  const isFallback = !ready
+  const isFallback = credState !== 'resolved'
+    || !ready
     || !raw
     || raw    === 'deterministic-fallback'
     || provider === 'deterministic-fallback';
@@ -398,16 +408,19 @@ function modelStatus() {
   return {
     ready,
     isFallback,
+    // Credential state directly from Hermes when available
+    credentialState: credState,
+    // Fallback reason from Hermes (null when credentials are resolved and working)
+    fallbackReason,
     // Display name shown in UI — never show the internal "deterministic-fallback" token
     displayName:     isFallback ? '— No AI model —' : raw,
     providerDisplay: isFallback ? 'Deterministic classifier' : (provider || 'Unknown provider'),
     badgeCls:        isFallback ? 'badge-amber' : 'badge-teal',
-    tileCls:         isFallback ? 'model-tile-fallback' : 'model-tile-live',
-    // Credential state label for UI surfaces
-    credentialState: ready ? 'configured' : 'missing',
-    // Hint shown when fallback is active — never null when isFallback is true
+    // No extra class for live — base .model-tile styles are already violet
+    tileCls:         isFallback ? 'model-tile-fallback' : '',
+    // Hint shown when fallback is active — includes Hermes-provided reason if available
     configHint:      isFallback
-      ? 'Set AI_GATEWAY_API_KEY in Hermes environment to enable live AI responses.'
+      ? (fallbackReason || 'Set AI_GATEWAY_API_KEY in Hermes environment to enable live AI responses.')
       : null
   };
 }
@@ -1449,11 +1462,13 @@ function renderOverview() {
   // When fallback is active, show amber tile with configure hint — never show "deterministic-fallback" as a model name.
   // When a real model is active, show the model name in teal.
   const modelTile = hermes ? `
-    <div class="model-tile ${ms.tileCls}">
+    <div class="model-tile${ms.tileCls ? ' ' + ms.tileCls : ''}">
       <div class="model-tile-label">AI Model</div>
       <div class="model-tile-value ${ms.isFallback ? 'model-tile-fallback-value' : ''}">${esc(ms.displayName)}</div>
       <div class="model-tile-sub">${esc(ms.providerDisplay)}</div>
-      ${ms.isFallback ? `<div class="model-tile-hint">⚠ ${esc(ms.configHint)}</div>` : ''}
+      ${ms.isFallback
+        ? `<div class="model-tile-hint">⚠ ${esc(ms.configHint)}</div>`
+        : `<div class="model-tile-sub" style="font-size:9px;margin-top:2px;opacity:0.6">${esc(ms.credentialState)}</div>`}
     </div>` : '';
 
   const agentRows = agents.slice(0,6).map(a=>`
@@ -1537,14 +1552,19 @@ function renderCommand() {
       </div>
       <div class="cmd-message-body" style="white-space:pre-wrap">${esc(m.text)}</div>
       ${(m.role === 'misato' && !m.error) ? (() => {
-          // Show model attribution only when we have something meaningful to say.
-          // Never display "deterministic-fallback" as a model name — show it as a fallback state.
-          const isRealModel = m.modelUsed && m.modelUsed !== 'deterministic-fallback';
-          const isFallbackResp = m.responseSource === 'deterministic-fallback' || (!isRealModel && m.responseSource);
-          if (!isRealModel && !isFallbackResp) return '';
+          // responseSource is the authoritative signal of what actually ran.
+          //   "hermes-ai"              → real AI was invoked; show model badge
+          //   "deterministic-fallback" → deterministic path was used; show fallback badge
+          // modelUsed reflects the configured model (may be set even when fallback ran).
+          // Never show both simultaneously — they would be contradictory.
+          const usedLiveAI  = m.responseSource === 'hermes-ai';
+          const usedFallback = m.responseSource === 'deterministic-fallback';
+          const modelLabel  = usedLiveAI && m.modelUsed && m.modelUsed !== 'deterministic-fallback'
+            ? m.modelUsed : null;
+          if (!usedLiveAI && !usedFallback) return '';
           return `<div class="cmd-message-meta">
-            ${isRealModel ? `<span class="badge badge-violet cmd-model-badge">${esc(m.modelUsed)}</span>` : ''}
-            ${isFallbackResp ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note" title="No AI model configured. Set AI_GATEWAY_API_KEY to enable live responses.">⚠ fallback response</span>` : ''}
+            ${modelLabel   ? `<span class="badge badge-violet cmd-model-badge" title="${esc(m.modelUsed)}">${esc(modelLabel)}</span>` : ''}
+            ${usedFallback ? `<span class="badge badge-amber cmd-model-badge cmd-fallback-note" title="Classification used deterministic path. Set AI_GATEWAY_API_KEY in Hermes to route to live AI.">⚠ fallback response</span>` : ''}
           </div>`;
         })() : ''}
     </div>`).join('');
