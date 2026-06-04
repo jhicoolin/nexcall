@@ -464,20 +464,16 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             </div>
             <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
 
-            {/* Stat strip */}
+            {/* Fact strip — only honest, verifiable service attributes */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
-              {([
-                { value: 500,  suffix: "+", decimals: 0, label: "Leads captured" },
-                { value: null, static: "24/7",            label: "Always available" },
-                { value: 10,   suffix: "+", decimals: 0,  label: "Industries served" },
-                { value: 60,   suffix: "s", decimals: 0,  label: "Avg. response" }
-              ] as const).map((s) => (
+              {[
+                { value: "24/7",  label: "Always available" },
+                { value: "10+",   label: "Industries served" },
+                { value: "0s",    label: "Hold time for callers" },
+                { value: "Fast",  label: "First response time" }
+              ].map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
-                  <p className="text-2xl font-black text-white">
-                    {"static" in s
-                      ? s.static
-                      : <HeroCountUp value={s.value as number} suffix={s.suffix as string} decimals={s.decimals as number} />}
-                  </p>
+                  <p className="text-2xl font-black text-white">{s.value}</p>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#4B5563]">{s.label}</p>
                 </div>
               ))}
@@ -550,11 +546,14 @@ function CallInterceptionVisual() {
           <p className="text-[0.52rem] font-black uppercase tracking-[0.12em] text-[#A8FF00]/55">Summary sent to your team</p>
         </div>
 
-        {/* Stage 3: TEAM SUMMARY */}
+        {/* Stage 3: TEAM SUMMARY — illustrative example, not real data */}
         <div className="rounded-2xl border border-white/[0.07] bg-black/45 px-5 py-4">
-          <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]">Ready for your team</p>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]">Ready for your team</p>
+            <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[0.5rem] font-bold uppercase tracking-wider text-slate-500">Example</span>
+          </div>
           <div className="space-y-1.5 text-xs">
-            <p className="text-slate-400"><span className="font-bold text-slate-200">Caller:</span> Sarah M. · contact on file</p>
+            <p className="text-slate-400"><span className="font-bold text-slate-200">Caller:</span> Name and number collected</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Request:</span> Appointment this Thursday</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Priority:</span> Follow up today</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Next step:</span> Confirm available slot</p>
@@ -1123,9 +1122,9 @@ function Pricing() {
             <p className="text-base font-black text-amber-50">{checkoutError}</p>
             <p className="mt-2 text-amber-200/80">
               Want to get started?{" "}
-              <a href="mailto:nexcall@proton.me" className="underline underline-offset-2 hover:text-amber-100">Email nexcall@proton.me</a>{" "}
+              <a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="underline underline-offset-2 hover:text-amber-100">Email {NEXCALL_PUBLIC_EMAIL}</a>{" "}
               or call{" "}
-              <a href="tel:+12022006578" className="underline underline-offset-2 hover:text-amber-100">(202) 200-6578</a>.
+              <a href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`} className="underline underline-offset-2 hover:text-amber-100">{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>.
             </p>
           </div>
         )}

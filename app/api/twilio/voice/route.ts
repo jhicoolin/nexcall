@@ -3,6 +3,7 @@ import {
   getClientByPhone,
   normalizeClientPhone
 } from "@/lib/client-directory";
+import { maskPhone } from "@/lib/phone";
 import { isAllowedServerUrl } from "@/lib/security";
 import { isValidTwilioWebhookRequest } from "@/lib/twilio-signature";
 import { buildFallbackTwiml, buildMediaStreamTwiml, buildRedirectTwiml, xmlResponse } from "@/lib/twilio-twiml";
@@ -16,6 +17,10 @@ async function readTwilioParams(request: Request) {
   if (request.method !== "GET") {
     const contentType = request.headers.get("content-type") || "";
     const body = await request.text();
+
+    if (new TextEncoder().encode(body).length > 20000) {
+      throw new Error("Twilio voice request body is too large.");
+    }
 
     if (contentType.toLowerCase().includes("application/x-www-form-urlencoded")) {
       const form = new URLSearchParams(body);
@@ -76,7 +81,7 @@ export async function POST(request: Request) {
     client = await getClientByPhone(calledNumber);
   } catch (error) {
     console.error("Twilio voice route client lookup failed", {
-      calledNumber,
+      calledNumber: maskPhone(calledNumber),
       message: error instanceof Error ? error.message : "Unknown client lookup error"
     });
 

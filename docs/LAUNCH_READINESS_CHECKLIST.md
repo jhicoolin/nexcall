@@ -80,6 +80,18 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 - Rotate any exposed keys immediately and keep provider keys scoped/restricted where possible.
 - Review Vercel audit logs and team access before live client acquisition.
 
+## Independent Security Review / CI / DAST
+
+- Enable Codex Security in workspace settings if available.
+- Enable GitHub secret scanning, dependency review, and CodeQL if available for the repository.
+- Use CodeRabbit or another independent AI/tool reviewer on launch PRs and explicitly ask it to think like an attacker.
+- Keep CI running `npm run lint`, `npx tsc --noEmit`, `npm run build`, and `npm audit --audit-level=moderate`.
+- Run a DAST baseline scan against a preview deployment before production traffic, then repeat after major API changes.
+- Review public API responses for sanitized errors, no provider payloads, no stack traces, and no secret environment names.
+- Require MFA/passkeys or authenticator apps on GitHub, Vercel, Stripe, call-demo provider, domain registrar, and email provider accounts.
+- Turn on usage and spend alerts for Stripe, call-demo provider, email provider, Vercel, and any AI providers.
+- Prefer restricted/least-privilege provider keys where the provider supports them, and rotate keys after personnel or vendor changes.
+
 ## Lead Delivery Checks
 
 - All lead paths should notify or safely capture for `nexcall@proton.me`.
@@ -122,7 +134,7 @@ The checkout route can fall back to server-side inline Stripe `price_data`, but 
 
 ## Final Smoke Tests
 
-- Homepage loads and hero says: "Never miss your next call."
+- Homepage loads and hero says: "Answer more calls. Capture every lead." (copy updated to remove absolute promise; see UI polish commit).
 - Public pages load: `/about`, `/ai-disclosure`, `/refund-policy`, `/privacy`, `/terms`, `/compliance`, `/cookie-notice`, `/accessibility`, `/legal`.
 - Live chat opens, closes, answers buyer questions, refuses stack details, and routes to human follow-up.
 - Experience NexCall uses the compact call-flow preview and pushes visitors to the real Call Demo.

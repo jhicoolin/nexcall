@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { cleanLiveChatQuestion } from "@/lib/live-chat-knowledge";
-import { readJsonObject, validationResponse } from "@/lib/security";
+import {
+  checkRateLimit,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject,
+  validationResponse
+} from "@/lib/security";
 import { answerFrontDeskChat } from "@/services/receptionist/web-chat-engine";
 
 type ChatPayload = {
@@ -8,6 +14,17 @@ type ChatPayload = {
 };
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "chat-legacy",
+    limit: 18,
+    windowSeconds: 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   let body: ChatPayload;
 
   try {
@@ -26,14 +43,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
-    mode: "tenant-aware-front-desk-chat",
     answer: result.answer,
-    topic: result.topic,
-    keywords: result.keywords,
-    responseVariants: result.variants,
-    responseId: result.responseId,
     needsHuman: result.needsHuman,
-    terminated: result.terminated,
-    safetyReason: result.safetyReason
+    terminated: result.terminated
   });
 }

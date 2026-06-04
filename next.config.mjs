@@ -1,3 +1,8 @@
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+// The landing page still uses React inline style props for a few decorative
+// gradients and motion states, so style-src must allow inline styles until
+// those components are refactored to class-based CSS.
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -7,7 +12,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https://images.pexels.com https://images.unsplash.com",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  `script-src 'self'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://api.elevenlabs.io https://api.cal.com https://api.vapi.ai https://*.upstash.io https://*.inngest.com https://api.inngest.com wss://*.livekit.cloud wss://*.twilio.com",
   "media-src 'self' blob: data:",
   "frame-src 'self' https://checkout.stripe.com",
@@ -50,6 +55,25 @@ const securityHeaders = [
   {
     key: "Cross-Origin-Resource-Policy",
     value: "same-origin"
+  },
+  {
+    key: "X-Permitted-Cross-Domain-Policies",
+    value: "none"
+  }
+];
+
+const sensitiveHeaders = [
+  {
+    key: "Cache-Control",
+    value: "no-store, max-age=0"
+  },
+  {
+    key: "Pragma",
+    value: "no-cache"
+  },
+  {
+    key: "X-Robots-Tag",
+    value: "noindex, nofollow"
   }
 ];
 
@@ -72,6 +96,22 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders
+      },
+      {
+        source: "/admin",
+        headers: sensitiveHeaders
+      },
+      {
+        source: "/admin/:path*",
+        headers: sensitiveHeaders
+      },
+      {
+        source: "/command",
+        headers: sensitiveHeaders
+      },
+      {
+        source: "/api/admin/:path*",
+        headers: sensitiveHeaders
       }
     ];
   }

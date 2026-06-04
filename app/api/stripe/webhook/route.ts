@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { notifyNexCallLead } from "@/lib/lead-notifications";
-import { isAllowedServerUrl } from "@/lib/security";
+import { isAllowedServerUrl, readRawBody, rememberReplayKey, validationResponse } from "@/lib/security";
 
 export const runtime = "nodejs";
 
@@ -22,6 +22,7 @@ type StripeCheckoutSession = {
 };
 
 type StripeEvent = {
+  id: string;
   type: string;
   data: {
     object: StripeCheckoutSession;
@@ -29,13 +30,24 @@ type StripeEvent = {
 };
 
 export async function POST(request: Request) {
-  const payload = await request.text();
+  let payload: string;
+
+  try {
+    payload = await readRawBody(request, 500000);
+  } catch (error) {
+    return validationResponse(error);
+  }
+
   const signature = request.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!signature || !webhookSecret || webhookSecret.includes("replace_me")) {
+    console.warn("[NEXCALL_STRIPE_WEBHOOK_UNVERIFIED]", {
+      hasSignature: Boolean(signature),
+      hasWebhookSecret: Boolean(webhookSecret && !webhookSecret.includes("replace_me"))
+    });
     return NextResponse.json(
-      { ok: false, error: "Stripe webhook secret or signature missing." },
+      { ok: false, error: "Webhook could not be verified." },
       { status: 400 }
     );
   }
@@ -46,8 +58,20 @@ export async function POST(request: Request) {
     verifyStripeSignature(payload, signature, webhookSecret);
     event = JSON.parse(payload) as StripeEvent;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown webhook error";
-    return NextResponse.json({ ok: false, error: message }, { status: 400 });
+    console.warn("[NEXCALL_STRIPE_WEBHOOK_UNVERIFIED]", {
+      reason: error instanceof Error ? error.message : "Unknown webhook error"
+    });
+    return NextResponse.json({ ok: false, error: "Webhook could not be verified." }, { status: 400 });
+  }
+
+  if (!event.id) {
+    return NextResponse.json({ ok: false, error: "Webhook event id is required." }, { status: 400 });
+  }
+
+  const replay = await rememberReplayKey("stripe-webhook", event.id, 3 * 24 * 60 * 60);
+
+  if (!replay.fresh) {
+    return NextResponse.json({ received: true, duplicate: true });
   }
 
   if (event.type === "checkout.session.completed") {

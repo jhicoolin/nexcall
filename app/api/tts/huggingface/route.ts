@@ -4,7 +4,14 @@ import {
   huggingFaceScenarioModels,
   isHuggingFaceScenarioId
 } from "@/lib/huggingface-voice-lab";
-import { cleanIdentifier, readJsonObject, validationResponse } from "@/lib/security";
+import {
+  checkRateLimit,
+  cleanIdentifier,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject,
+  validationResponse
+} from "@/lib/security";
 
 type TtsPayload = {
   text?: unknown;
@@ -27,6 +34,17 @@ async function requestHuggingFaceSpeech(model: string, token: string, payload: o
 }
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "tts-huggingface",
+    limit: 6,
+    windowSeconds: 5 * 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   let body: Record<string, unknown>;
 
   try {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasAdminSessionInMiddleware } from "@/lib/admin-edge";
 
 const highCostRoutes = [
   "/api/ai/respond",
@@ -16,6 +17,7 @@ const highCostRoutes = [
 ];
 
 const webhookRoutes = ["/api/stripe/webhook", "/api/inngest"];
+const adminApiRoutes = ["/api/admin", "/api/admin/session"];
 
 type LimitConfig = {
   limit: number;
@@ -54,6 +56,12 @@ const webhookLimit: LimitConfig = {
   prefix: "nexcall:rl:webhooks"
 };
 
+const adminApiLimit: LimitConfig = {
+  limit: 20,
+  windowSeconds: 5 * 60,
+  prefix: "nexcall:rl:admin"
+};
+
 function getIp(request: NextRequest) {
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -62,12 +70,53 @@ function getIp(request: NextRequest) {
   );
 }
 
+function hashIdentifier(value: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(36);
+}
+
 function isHighCost(pathname: string) {
   return highCostRoutes.some((route) => pathname.startsWith(route));
 }
 
 function isWebhook(pathname: string) {
   return webhookRoutes.some((route) => pathname.startsWith(route));
+}
+
+function isAdminApi(pathname: string) {
+  return adminApiRoutes.some((route) => pathname.startsWith(route));
+}
+
+function isAdminPage(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
+function isOperatorLoginPage(pathname: string) {
+  return pathname === "/command";
+}
+
+function notFoundResponse() {
+  return new NextResponse("Not Found", {
+    status: 404,
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+      "X-Robots-Tag": "noindex, nofollow"
+    }
+  });
+}
+
+function applySensitiveHeaders(response: NextResponse) {
+  response.headers.set("Cache-Control", "no-store, max-age=0");
+  response.headers.set("Pragma", "no-cache");
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
+
+  return response;
 }
 
 function shouldFailClosedWithoutRateLimit() {
@@ -169,20 +218,50 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const upstash = getUpstashConfig();
 
+  if (isAdminPage(pathname)) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return notFoundResponse();
+    }
+
+    try {
+      if (!(await hasAdminSessionInMiddleware(request))) {
+        return notFoundResponse();
+      }
+    } catch {
+      return notFoundResponse();
+    }
+
+    return applySensitiveHeaders(NextResponse.next());
+  }
+
+  if (isOperatorLoginPage(pathname)) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return notFoundResponse();
+    }
+
+    return applySensitiveHeaders(NextResponse.next());
+  }
+
   if (!pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
   if (!upstash && shouldFailClosedWithoutRateLimit()) {
     return NextResponse.json(
-      { ok: false, error: "API protection is not configured. Set Upstash Redis before launch." },
+      { ok: false, error: "API protection is temporarily unavailable." },
       { status: 503 }
     );
   }
 
-  const limiter = isWebhook(pathname) ? webhookLimit : isHighCost(pathname) ? highCostLimit : standardLimit;
+  const limiter = isWebhook(pathname)
+    ? webhookLimit
+    : isAdminApi(pathname)
+      ? adminApiLimit
+      : isHighCost(pathname)
+        ? highCostLimit
+        : standardLimit;
   const ip = getIp(request);
-  const identity = `${ip}:${pathname}`;
+  const identity = hashIdentifier(`${ip}:${pathname}`);
   const result = await limitRequest(identity, limiter);
 
   if (!result.success) {
@@ -203,7 +282,7 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  const response = NextResponse.next();
+  const response = isAdminApi(pathname) ? applySensitiveHeaders(NextResponse.next()) : NextResponse.next();
   response.headers.set("X-RateLimit-Limit", result.limit.toString());
   response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
   response.headers.set("X-RateLimit-Reset", result.reset.toString());
@@ -213,5 +292,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"]
+  matcher: ["/api/:path*", "/admin", "/admin/:path*", "/command"]
 };

@@ -346,6 +346,83 @@ h3.font-black {
   animation: modal-enter 0.22s ease-out both;
 }
 
+.nc-js-notice {
+  position: fixed;
+  right: 16px;
+  bottom: 80px;
+  left: 16px;
+  z-index: 9998;
+  max-width: 420px;
+  margin: 0 auto;
+  border: 1px solid rgba(168, 255, 0, 0.45);
+  border-radius: 14px;
+  background: #080e08;
+  padding: 18px 20px;
+  font-family: var(--font-body);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+}
+
+.nc-js-notice-eyebrow {
+  margin: 0 0 8px;
+  color: #a8ff00;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nc-js-notice-title {
+  margin: 0 0 8px;
+  color: #f8fbff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.nc-js-notice-copy {
+  margin: 0 0 14px;
+  color: #9ca3af;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.nc-js-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nc-js-notice-primary,
+.nc-js-notice-secondary,
+.nc-js-notice-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  padding: 9px 14px;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.nc-js-notice-primary {
+  background: #a8ff00;
+  color: #020403;
+  font-weight: 800;
+}
+
+.nc-js-notice-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f8fbff;
+  font-weight: 600;
+}
+
+.nc-js-notice-dismiss {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .modal-enter {
     animation: none;

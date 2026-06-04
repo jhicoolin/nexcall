@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { getScenarioTtsScript, isNexCallScenarioId } from "@/lib/nexcall-voice-demos";
-import { cleanIdentifier, readJsonObject, validationResponse } from "@/lib/security";
+import {
+  checkRateLimit,
+  cleanIdentifier,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject,
+  validationResponse
+} from "@/lib/security";
 
 function getScenarioVoiceId(scenarioId: string) {
   const scenarioKey = scenarioId.toUpperCase().replace(/[^A-Z0-9]/g, "_");
@@ -14,6 +21,17 @@ function getScenarioVoiceId(scenarioId: string) {
 }
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "tts-elevenlabs",
+    limit: 6,
+    windowSeconds: 5 * 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   let body: Record<string, unknown>;
 
   try {
@@ -72,7 +90,7 @@ export async function POST(request: Request) {
           ok: false,
           error: "Voice preview is not available right now. Please try the real demo call instead."
         },
-        { status: response.status }
+        { status: response.status === 429 ? 429 : 502 }
       );
     }
 

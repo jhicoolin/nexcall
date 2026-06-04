@@ -23,7 +23,7 @@ export function isValidTwilioWebhookRequest(
 ) {
   const token = process.env.TWILIO_AUTH_TOKEN;
 
-  if (!token) return true;
+  if (!token) return process.env.NODE_ENV !== "production";
   if (!signature) return false;
 
   const url = getPublicRequestUrl(request);

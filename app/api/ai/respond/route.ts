@@ -54,8 +54,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, clientId: client.id, ...result });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "AI receptionist turn failed.";
+    console.error("[NEXCALL_AI_TURN_ERROR]", {
+      clientId: client.id,
+      message: error instanceof Error ? error.message : "AI receptionist turn failed."
+    });
 
-    return NextResponse.json({ ok: false, error: message }, { status: 502 });
+    return NextResponse.json({ ok: false, error: "AI receptionist turn failed." }, { status: 502 });
   }
 }

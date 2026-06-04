@@ -17,7 +17,15 @@
  * 9. No raw provider errors  — all exceptions return safe fallback copy
  */
 import { NextResponse } from "next/server";
-import { readJsonObject, cleanText, cleanIdentifier, validationResponse } from "@/lib/security";
+import {
+  checkRateLimit,
+  readJsonObject,
+  cleanText,
+  cleanIdentifier,
+  originGuardResponse,
+  rateLimitResponse,
+  validationResponse
+} from "@/lib/security";
 import { callNexaAI, isAIChatConfigured, type ChatMessage } from "@/lib/nexa-chat-ai";
 import { answerFrontDeskChat } from "@/services/receptionist/web-chat-engine";
 import { evaluateConversationSafety, detectJailbreakAttempt } from "@/services/receptionist/safety-policy";
@@ -26,6 +34,8 @@ const MAX_MESSAGE_CHARS = 2000;
 const MAX_HISTORY_MESSAGES = 20;
 const FALLBACK_RESPONSE =
   "I can still help you. You can try a demo call, view our pricing, or contact the NexCall team at nexcall@proton.me or (202) 200-6578.";
+const INTERNAL_DETAILS_RESPONSE =
+  "I can explain the service experience, but I do not share internal provider details here. NexCall is built to give callers a professional response and give your team a clean next step.";
 
 type IncomingHistory = Array<{ role?: unknown; content?: unknown }>;
 
@@ -46,6 +56,17 @@ function sanitizeHistory(raw: unknown): ChatMessage[] {
 }
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "chat-nexcall",
+    limit: 18,
+    windowSeconds: 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   // ── Parse & validate body ────────────────────────────────────────────────
   let body: Record<string, unknown>;
   try {
@@ -102,7 +123,18 @@ export async function POST(request: Request) {
       hadHistory: history.length > 0,
       source
     });
-    // Do NOT tell the user we detected this. The AI system prompt handles it.
+    return NextResponse.json({
+      success: true,
+      message: INTERNAL_DETAILS_RESPONSE,
+      actions: [
+        { label: "Try a demo call", type: "open_demo" },
+        { label: "View pricing", type: "scroll_pricing" }
+      ],
+      needsHuman: false,
+      terminated: false,
+      answer: INTERNAL_DETAILS_RESPONSE,
+      ok: true
+    });
   }
 
   // ── Try AI provider ───────────────────────────────────────────────────────
@@ -115,7 +147,6 @@ export async function POST(request: Request) {
         actions: aiResult.actions,
         needsHuman: aiResult.needsHuman,
         terminated: false,
-        mode: "ai",
         answer: aiResult.message,
         ok: true
       });
@@ -140,7 +171,6 @@ export async function POST(request: Request) {
         actions: [],
         needsHuman: false,
         terminated: true,
-        mode: "fallback",
         answer: result.answer,
         ok: true
       });
@@ -163,8 +193,6 @@ export async function POST(request: Request) {
       actions,
       needsHuman: result.needsHuman,
       terminated: false,
-      topic: result.topic,
-      mode: "fallback",
       answer: result.answer,
       ok: true
     });
@@ -182,7 +210,6 @@ export async function POST(request: Request) {
       ],
       needsHuman: true,
       terminated: false,
-      mode: "emergency-fallback",
       answer: FALLBACK_RESPONSE,
       ok: true
     });

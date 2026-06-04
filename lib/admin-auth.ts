@@ -2,17 +2,15 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-
-const COOKIE_NAME = "rg_admin_session";
-
-function getAdminToken() {
-  return process.env.ADMIN_DASHBOARD_TOKEN || "";
-}
+import {
+  ADMIN_SESSION_COOKIE_NAME,
+  getAdminSessionSecret,
+  getAdminToken,
+  getEffectiveAdminToken
+} from "@/lib/admin-shared";
 
 function signToken(token: string) {
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY || "development-admin-secret";
-
-  return createHmac("sha256", secret).update(token).digest("hex");
+  return createHmac("sha256", getAdminSessionSecret()).update(token).digest("hex");
 }
 
 function safeEqual(a: string, b: string) {
@@ -23,21 +21,15 @@ function safeEqual(a: string, b: string) {
 }
 
 export function createAdminSessionValue() {
-  const token = getAdminToken();
-
-  if (!token && process.env.NODE_ENV === "production") {
-    throw new Error("ADMIN_DASHBOARD_TOKEN is required in production.");
-  }
-
-  return signToken(token || "development-admin-token");
+  return signToken(getEffectiveAdminToken());
 }
 
 export async function hasAdminSession() {
-  const token = getAdminToken() || "development-admin-token";
+  const token = getEffectiveAdminToken();
   const expected = signToken(token);
   const cookieStore = await cookies();
   const headerStore = await headers();
-  const cookieSession = cookieStore.get(COOKIE_NAME)?.value || "";
+  const cookieSession = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value || "";
   const bearer = headerStore.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
 
   if (bearer && token && safeEqual(bearer, token)) return true;
@@ -51,5 +43,5 @@ export async function requireAdmin() {
 }
 
 export function adminCookieName() {
-  return COOKIE_NAME;
+  return ADMIN_SESSION_COOKIE_NAME;
 }

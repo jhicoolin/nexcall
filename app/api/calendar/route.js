@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createIcsEvent } from '@/lib/ics';
 import { notifyNexCallLead } from '@/lib/lead-notifications';
-import { cleanText, readJsonObject } from '@/lib/security';
+import {
+  checkRateLimit,
+  cleanText,
+  isHoneypotTriggered,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject
+} from '@/lib/security';
 
 const CAL_REQUEST_TIMEOUT_MS = 8000;
 const EVENT_TYPE_MAP = {
@@ -34,6 +41,17 @@ function cleanBookingText(value, maxLength = 160) {
 }
 
 export async function POST(request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "calendar",
+    limit: 8,
+    windowSeconds: 5 * 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   try {
     let payload;
 
@@ -43,6 +61,16 @@ export async function POST(request) {
       return NextResponse.json(
         { error: error instanceof Error ? error.message : "Invalid JSON body." },
         { status: error?.status || 400 }
+      );
+    }
+
+    if (isHoneypotTriggered(payload)) {
+      return NextResponse.json(
+        {
+          status: "fallback_captured",
+          message: "Appointment request captured. The NexCall team will confirm the best time shortly."
+        },
+        { status: 202 }
       );
     }
 
@@ -258,7 +286,10 @@ export async function POST(request) {
       appointmentType: meeting_type || "demo",
       requestedTime: startTimeIso,
       message: "Calendar booking provider confirmed a NexCall booking.",
-      metadata: { booking: responseData }
+      metadata: {
+        bookingConfirmed: true,
+        bookingId: responseData?.id || responseData?.uid || undefined
+      }
     });
 
     return NextResponse.json({
