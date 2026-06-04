@@ -153,12 +153,6 @@ export function isAllowedServerUrl(value: string) {
 }
 
 export function getSafeSiteOrigin(request: Request) {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-
-  if (configured && isAllowedServerUrl(configured)) {
-    return configured.replace(/\/$/, "");
-  }
-
   const origin = request.headers.get("origin") || "";
 
   if (origin && isAllowedServerUrl(origin)) {
@@ -173,6 +167,12 @@ export function getSafeSiteOrigin(request: Request) {
     if (isAllowedServerUrl(fromHost)) {
       return fromHost.replace(/\/$/, "");
     }
+  }
+
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (configured && isAllowedServerUrl(configured)) {
+    return configured.replace(/\/$/, "");
   }
 
   return "http://localhost:3000";

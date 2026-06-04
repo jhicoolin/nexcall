@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
+const siteUrl =
+  process.env.NODE_ENV === "production"
+    ? "https://nexcall.one"
+    : process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
 const title = "NexCall - AI Receptionist for Local Businesses";
 const description =
   "NexCall helps busy service businesses answer more calls, capture appointment requests, and send the team clean next steps - without adding headcount. Built for dental offices, salons, contractors, clinics, and local shops.";
