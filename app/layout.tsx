@@ -3,8 +3,11 @@ import Script from "next/script";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
-const title = "NexCall - Never Miss Your Next Call";
+const siteUrl =
+  process.env.NODE_ENV === "production"
+    ? "https://nexcall.one"
+    : process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
+const title = "NexCall - AI Receptionist for Local Businesses";
 const description =
   "NexCall helps businesses answer calls, capture lead details, support appointment requests, and send clean next steps to the team 24/7.";
 
@@ -37,7 +40,7 @@ export const metadata: Metadata = {
         url: "/brand/nexcall-og.png",
         width: 1200,
         height: 630,
-        alt: "NexCall metallic N headset logo with AI receptionist positioning"
+        alt: "NexCall - AI receptionist service for local businesses"
       }
     ]
   },

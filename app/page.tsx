@@ -31,6 +31,7 @@ import { useForm } from "react-hook-form";
 const NEXCALL_PUBLIC_EMAIL = "nexcall@proton.me";
 const NEXCALL_PUBLIC_PHONE_DISPLAY = "(202) 200-6578";
 const NEXCALL_PUBLIC_PHONE_TEL = "+12022006578";
+const PUBLIC_STRIPE_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_STRIPE_CHECKOUT_ENABLED === "true";
 const CALL_DEMO_FAILURE_MESSAGE =
   "We could not start the demo call right now. Please try again or contact NexCall.";
 
@@ -965,6 +966,7 @@ function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
+  const checkoutEnabled = PUBLIC_STRIPE_CHECKOUT_ENABLED;
   const plans = [
     {
       id: "starter", name: "Starter", monthly: 349, limit: "Up to 120 calls/mo",
@@ -998,6 +1000,15 @@ function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
     }
   }
 
+  function handlePlanAction(planId: string) {
+    if (!checkoutEnabled) {
+      document.getElementById("lead")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    void startCheckout(planId);
+  }
+
   return (
     <motion.section {...sectionMotion} id="pricing" className="relative border-b border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -1011,6 +1022,11 @@ function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
               Three choices, simple decision. Request a demo and we’ll help you choose the right plan.
             </p>
+            {!checkoutEnabled ? (
+              <p className="mt-3 max-w-2xl text-sm font-semibold text-[#baff39]">
+                Checkout is still being finalized. Choose a plan to request setup and we will confirm the right fit with you directly.
+              </p>
+            ) : null}
           </div>
           <div className="flex w-full max-w-xs shrink-0 rounded-xl border border-[#baff39]/12 bg-black/30 p-1">
             {(["monthly", "yearly"] as const).map((opt) => (

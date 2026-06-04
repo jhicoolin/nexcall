@@ -1,8 +1,15 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
 function getPublicRequestUrl(request: Request) {
-  const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   const incoming = new URL(request.url);
+  const host = request.headers.get("host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || incoming.protocol.replace(":", "");
+
+  if (host) {
+    return `${forwardedProto}://${host}${incoming.pathname}${incoming.search}`;
+  }
+
+  const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
 
   if (!configuredOrigin) return request.url;
 
