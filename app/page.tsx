@@ -464,13 +464,13 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             </div>
             <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
 
-            {/* Fact strip — only honest, verifiable service attributes */}
+            {/* Fact strip — honest, verifiable service attributes only */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
               {[
-                { value: "24/7",  label: "Always available" },
-                { value: "10+",   label: "Industries served" },
-                { value: "0s",    label: "Hold time for callers" },
-                { value: "Fast",  label: "First response time" }
+                { value: "24/7",      label: "Always available" },
+                { value: "10+",       label: "Industries served" },
+                { value: "0s",        label: "Hold time for callers" },
+                { value: "After hrs", label: "Nights and weekends covered" }
               ].map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
                   <p className="text-2xl font-black text-white">{s.value}</p>
@@ -731,7 +731,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
       badge: "Handled"
     },
     {
-      label: "Collect", icon: MessageSquareText, emoji: "✅", title: "Details are gathered",
+      label: "Listen", icon: MessageSquareText, emoji: "✅", title: "Caller details are noted",
       copy: "Contact info, reason for calling, urgency, and any relevant context are noted.",
       badge: "Logged"
     },
@@ -988,9 +988,9 @@ function DemoPreviewSection({ onCallDemo }: { onCallDemo: () => void }) {
             })}
           </div>
 
-          {/* Captured details strip */}
+          {/* What gets collected */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#baff39]/10 bg-black/30 px-6 py-4">
-            <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-slate-500">Captured:</p>
+            <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-slate-500">Information collected:</p>
             {scenario.captures.map((item) => (
               <span key={item} className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
                 <Check size={12} className="text-[#baff39]" aria-hidden="true" /> {item}
@@ -1062,11 +1062,11 @@ function Pricing() {
           <div>
             <p className="system-label">Predictable pricing</p>
             <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Clear plans for teams ready to{" "}
-              <span className="accent-text">stop missing calls.</span>
+              Simple, predictable pricing for{" "}
+              <span className="accent-text">local service businesses.</span>
             </h2>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-              Three choices, simple decision. Secure checkout opens when you choose a plan.
+              Three plans. Pick the one that fits your call volume and business type.
             </p>
           </div>
           <div className="flex w-full max-w-xs shrink-0 rounded-xl border border-[#baff39]/12 bg-black/30 p-1">
@@ -1255,7 +1255,7 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
       input: <input type="text" placeholder="Example: dental office, salon, auto repair, law firm" className="mt-3 min-h-12 w-full rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" {...register("service", { required: "Tell us your business type." })} />
     },
     {
-      label: "Where should Nexa call you?", field: "email" as const,
+      label: "Your contact details", field: "email" as const,
       input: (
         <div className="mt-3 grid gap-3">
           <input type="text" placeholder="Name (optional)" className="min-h-12 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" {...register("name")} />
@@ -1306,10 +1306,11 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
         <div>
           <p className="system-label">Get started</p>
           <h2 className="mt-3 text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Ready to stop missing <span className="accent-text">calls?</span>
+            See what NexCall can do{" "}
+            <span className="accent-text">for your business.</span>
           </h2>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            Try a real demo call or choose the plan that fits your call flow.
+            Try the demo call to hear it firsthand, or talk to the team about your call flow.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
