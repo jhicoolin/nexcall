@@ -364,6 +364,54 @@ function HeroCountUp({ value, suffix = "", decimals = 0 }: { value: number; suff
   return <span>{display}{suffix}</span>;
 }
 
+/* ── GrowthTree ───────────────────────────────────────────────────────────────
+   Subtle decorative SVG in the hero background. Represents a business growing
+   upward as more calls get answered and leads get captured.
+   - Pure CSS animation — no JS, no framer-motion
+   - Reduced-motion: static, no animation
+   - Pointer-events: none (never blocks clicks)
+   - Opacity: low (decorative only, never competes with copy)
+── ──────────────────────────────────────────────────────────────────────── */
+function GrowthTree() {
+  return (
+    <div
+      className="growth-tree pointer-events-none absolute bottom-0 right-0 h-full w-1/2 overflow-hidden opacity-[0.07] lg:opacity-[0.09]"
+      aria-hidden="true"
+    >
+      <svg
+        viewBox="0 0 400 600"
+        xmlns="http://www.w3.org/2000/svg"
+        className="absolute bottom-0 right-0 h-full w-full"
+        preserveAspectRatio="xMaxYMax meet"
+      >
+        {/* Trunk */}
+        <line x1="200" y1="600" x2="200" y2="380" stroke="#A8FF00" strokeWidth="2.5" strokeLinecap="round" className="tree-trunk" />
+        {/* Main branches */}
+        <line x1="200" y1="440" x2="120" y2="320" stroke="#A8FF00" strokeWidth="1.8" strokeLinecap="round" className="tree-branch-l1" />
+        <line x1="200" y1="440" x2="280" y2="310" stroke="#A8FF00" strokeWidth="1.8" strokeLinecap="round" className="tree-branch-r1" />
+        <line x1="200" y1="400" x2="160" y2="280" stroke="#A8FF00" strokeWidth="1.4" strokeLinecap="round" className="tree-branch-l2" />
+        <line x1="200" y1="400" x2="250" y2="260" stroke="#A8FF00" strokeWidth="1.4" strokeLinecap="round" className="tree-branch-r2" />
+        <line x1="200" y1="380" x2="200" y2="230" stroke="#A8FF00" strokeWidth="1.2" strokeLinecap="round" className="tree-branch-c" />
+        {/* Sub-branches */}
+        <line x1="120" y1="320" x2="70" y2="220" stroke="#A8FF00" strokeWidth="1.1" strokeLinecap="round" className="tree-sub-l1" />
+        <line x1="120" y1="320" x2="155" y2="210" stroke="#A8FF00" strokeWidth="1.1" strokeLinecap="round" className="tree-sub-l2" />
+        <line x1="280" y1="310" x2="330" y2="210" stroke="#A8FF00" strokeWidth="1.1" strokeLinecap="round" className="tree-sub-r1" />
+        <line x1="280" y1="310" x2="245" y2="200" stroke="#A8FF00" strokeWidth="1.1" strokeLinecap="round" className="tree-sub-r2" />
+        <line x1="200" y1="230" x2="165" y2="140" stroke="#A8FF00" strokeWidth="0.9" strokeLinecap="round" className="tree-tip-l" />
+        <line x1="200" y1="230" x2="235" y2="130" stroke="#A8FF00" strokeWidth="0.9" strokeLinecap="round" className="tree-tip-r" />
+        <line x1="200" y1="230" x2="200" y2="110" stroke="#A8FF00" strokeWidth="0.9" strokeLinecap="round" className="tree-tip-c" />
+        {/* Lead nodes — small circles at branch tips */}
+        {[
+          [70, 220], [155, 210], [330, 210], [245, 200],
+          [165, 140], [235, 130], [200, 110]
+        ].map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r="4" fill="#A8FF00" className={`tree-node tree-node-${i}`} />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    CINEMATIC HERO — new composition: stacked headline + 3-stage call visual
 ═══════════════════════════════════════════════════════════════════════════ */
@@ -377,19 +425,21 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
         <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 40% 40% at 50% 100%, rgba(168,255,0,0.04), transparent)" }} />
       </div>
       <div className="bg-grid pointer-events-none absolute inset-0 opacity-[0.24]" aria-hidden="true" />
+      {/* Growth tree — subtle upward branching SVG, symbolises leads flowing up */}
+      <GrowthTree />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px glass-line" aria-hidden="true" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         {/* Live badge */}
         <p className="mb-7 inline-flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.22em] text-[#A8FF00]">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#A8FF00]" aria-hidden="true" />
-          AI Receptionist · Available 24/7
+          Built for local businesses · Always on
         </p>
 
-        {/* FULL-WIDTH headline spanning both sides */}
+        {/* FULL-WIDTH headline */}
         <h1 className="hero-fade-up mb-12 text-[3rem] font-black leading-[0.88] tracking-[-0.028em] text-white sm:mb-14 sm:text-[5.5rem] lg:text-[7.5rem] xl:text-[9rem]">
-          Never miss your{" "}
-          <span className="text-[#A8FF00]">next call.</span>
+          Answer more calls.{" "}
+          <span className="text-[#A8FF00]">Capture every lead.</span>
         </h1>
 
         {/* TWO-COLUMN below headline: copy + CTAs left — call visual right */}
@@ -397,26 +447,29 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
           {/* LEFT */}
           <div>
             <p className="max-w-lg text-xl leading-[1.7] text-[#93a09f]">
-              <span className="font-semibold text-[#A8FF00]">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
+              <span className="font-semibold text-[#A8FF00]">NexCall</span> helps your team handle more calls — capturing lead details, collecting appointment requests, and sending clean follow-up notes, even when your team is busy or offline.
+            </p>
+            <p className="mt-3 max-w-lg text-base leading-[1.65] text-[#4B5563]">
+              Built for dental offices, salons, clinics, contractors, legal teams, and local service businesses.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
                 className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#A8FF00] px-8 text-sm font-black tracking-wide text-black transition hover:scale-[1.02] hover:bg-[#bfff33] focus:outline-none focus:ring-4 focus:ring-[#A8FF00]/30 sm:w-auto">
                 <Phone size={16} aria-hidden="true" /> Try a Demo Call
               </button>
-              <a href="#pricing"
+              <a href="#how-it-works"
                 className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[8px] border border-white/12 px-8 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.04] sm:w-auto">
-                View Plans <ArrowRight size={15} aria-hidden="true" />
+                See How It Works <ArrowRight size={15} aria-hidden="true" />
               </a>
             </div>
             <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
 
-            {/* Stat strip — numeric stats count up after hero fade-in settles (~1s) */}
+            {/* Stat strip */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
               {([
-                { value: 500,  suffix: "+", decimals: 0, label: "Calls handled" },
-                { value: null, static: "24/7",            label: "Always on" },
-                { value: 99.9, suffix: "%", decimals: 1,  label: "Uptime" },
+                { value: 500,  suffix: "+", decimals: 0, label: "Leads captured" },
+                { value: null, static: "24/7",            label: "Always available" },
+                { value: 10,   suffix: "+", decimals: 0,  label: "Industries served" },
                 { value: 60,   suffix: "s", decimals: 0,  label: "Avg. response" }
               ] as const).map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
@@ -431,7 +484,7 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             </div>
           </div>
 
-          {/* RIGHT — cinematic 3-stage call flow visual */}
+          {/* RIGHT — call flow visual */}
           <CallInterceptionVisual />
         </div>
       </div>
@@ -468,24 +521,24 @@ function CallInterceptionVisual() {
           <p className="text-[0.52rem] font-black uppercase tracking-[0.12em] text-[#A8FF00]/55">NexCall intercepts</p>
         </div>
 
-        {/* Stage 2: NEXCALL PROCESSING */}
+        {/* Stage 2: NEXCALL AT WORK */}
         <div className="rounded-2xl border border-[#A8FF00]/28 bg-[#A8FF00]/[0.055] px-5 py-5">
           <div className="mb-4 flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#A8FF00]/40 bg-[#A8FF00]/15">
-              <Image src={brandAssets.mark} alt="" width={26} height={26} className="brand-mark-img object-contain" />
+              <Image src={brandAssets.mark} alt="" width={26} height={26} className="brand-mark-img object-contain" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <p className="text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]/75">NexCall Response Layer</p>
-              <p className="text-sm font-black text-white">Capturing caller details</p>
+              <p className="text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]/75">NexCall at work</p>
+              <p className="text-sm font-black text-white">Collecting caller details</p>
             </div>
             <span className="live-pulse h-2 w-2 shrink-0 rounded-full bg-[#A8FF00]" aria-hidden="true" />
           </div>
           <div className="space-y-2">
-            {(["Name + contact", "Caller need", "Urgency level"] as const).map((item) => (
+            {(["Name + contact", "Reason for calling", "Urgency level"] as const).map((item) => (
               <div key={item} className="flex items-center gap-2.5">
                 <Check size={13} className="shrink-0 text-[#A8FF00]" aria-hidden="true" />
                 <span className="flex-1 text-xs font-bold text-slate-300">{item}</span>
-                <span className="text-[0.55rem] font-black font-mono tracking-wider text-[#A8FF00]">CAPTURED</span>
+                <span className="text-[0.55rem] font-bold text-[#A8FF00]/80">Logged</span>
               </div>
             ))}
           </div>
@@ -494,16 +547,16 @@ function CallInterceptionVisual() {
         {/* Connector */}
         <div className="flex items-center gap-3 px-5">
           <div className="ml-4 h-7 w-px bg-gradient-to-b from-[#A8FF00]/40 to-[#A8FF00]/10" />
-          <p className="text-[0.52rem] font-black uppercase tracking-[0.12em] text-[#A8FF00]/55">Team brief sent</p>
+          <p className="text-[0.52rem] font-black uppercase tracking-[0.12em] text-[#A8FF00]/55">Summary sent to your team</p>
         </div>
 
-        {/* Stage 3: TEAM BRIEF */}
+        {/* Stage 3: TEAM SUMMARY */}
         <div className="rounded-2xl border border-white/[0.07] bg-black/45 px-5 py-4">
-          <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]">Team Brief Ready</p>
+          <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]">Ready for your team</p>
           <div className="space-y-1.5 text-xs">
-            <p className="text-slate-400"><span className="font-bold text-slate-200">Caller:</span> Sarah M. · (555) 0123</p>
-            <p className="text-slate-400"><span className="font-bold text-slate-200">Need:</span> Appointment this Thursday</p>
-            <p className="text-slate-400"><span className="font-bold text-slate-200">Urgency:</span> Moderate</p>
+            <p className="text-slate-400"><span className="font-bold text-slate-200">Caller:</span> Sarah M. · contact on file</p>
+            <p className="text-slate-400"><span className="font-bold text-slate-200">Request:</span> Appointment this Thursday</p>
+            <p className="text-slate-400"><span className="font-bold text-slate-200">Priority:</span> Follow up today</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Next step:</span> Confirm available slot</p>
           </div>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#A8FF00]/22 bg-[#A8FF00]/[0.08] px-3 py-1">
@@ -556,7 +609,7 @@ function OutcomeRail() {
 
   return (
     <section className="overflow-hidden border-b border-[#baff39]/10 bg-[#050807] py-10 sm:py-12" aria-labelledby="marquee-label">
-      <p id="marquee-label" className="system-label mx-auto mb-8 w-fit px-4">Common outcomes teams look for</p>
+      <p id="marquee-label" className="system-label mx-auto mb-8 w-fit px-4">What businesses use NexCall for</p>
       <div className="marquee-container overflow-hidden" aria-label="Common outcomes businesses look for">
         <div className="marquee-strip flex w-max">
           {doubled.map((card, i) => (
@@ -595,9 +648,9 @@ function TransformSection() {
     { emoji: "⏳", title: "Delayed callback attempt", sub: "The lead has already found someone else." }
   ];
   const after = [
-    { emoji: "📞", title: "Call answered professionally", sub: "NexCall picks up every time — day or night." },
-    { emoji: "✅", title: "Details captured instantly", sub: "Name, need, and urgency — all logged for your team." },
-    { emoji: "⚡", title: "Team brief ready to act", sub: "Follow-up starts in seconds, not hours." }
+    { emoji: "📞", title: "Caller gets a professional response", sub: "NexCall handles the call when your team is busy or offline." },
+    { emoji: "✅", title: "Details logged automatically", sub: "Name, need, and urgency — ready for your team to act on." },
+    { emoji: "⚡", title: "Your team has a clear next step", sub: "A clean summary arrives so follow-up is fast and organized." }
   ];
 
   return (
@@ -606,11 +659,11 @@ function TransformSection() {
         <div className="mb-14 text-center">
           <p className="system-label mx-auto mb-4 w-fit">The difference</p>
           <h2 className="text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Missed call →{" "}
-            <span className="accent-text">captured opportunity.</span>
+            Every missed call is{" "}
+            <span className="accent-text">a lead walking away.</span>
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-400">
-            Every unanswered call is a real cost. NexCall turns the missed moment into a clean next step.
+            NexCall helps your team capture more of those moments — turning unanswered calls into organized follow-ups.
           </p>
         </div>
 
@@ -674,24 +727,24 @@ function TransformSection() {
 function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
   const steps = [
     {
-      label: "Answer", icon: Phone, emoji: "📞", title: "Picks up every time",
-      copy: "NexCall answers before callers hit voicemail or a dead end.",
-      status: "CONNECTED", statusColor: "#A8FF00"
+      label: "Answer", icon: Phone, emoji: "📞", title: "Caller gets a response",
+      copy: "NexCall handles the call professionally — even when your team is unavailable.",
+      badge: "Handled"
     },
     {
-      label: "Understand", icon: MessageSquareText, emoji: "✅", title: "Captures need and context",
-      copy: "It identifies the need, collects contact details, and notes urgency.",
-      status: "CAPTURED", statusColor: "#A8FF00"
+      label: "Collect", icon: MessageSquareText, emoji: "✅", title: "Details are gathered",
+      copy: "Contact info, reason for calling, urgency, and any relevant context are noted.",
+      badge: "Logged"
     },
     {
-      label: "Route", icon: Workflow, emoji: "📅", title: "Moves to the right next step",
-      copy: "Appointment requests, lead capture, FAQs, or human handoff — with context.",
-      status: "ROUTED", statusColor: "#60a5fa"
+      label: "Route", icon: Workflow, emoji: "📅", title: "Sent to the right place",
+      copy: "Appointment requests, new leads, FAQs, or a human handoff — each handled appropriately.",
+      badge: "Directed"
     },
     {
-      label: "Report", icon: ClipboardList, emoji: "🧾", title: "Team gets a clean brief",
-      copy: "Your team receives a summary with the next action already clear.",
-      status: "READY", statusColor: "#A8FF00"
+      label: "Follow up", icon: ClipboardList, emoji: "🧾", title: "Your team acts on it",
+      copy: "A clean summary arrives with the caller's details and a clear recommended next step.",
+      badge: "Ready"
     }
   ];
 
@@ -709,12 +762,12 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
         <div className="mx-auto mb-14 max-w-3xl text-center">
           <p className="system-label mx-auto mb-5 w-fit">How it works</p>
           <h2 className="text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            From ring to{" "}
-            <span className="accent-text">team-ready brief</span>{" "}
-            in one seamless flow.
+            From incoming call to{" "}
+            <span className="accent-text">organized follow-up</span>{" "}
+            in one clean flow.
           </h2>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            Every call becomes a clear next step. No chasing voicemail. No missed leads.
+            NexCall handles the call, collects the details, and gives your team exactly what they need to follow up.
           </p>
         </div>
 
@@ -723,7 +776,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
           {/* Panel header bar */}
           <div className="flex items-center gap-3 border-b border-[#baff39]/10 bg-[#baff39]/[0.03] px-6 py-4">
             <span className="live-pulse h-2 w-2 rounded-full bg-[#A8FF00]" aria-hidden="true" />
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#baff39]">NexCall Process Flow · Active 24/7</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#baff39]">How NexCall handles a call · Available 24/7</p>
           </div>
 
           {/* 4 step zones — 2×2 on tablet, 1×4 on desktop */}
@@ -745,9 +798,10 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
                     <p className="mt-3 text-lg font-black leading-tight text-white">{step.title}</p>
                     <p className="mt-2 text-sm leading-[1.6] text-slate-400">{step.copy}</p>
                   </div>
-                  <div className="mt-auto flex items-center gap-1.5">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: step.statusColor }} aria-hidden="true" />
-                    <span className="text-[0.56rem] font-black font-mono uppercase tracking-wider" style={{ color: step.statusColor }}>{step.status}</span>
+                  <div className="mt-auto">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#baff39]/20 bg-[#baff39]/[0.07] px-2.5 py-0.5 text-[0.56rem] font-black uppercase tracking-wider text-[#baff39]">
+                      {step.badge}
+                    </span>
                   </div>
                 </div>
               );
@@ -1086,15 +1140,50 @@ function Pricing() {
 function FAQSection() {
   const [openFaqs, setOpenFaqs] = useState<Record<string, boolean>>({});
   const faqs = [
-    { question: "Does NexCall answer real phone calls?", answer: "Yes. NexCall is designed for real business call handling. It gives callers a professional first response when your team is busy or offline." },
-    { question: "Can I try a demo call?", answer: "Yes. Use the Call Demo button, enter your phone number, and NexCall will call you to show you the receptionist experience from the caller side." },
-    { question: "Can NexCall help with appointment requests?", answer: "Yes. NexCall can collect appointment details, preferred times, and caller context so your team can confirm the next step." },
-    { question: "What happens if the AI is unsure?", answer: "It stays helpful without guessing. NexCall can capture the context and route the situation to a person when judgment is needed." },
-    { question: "What if a caller needs a human?", answer: "NexCall can collect the important details and pass the conversation to your team with the context needed for follow-up." },
-    { question: "Does NexCall work after hours?", answer: "Yes. NexCall covers nights, weekends, lunch rushes, and busy moments so callers do not hit a dead end." },
-    { question: "What types of businesses is NexCall for?", answer: "The strongest fit is any business with repeat call patterns: dental offices, salons, clinics, restaurants, auto repair, legal offices, contractors, and local shops." },
-    { question: "How does pricing work?", answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card required for demo requests." },
-    { question: "How do I get started?", answer: "Start with a demo call or choose a plan. From there, the first setup focuses on your highest-value call types and the information your team needs." }
+    {
+      question: "What does NexCall actually do?",
+      answer: "NexCall helps your team handle more calls by collecting caller details, supporting appointment requests, and sending a clean follow-up summary to the right person. It works when your team is busy, unavailable, or outside business hours."
+    },
+    {
+      question: "Is NexCall replacing my receptionist or staff?",
+      answer: "No. NexCall is a support layer — it handles the calls your team would otherwise miss. Your staff still manages relationships, confirms appointments, and makes judgment calls. NexCall handles the intake so nothing falls through the cracks."
+    },
+    {
+      question: "Does NexCall answer real phone calls?",
+      answer: "Yes. NexCall is built for real inbound call handling — not just web chat. Callers receive a professional response and their details are collected for your team to act on."
+    },
+    {
+      question: "Can I try it before committing to a plan?",
+      answer: "Yes. Use the Try a Demo Call button, enter your phone number, and NexCall will call you. You can experience the call from the caller's side — no card required."
+    },
+    {
+      question: "Does NexCall confirm appointments, or just collect requests?",
+      answer: "It collects appointment requests — preferred timing, contact details, and reason for the call — and sends the summary to your team. Your team reviews and confirms. NexCall does not book on your behalf unless you have configured that workflow specifically."
+    },
+    {
+      question: "What happens when the caller has a complex or unusual situation?",
+      answer: "NexCall captures what it can and routes the details to a real person on your team. It is designed to stay helpful without making decisions that require human judgment."
+    },
+    {
+      question: "Does NexCall work after hours and on weekends?",
+      answer: "Yes. NexCall is available when your team is not — nights, weekends, lunch rushes, and overflow moments. Callers get a response and their details are ready for your team when they return."
+    },
+    {
+      question: "What types of businesses is NexCall built for?",
+      answer: "The strongest fit is any business with regular incoming calls and predictable caller needs: dental offices, salons, clinics, restaurants, auto repair shops, legal offices, contractors, agencies, and local service businesses."
+    },
+    {
+      question: "How is customer information handled?",
+      answer: "Caller details are collected to support your team's follow-up workflow. NexCall does not share customer information with third parties. See the Privacy Policy for the full details."
+    },
+    {
+      question: "How does pricing work?",
+      answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card required for the demo call. Secure checkout opens when you choose a plan."
+    },
+    {
+      question: "How do I get started?",
+      answer: "Try the demo call to see how it works, then choose the plan that fits your call volume and needs. The initial setup focuses on your most common caller types and what your team needs in the follow-up."
+    }
   ];
 
   return (
@@ -1102,8 +1191,8 @@ function FAQSection() {
       <motion.div {...sectionMotion} className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <p className="system-label text-center mx-auto w-fit">FAQ</p>
         <h2 className="mt-3 text-center text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Every question a practical buyer asks{" "}
-          <span className="accent-text">before going live.</span>
+          Questions business owners ask{" "}
+          <span className="accent-text">before they start.</span>
         </h2>
         <div className="mt-10 grid gap-3">
           {faqs.map((faq, index) => {
@@ -1310,7 +1399,8 @@ function Footer() {
               <p className="mt-1">AI receptionist coverage with clear handoffs.</p>
             </div>
           </a>
-          <p className="mt-5 max-w-sm leading-7">NexCall answers when your team cannot, captures the details, helps move the next step forward, and sends clean notes.</p>
+          <p className="mt-5 max-w-sm leading-7">NexCall helps your team handle more calls — capturing details, supporting appointment requests, and sending organized notes so follow-up is easier.</p>
+          <p className="mt-3 text-xs text-slate-600">NexCall may use automated systems to support call intake and appointment-request workflows. Businesses are responsible for reviewing and confirming customer information. <a href="/ai-disclosure" className="text-slate-500 underline-offset-2 hover:text-[#baff39] hover:underline">AI Disclosure</a></p>
         </div>
         <nav aria-label="Quick links">
           <p className="font-black text-white">Quick links</p>

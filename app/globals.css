@@ -440,6 +440,53 @@ section[id] {
   animation-play-state: paused;
 }
 
+/* ── Growth tree animation ───────────────────────────────────────────────────
+   Decorative hero background. Lines draw from bottom to top representing
+   business growth, lead flow, and call capture. Reduced-motion: static.
+── ──────────────────────────────────────────────────────────────────────── */
+@keyframes tree-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes tree-node-pop {
+  0%   { opacity: 0; transform: scale(0); }
+  80%  { transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.growth-tree line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  animation: tree-draw 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.growth-tree .tree-trunk      { animation-delay: 0.6s; }
+.growth-tree .tree-branch-l1  { animation-delay: 0.9s; }
+.growth-tree .tree-branch-r1  { animation-delay: 1.0s; }
+.growth-tree .tree-branch-l2  { animation-delay: 1.1s; }
+.growth-tree .tree-branch-r2  { animation-delay: 1.2s; }
+.growth-tree .tree-branch-c   { animation-delay: 1.1s; }
+.growth-tree .tree-sub-l1     { animation-delay: 1.35s; }
+.growth-tree .tree-sub-l2     { animation-delay: 1.4s; }
+.growth-tree .tree-sub-r1     { animation-delay: 1.35s; }
+.growth-tree .tree-sub-r2     { animation-delay: 1.4s; }
+.growth-tree .tree-tip-l      { animation-delay: 1.55s; }
+.growth-tree .tree-tip-r      { animation-delay: 1.6s; }
+.growth-tree .tree-tip-c      { animation-delay: 1.58s; }
+
+.growth-tree circle {
+  opacity: 0;
+  transform-origin: center;
+  animation: tree-node-pop 0.35s ease-out both;
+}
+.growth-tree .tree-node-0 { animation-delay: 1.7s; }
+.growth-tree .tree-node-1 { animation-delay: 1.75s; }
+.growth-tree .tree-node-2 { animation-delay: 1.7s; }
+.growth-tree .tree-node-3 { animation-delay: 1.75s; }
+.growth-tree .tree-node-4 { animation-delay: 1.9s; }
+.growth-tree .tree-node-5 { animation-delay: 1.95s; }
+.growth-tree .tree-node-6 { animation-delay: 1.92s; }
+
 /* Nexa typing indicator — three bouncing dots */
 @keyframes bounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }

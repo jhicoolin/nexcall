@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
-const title = "NexCall - Never Miss Your Next Call";
+const title = "NexCall — AI Receptionist for Local Businesses";
 const description =
-  "NexCall helps businesses answer calls, capture lead details, support appointment requests, and send clean next steps to the team 24/7.";
+  "NexCall helps busy service businesses answer more calls, capture appointment requests, and send the team clean next steps — without adding headcount. Built for dental offices, salons, contractors, clinics, and local shops.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
         url: "/brand/nexcall-og.png",
         width: 1200,
         height: 630,
-        alt: "NexCall metallic N headset logo with AI receptionist positioning"
+        alt: "NexCall — AI receptionist service for local businesses"
       }
     ]
   },
