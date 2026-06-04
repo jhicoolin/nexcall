@@ -3,7 +3,16 @@ import { getClientForPayload } from "@/lib/client-directory";
 import { inngest } from "@/inngest/client";
 import { createIcsEvent } from "@/lib/ics";
 import { notifyNexCallLead } from "@/lib/lead-notifications";
-import { cleanText, isValidPhone, readJsonObject, validationResponse } from "@/lib/security";
+import {
+  checkRateLimit,
+  cleanText,
+  isHoneypotTriggered,
+  isValidPhone,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject,
+  validationResponse
+} from "@/lib/security";
 
 type BookingPayload = {
   clientId?: string;
@@ -18,12 +27,27 @@ type BookingPayload = {
 };
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "calendar-booking",
+    limit: 8,
+    windowSeconds: 5 * 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   let rawBooking: Record<string, unknown>;
 
   try {
     rawBooking = await readJsonObject(request);
   } catch (error) {
     return validationResponse(error);
+  }
+
+  if (isHoneypotTriggered(rawBooking)) {
+    return NextResponse.json({ ok: true, queued: false });
   }
 
   const booking: BookingPayload = {

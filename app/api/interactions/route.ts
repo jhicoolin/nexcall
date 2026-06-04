@@ -31,6 +31,11 @@ export async function POST(req: NextRequest) {
   logDiscordAiConfigOnce();
 
   const rawBody = Buffer.from(await req.arrayBuffer());
+
+  if (rawBody.byteLength > 128000) {
+    return new NextResponse('Request body too large', { status: 413 });
+  }
+
   const signature = req.headers.get('x-signature-ed25519') ?? '';
   const timestamp = req.headers.get('x-signature-timestamp') ?? '';
 
@@ -49,7 +54,13 @@ export async function POST(req: NextRequest) {
     return new NextResponse('Invalid request signature', { status: 401 });
   }
 
-  const interaction = JSON.parse(rawBody.toString('utf8'));
+  let interaction: Record<string, unknown>;
+
+  try {
+    interaction = JSON.parse(rawBody.toString('utf8'));
+  } catch {
+    return new NextResponse('Invalid request body', { status: 400 });
+  }
 
   if (interaction.type === 1) {
     return NextResponse.json({ type: 1 });

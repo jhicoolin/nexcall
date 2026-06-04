@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import { createIcsEvent } from "@/lib/ics";
 import { notifyNexCallLead } from "@/lib/lead-notifications";
 import { maskPhone, normalizePhoneToE164 } from "@/lib/phone";
-import { cleanText, isValidEmail, readJsonObject, validationResponse } from "@/lib/security";
+import {
+  checkRateLimit,
+  cleanText,
+  isHoneypotTriggered,
+  isValidEmail,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject,
+  validationResponse
+} from "@/lib/security";
 
 export const runtime = "nodejs";
 
@@ -134,12 +143,29 @@ function voiceSuccess(booked: boolean, fallback: boolean, message: string, extra
 }
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "voice-schedule",
+    limit: 10,
+    windowSeconds: 5 * 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   let payload: Record<string, unknown>;
 
   try {
     payload = await readJsonObject(request, 12000);
   } catch (error) {
     return validationResponse(error);
+  }
+
+  if (isHoneypotTriggered(payload)) {
+    return voiceSuccess(false, true, "I captured your appointment request. The NexCall team will confirm the best time shortly.", {
+      reason: "captured"
+    });
   }
 
   const name = pickString(payload, ["name", "customerName", "callerName", "fullName"], 120) || "Valued Lead";

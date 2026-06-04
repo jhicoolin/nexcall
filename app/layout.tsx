@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "./globals.css";
 
@@ -68,10 +69,8 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <ErrorBoundary>{children}</ErrorBoundary>
-        {/* Hydration resilience lives in a static script so the CSP can stay tight. */}
-        <script src="/js/hydration-fallback.js" defer />
+        <Script src="/runtime-fallback.js" strategy="afterInteractive" />
       </body>
-
     </html>
   );
 }

@@ -1,28 +1,19 @@
 import { NextResponse } from "next/server";
 import { inngest } from "@/inngest/client";
 import { findTenantById } from "@/lib/tenant-repository";
-import { cleanText, readJsonObject, validationResponse } from "@/lib/security";
-
-function getVapiSecret() {
-  return (process.env.VAPI_WEBHOOK_SECRET || "").trim();
-}
+import { cleanText, readJsonObject, rememberReplayKey, timingSafeEqualText, validationResponse } from "@/lib/security";
 
 function isAuthorized(request: Request) {
-  const secret = getVapiSecret();
+  const secret = process.env.VAPI_WEBHOOK_SECRET;
   if (!secret) return process.env.NODE_ENV !== "production";
 
   const headerSecret = request.headers.get("x-vapi-secret") || "";
-  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
+  const bearerSecret = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
 
-  return headerSecret === secret || bearer === secret;
+  return timingSafeEqualText(headerSecret, secret) || timingSafeEqualText(bearerSecret, secret);
 }
 
 export async function POST(request: Request) {
-  const secret = getVapiSecret();
-  if (process.env.NODE_ENV === "production" && !secret) {
-    return NextResponse.json({ ok: false, error: "Vapi webhook is not configured." }, { status: 503 });
-  }
-
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, error: "Unauthorized Vapi webhook." }, { status: 401 });
   }
@@ -33,6 +24,21 @@ export async function POST(request: Request) {
     payload = await readJsonObject(request, 50000);
   } catch (error) {
     return validationResponse(error);
+  }
+
+  const replayIdentity = cleanText(
+    payload.messageId || payload.id || payload.callId || payload.callSid || payload.timestamp,
+    200
+  );
+
+  if (!replayIdentity) {
+    return NextResponse.json({ ok: false, error: "Webhook event id is required." }, { status: 400 });
+  }
+
+  const replay = await rememberReplayKey("vapi-webhook", replayIdentity, 24 * 60 * 60);
+
+  if (!replay.fresh) {
+    return NextResponse.json({ ok: true, queued: false, duplicate: true });
   }
 
   const tenantId = cleanText(payload.tenantId || payload.clientId || payload.assistantId, 120);

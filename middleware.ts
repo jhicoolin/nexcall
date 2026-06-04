@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDesktopToken, isLocalRequest } from "@/lib/misato/request-context";
-
-const OWNER_COOKIE = "misato_owner_session";
+import { hasAdminSessionInMiddleware } from "@/lib/admin-edge";
 
 const highCostRoutes = [
   "/api/ai/respond",
@@ -19,9 +17,68 @@ const highCostRoutes = [
 ];
 
 const webhookRoutes = ["/api/stripe/webhook", "/api/inngest"];
+const adminApiRoutes = ["/api/admin", "/api/admin/session"];
+
+type LimitConfig = {
+  limit: number;
+  windowSeconds: number;
+  prefix: string;
+};
+
+type MemoryLimitEntry = {
+  count: number;
+  reset: number;
+};
+
+const middlewareState = globalThis as typeof globalThis & {
+  __nexcallMiddlewareRateLimitStore?: Map<string, MemoryLimitEntry>;
+};
+const memoryRateLimitStore =
+  middlewareState.__nexcallMiddlewareRateLimitStore || new Map<string, MemoryLimitEntry>();
+
+middlewareState.__nexcallMiddlewareRateLimitStore = memoryRateLimitStore;
+
+const standardLimit: LimitConfig = {
+  limit: 120,
+  windowSeconds: 60,
+  prefix: "nexcall:rl:standard"
+};
+
+const highCostLimit: LimitConfig = {
+  limit: 20,
+  windowSeconds: 60,
+  prefix: "nexcall:rl:high-cost"
+};
+
+const webhookLimit: LimitConfig = {
+  limit: 300,
+  windowSeconds: 60,
+  prefix: "nexcall:rl:webhooks"
+};
+
+const adminApiLimit: LimitConfig = {
+  limit: 20,
+  windowSeconds: 5 * 60,
+  prefix: "nexcall:rl:admin"
+};
 
 function getIp(request: NextRequest) {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "127.0.0.1";
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "127.0.0.1"
+  );
+}
+
+function hashIdentifier(value: string) {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(36);
 }
 
 function isHighCost(pathname: string) {
@@ -32,67 +89,44 @@ function isWebhook(pathname: string) {
   return webhookRoutes.some((route) => pathname.startsWith(route));
 }
 
-const shellReadableAliasRoutes = new Set(["/agents", "/approvals", "/logs"]);
-
-function isProtectedMisatoRoute(pathname: string) {
-  return pathname === "/misato" || pathname.startsWith("/misato/");
+function isAdminApi(pathname: string) {
+  return adminApiRoutes.some((route) => pathname.startsWith(route));
 }
 
-function isShellReadableAlias(pathname: string) {
-  return shellReadableAliasRoutes.has(pathname);
+function isAdminPage(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
-function wantsJsonRuntimeAlias(request: NextRequest) {
-  const accept = (request.headers.get("accept") || "").toLowerCase();
-  const secFetchDest = (request.headers.get("sec-fetch-dest") || "").toLowerCase();
-  const hasHtmlPreference = accept.includes("text/html") || secFetchDest === "document";
-  if (hasHtmlPreference) return false;
-  return true;
+function isOperatorLoginPage(pathname: string) {
+  return pathname === "/command";
 }
 
-function isProtectedMisatoApi(pathname: string) {
-  return pathname.startsWith("/api/misato/") || pathname === "/api/misato";
+function notFoundResponse() {
+  return new NextResponse("Not Found", {
+    status: 404,
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+      "X-Robots-Tag": "noindex, nofollow"
+    }
+  });
 }
 
-function isMisatoAuthApi(pathname: string) {
-  return pathname === "/api/misato/auth/login" || pathname === "/api/misato/auth/logout";
+function applySensitiveHeaders(response: NextResponse) {
+  response.headers.set("Cache-Control", "no-store, max-age=0");
+  response.headers.set("Pragma", "no-cache");
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
+
+  return response;
 }
 
-async function signOwnerEmailForEdge(email: string) {
-  const secret = process.env.OWNER_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY || "misato-dev-session-secret";
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(email));
-  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+function shouldFailClosedWithoutRateLimit() {
+  return process.env.REQUIRE_UPSTASH_RATE_LIMIT === "true";
 }
-
-async function hasValidOwnerCookie(value: string) {
-  const owner = (process.env.OWNER_EMAIL || "").trim().toLowerCase();
-  if (!owner || !value) return false;
-  const idx = value.lastIndexOf(":");
-  if (idx <= 0) return false;
-  const email = value.slice(0, idx);
-  const signature = value.slice(idx + 1);
-  if (!email || !signature) return false;
-  if (email !== owner) return false;
-  const expected = await signOwnerEmailForEdge(owner);
-  return signature === expected;
-}
-
-type LimitConfig = { limit: number; windowSeconds: number; prefix: string };
-type MemoryLimitEntry = { count: number; reset: number };
-
-const middlewareState = globalThis as typeof globalThis & { __nexcallMiddlewareRateLimitStore?: Map<string, MemoryLimitEntry> };
-const memoryRateLimitStore = middlewareState.__nexcallMiddlewareRateLimitStore || new Map<string, MemoryLimitEntry>();
-middlewareState.__nexcallMiddlewareRateLimitStore = memoryRateLimitStore;
-
-const standardLimit: LimitConfig = { limit: 120, windowSeconds: 60, prefix: "nexcall:rl:standard" };
-const highCostLimit: LimitConfig = { limit: 20, windowSeconds: 60, prefix: "nexcall:rl:high-cost" };
-const webhookLimit: LimitConfig = { limit: 300, windowSeconds: 60, prefix: "nexcall:rl:webhooks" };
 
 function getUpstashConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
   return url && token ? { url: url.replace(/\/$/, ""), token } : null;
 }
 
@@ -100,134 +134,163 @@ function minuteBucket(windowSeconds: number) {
   return Math.floor(Date.now() / (windowSeconds * 1000));
 }
 
-function shouldFailClosedWithoutRateLimit() {
-  return process.env.REQUIRE_UPSTASH_RATE_LIMIT === "true";
-}
-
 async function limitRequest(identity: string, config: LimitConfig) {
   const upstash = getUpstashConfig();
-  if (!upstash) return limitRequestInMemory(identity, config);
+
+  if (!upstash) {
+    return limitRequestInMemory(identity, config);
+  }
 
   const reset = (minuteBucket(config.windowSeconds) + 1) * config.windowSeconds * 1000;
   const key = `${config.prefix}:${minuteBucket(config.windowSeconds)}:${identity}`;
   const response = await fetch(`${upstash.url}/pipeline`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${upstash.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify([["INCR", key], ["EXPIRE", key, config.windowSeconds + 5]])
+    headers: {
+      Authorization: `Bearer ${upstash.token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify([
+      ["INCR", key],
+      ["EXPIRE", key, config.windowSeconds + 5]
+    ])
   });
 
-  if (!response.ok) return { configured: true, success: false, limit: config.limit, remaining: 0, reset };
+  if (!response.ok) {
+    return {
+      configured: true,
+      success: false,
+      limit: config.limit,
+      remaining: 0,
+      reset
+    };
+  }
 
   const results = (await response.json()) as Array<{ result?: number }>;
   const count = Number(results[0]?.result || 0);
-  return { configured: true, success: count <= config.limit, limit: config.limit, remaining: Math.max(0, config.limit - count), reset };
+  const remaining = Math.max(0, config.limit - count);
+
+  return {
+    configured: true,
+    success: count <= config.limit,
+    limit: config.limit,
+    remaining,
+    reset
+  };
 }
 
 function limitRequestInMemory(identity: string, config: LimitConfig) {
   const now = Date.now();
   const reset = now + config.windowSeconds * 1000;
   const key = `${config.prefix}:${minuteBucket(config.windowSeconds)}:${identity}`;
-  memoryRateLimitStore.forEach((entry, storedKey) => { if (entry.reset <= now) memoryRateLimitStore.delete(storedKey); });
+
+  for (const [storedKey, entry] of memoryRateLimitStore.entries()) {
+    if (entry.reset <= now) {
+      memoryRateLimitStore.delete(storedKey);
+    }
+  }
 
   const existing = memoryRateLimitStore.get(key);
+
   if (!existing || existing.reset <= now) {
     memoryRateLimitStore.set(key, { count: 1, reset });
-    return { configured: false, success: true, limit: config.limit, remaining: config.limit - 1, reset };
+    return {
+      configured: false,
+      success: true,
+      limit: config.limit,
+      remaining: config.limit - 1,
+      reset
+    };
   }
 
   existing.count += 1;
   memoryRateLimitStore.set(key, existing);
-  return { configured: false, success: existing.count <= config.limit, limit: config.limit, remaining: Math.max(0, config.limit - existing.count), reset: existing.reset };
-}
 
-function isLocalSoloAllowed(request: NextRequest) {
-  if (process.env.VERCEL) return false;
-  const envEnabled = (process.env.MISATO_LOCAL_SOLO_MODE || "false").toLowerCase() === "true";
-  return envEnabled || isLocalRequest(request);
-}
-
-function hasValidDesktopToken(request: NextRequest) {
-  const configured = (process.env.MISATO_DESKTOP_AUTH_TOKEN || "").trim();
-  const provided = getDesktopToken(request);
-  return Boolean(configured && provided && configured === provided);
+  return {
+    configured: false,
+    success: existing.count <= config.limit,
+    limit: config.limit,
+    remaining: Math.max(0, config.limit - existing.count),
+    reset: existing.reset
+  };
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  if (isShellReadableAlias(pathname) && wantsJsonRuntimeAlias(request)) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/misato-runtime${pathname}`;
-    return NextResponse.rewrite(url);
-  }
-
-  if (pathname === "/admin" || pathname.startsWith("/admin/") && pathname !== "/admin/login") {
-    if (!(await hasAdminSession(request))) {
-      return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
-    }
-  }
-
-  const localSoloAllowed = isProtectedMisatoApi(pathname) && isLocalSoloAllowed(request);
-  const desktopTokenAuthenticated = isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname) && hasValidDesktopToken(request);
-
-  if (isProtectedMisatoRoute(pathname) || (isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname))) {
-    const session = request.cookies.get(OWNER_COOKIE)?.value || "";
-    if (!localSoloAllowed && !desktopTokenAuthenticated && !session) {
-      if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 401 });
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-    if (!localSoloAllowed && !desktopTokenAuthenticated && session && !(await hasValidOwnerCookie(session))) {
-      if (isProtectedMisatoApi(pathname)) return NextResponse.json({ ok: false, error: "Owner authentication required." }, { status: 403 });
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
-    }
-  }
-
-  if (!pathname.startsWith("/api/")) return NextResponse.next();
-
   const upstash = getUpstashConfig();
-  if (!upstash && shouldFailClosedWithoutRateLimit()) {
-    return NextResponse.json({ ok: false, error: "API protection is not configured. Set Upstash Redis before launch." }, { status: 503 });
+
+  if (isAdminPage(pathname)) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return notFoundResponse();
+    }
+
+    try {
+      if (!(await hasAdminSessionInMiddleware(request))) {
+        return notFoundResponse();
+      }
+    } catch {
+      return notFoundResponse();
+    }
+
+    return applySensitiveHeaders(NextResponse.next());
   }
 
-  const limiter = isWebhook(pathname) ? webhookLimit : isHighCost(pathname) ? highCostLimit : standardLimit;
-  const identity = `${getIp(request)}:${pathname}`;
+  if (isOperatorLoginPage(pathname)) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return notFoundResponse();
+    }
+
+    return applySensitiveHeaders(NextResponse.next());
+  }
+
+  if (!pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
+  if (!upstash && shouldFailClosedWithoutRateLimit()) {
+    return NextResponse.json(
+      { ok: false, error: "API protection is temporarily unavailable." },
+      { status: 503 }
+    );
+  }
+
+  const limiter = isWebhook(pathname)
+    ? webhookLimit
+    : isAdminApi(pathname)
+      ? adminApiLimit
+      : isHighCost(pathname)
+        ? highCostLimit
+        : standardLimit;
+  const ip = getIp(request);
+  const identity = hashIdentifier(`${ip}:${pathname}`);
   const result = await limitRequest(identity, limiter);
 
   if (!result.success) {
-    return NextResponse.json({ ok: false, error: "Too many attempts. Please wait a moment and try again." }, {
-      status: 429,
-      headers: {
-        "Retry-After": Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)).toString(),
-        "X-RateLimit-Limit": result.limit.toString(),
-        "X-RateLimit-Remaining": result.remaining.toString(),
-        "X-RateLimit-Reset": result.reset.toString()
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Too many attempts. Please wait a moment and try again."
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)).toString(),
+          "X-RateLimit-Limit": result.limit.toString(),
+          "X-RateLimit-Remaining": result.remaining.toString(),
+          "X-RateLimit-Reset": result.reset.toString()
+        }
       }
-    });
+    );
   }
 
-  const response = NextResponse.next();
+  const response = isAdminApi(pathname) ? applySensitiveHeaders(NextResponse.next()) : NextResponse.next();
   response.headers.set("X-RateLimit-Limit", result.limit.toString());
   response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
   response.headers.set("X-RateLimit-Reset", result.reset.toString());
   response.headers.set("X-RateLimit-Mode", result.configured ? "upstash" : "memory-fallback");
+
   return response;
 }
 
-async function hasAdminSession(request: NextRequest) {
-  const configToken = (process.env.ADMIN_DASHBOARD_TOKEN || "").trim();
-  const configSecret = (process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY || "").trim();
-  if (!configToken || !configSecret) return false;
-
-  const session = request.cookies.get("rg_admin_session")?.value || "";
-  if (!session) return false;
-
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", enc.encode(configSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(configToken));
-  const expected = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  return session === expected;
-}
-
 export const config = {
-  matcher: ["/misato/:path*", "/admin/:path*"]
+  matcher: ["/api/:path*", "/admin", "/admin/:path*", "/command"]
 };

@@ -7,7 +7,19 @@ import {
   type CheckoutBilling
 } from "@/lib/checkout-plans";
 import { notifyNexCallLead } from "@/lib/lead-notifications";
-import { cleanIdentifier, cleanText, getSafeSiteOrigin, isHoneypotTriggered, isValidEmail, readJsonObject, validationResponse } from "@/lib/security";
+import {
+  assertAllowedFields,
+  checkRateLimit,
+  cleanIdentifier,
+  getSafeSiteOrigin,
+  isHoneypotTriggered,
+  isValidEmail,
+  normalizeEmail,
+  originGuardResponse,
+  rateLimitResponse,
+  readJsonObject,
+  validationResponse
+} from "@/lib/security";
 
 type CheckoutRequest = {
   planId?: string;
@@ -16,10 +28,31 @@ type CheckoutRequest = {
 };
 
 export async function POST(request: Request) {
+  const originDenied = originGuardResponse(request);
+  if (originDenied) return originDenied;
+
+  const limit = await checkRateLimit(request, {
+    bucket: "checkout",
+    limit: 10,
+    windowSeconds: 60
+  });
+
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   let rawBody: Record<string, unknown>;
 
   try {
     rawBody = await readJsonObject(request, 4000);
+  } catch (error) {
+    return validationResponse(error);
+  }
+
+  try {
+    assertAllowedFields(
+      rawBody,
+      ["billing", "email", "planId", "companyWebsiteConfirm", "website", "websiteConfirm"],
+      "checkout payload"
+    );
   } catch (error) {
     return validationResponse(error);
   }
@@ -29,8 +62,14 @@ export async function POST(request: Request) {
   }
 
   const planId = cleanIdentifier(rawBody.planId, 40);
-  const billing = rawBody.billing === "yearly" ? "yearly" : "monthly";
-  const email = cleanText(rawBody.email, 254);
+  const rawBilling = cleanIdentifier(rawBody.billing || "monthly", 20);
+  const email = normalizeEmail(rawBody.email);
+
+  if (rawBilling !== "monthly" && rawBilling !== "yearly") {
+    return NextResponse.json({ ok: false, error: "Unknown billing interval." }, { status: 400 });
+  }
+
+  const billing = rawBilling;
   const plan = getCheckoutPlan(planId);
   const priceId = getPriceId(planId, billing);
   const priceEnvNames = getPriceEnvNames(planId, billing);
