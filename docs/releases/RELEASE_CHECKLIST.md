@@ -3,6 +3,8 @@
 **Target:** v1.0.0-live-no-mock  
 **Owner:** Codex (execution) · Claude (UI sign-off) · Hermes (backend sign-off) · Owner (final approval)
 
+**Current execution note (2026-06-02):** live-data check PASS, browser shell and browser contract PASS, secrets scan PASS with no leaks, Obsidian Mirror remains setup-required because `OBSIDIAN_VAULT_PATH` is unset, and Windows tray / single-instance / autostart runtime behavior is still environment-bound.
+
 **Rule: All items must be checked before shipping. No exceptions. No partial releases.**
 
 ---

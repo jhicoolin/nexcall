@@ -5,13 +5,31 @@ import { NextResponse } from "next/server";
 
 const COOKIE_NAME = "rg_admin_session";
 
-function getAdminToken() {
-  return process.env.ADMIN_DASHBOARD_TOKEN || "";
+export type AdminAuthConfig = {
+  token: string;
+  secret: string;
+};
+
+function getEnvValue(value: string | undefined) {
+  return (value || "").trim();
 }
 
-function signToken(token: string) {
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY || "development-admin-secret";
+export function getAdminAuthConfig(): AdminAuthConfig | null {
+  const token = getEnvValue(process.env.ADMIN_DASHBOARD_TOKEN);
+  const secret = getEnvValue(process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY);
 
+  if (process.env.NODE_ENV === "production" && (!token || !secret)) {
+    return null;
+  }
+
+  if (!token || !secret) {
+    return null;
+  }
+
+  return { token, secret };
+}
+
+function signToken(token: string, secret: string) {
   return createHmac("sha256", secret).update(token).digest("hex");
 }
 
@@ -23,24 +41,26 @@ function safeEqual(a: string, b: string) {
 }
 
 export function createAdminSessionValue() {
-  const token = getAdminToken();
+  const config = getAdminAuthConfig();
 
-  if (!token && process.env.NODE_ENV === "production") {
-    throw new Error("ADMIN_DASHBOARD_TOKEN is required in production.");
+  if (!config) {
+    throw new Error("Admin auth is not configured.");
   }
 
-  return signToken(token || "development-admin-token");
+  return signToken(config.token, config.secret);
 }
 
 export async function hasAdminSession() {
-  const token = getAdminToken() || "development-admin-token";
-  const expected = signToken(token);
+  const config = getAdminAuthConfig();
+  if (!config) return false;
+
+  const expected = signToken(config.token, config.secret);
   const cookieStore = await cookies();
   const headerStore = await headers();
   const cookieSession = cookieStore.get(COOKIE_NAME)?.value || "";
   const bearer = headerStore.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
 
-  if (bearer && token && safeEqual(bearer, token)) return true;
+  if (bearer && safeEqual(bearer, config.token)) return true;
   return Boolean(cookieSession && safeEqual(cookieSession, expected));
 }
 

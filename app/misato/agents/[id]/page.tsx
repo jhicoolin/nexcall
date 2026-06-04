@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import { TacticalShell } from "@/components/misato/TacticalShell";
 import { HudPanel, RiskBadge } from "@/components/misato/ui";
-import { councilAgents } from "@/lib/misato/mock/data";
+import { getLiveCouncilAgent } from "@/lib/misato/runtime/live-views";
 
 export default async function AgentDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const agent = councilAgents.find((a) => a.id === id);
+  const agent = getLiveCouncilAgent(id);
   if (!agent) return notFound();
+
   return (
     <TacticalShell title={`Agent · ${agent.name}`}>
       <div className="grid gap-4 lg:grid-cols-2">

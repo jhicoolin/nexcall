@@ -7,7 +7,8 @@
 
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { loadStore, saveStore, appendEventJsonl } from "./store";
-import { classifyCommand, isAiConfigured, getActiveModel, getFallbackModel, getModelProvider } from "./ai-gateway";
+import { classifyCommand, isAiConfigured, getActiveModel, getFallbackModel, getModelProvider, getModelReady, getModelResolution } from "./ai-gateway";
+import { CANONICAL_BASE_URL } from "./config";
 import type { AiClassification } from "./ai-gateway";
 
 const riskyPattern = /(deploy|production|dns|env|auth|migration|delete|billing|payment|secret|rotate|external|automation|merge)/i;
@@ -86,9 +87,21 @@ export type CommandResult = {
   project: string;
   riskLevel: string;
   activeModel: string;
+  resolvedModel: string;
+  resolvedVersion: string;
   fallbackModel: string;
-  modelUsed: string;
+  modelUsed: string | null;
   modelProvider: string;
+  modelReady: boolean;
+  credentialState: string;
+  credentialSource: string;
+  credentialSources: string[];
+  fallbackUsed: boolean;
+  fallbackReason: string | null;
+  runtimeOrigin: string;
+  lastVerifiedAt: string;
+  verificationStatus: string;
+  modelResolution: any;
   responseSource: string;
   planSteps: string[];
   selectedAgents: string[];
@@ -387,6 +400,14 @@ export async function executeCommand(command: string): Promise<CommandResult> {
   const { approval, blocked } = stages.approval_queued(classification);
   stages.command_completed(classification, { approval, blocked });
 
+  const resolution = getModelResolution();
+  store.runtime.lastCommandAt = nowIso();
+  store.runtime.lastResponseAt = nowIso();
+  store.runtime.lastResponseSource = classification.responseSource;
+  store.runtime.lastInvocationModel = classification.responseSource === "hermes-ai" ? resolution.model : null;
+  store.runtime.lastInvocationProvider = classification.responseSource === "hermes-ai" ? resolution.provider : "deterministic-fallback";
+  store.runtime.lastInvocationFallbackUsed = resolution.fallbackUsed || classification.responseSource === "deterministic-fallback";
+  store.runtime.lastInvocationFallbackReason = resolution.fallbackReason || (classification.responseSource === "deterministic-fallback" ? "AI provider call fell back to deterministic classifier." : null);
   saveStore(store);
 
   return {
@@ -396,10 +417,22 @@ export async function executeCommand(command: string): Promise<CommandResult> {
     intent: classification.intent,
     project: classification.project,
     riskLevel: classification.riskLevel,
-    activeModel: getActiveModel(),
+    activeModel: resolution.model,
+    resolvedModel: resolution.model,
+    resolvedVersion: resolution.modelVersion,
     fallbackModel: getFallbackModel(),
-    modelUsed: getActiveModel(),
-    modelProvider: getModelProvider(),
+    modelUsed: classification.responseSource === "hermes-ai" ? resolution.model : null,
+    modelProvider: resolution.provider,
+    modelReady: resolution.ready,
+    credentialState: resolution.credentialState,
+    credentialSource: resolution.credentialSource,
+    credentialSources: resolution.discoveredSources,
+    fallbackUsed: resolution.fallbackUsed || classification.responseSource === "deterministic-fallback",
+    fallbackReason: resolution.fallbackReason || (classification.responseSource === "deterministic-fallback" ? "AI provider call fell back to deterministic classifier." : null),
+    runtimeOrigin: CANONICAL_BASE_URL,
+    lastVerifiedAt: new Date().toISOString(),
+    verificationStatus: resolution.ready && classification.responseSource === "hermes-ai" ? "verified" : "partially_verified",
+    modelResolution: resolution,
     responseSource: classification.responseSource,
     planSteps: classification.planSteps,
     selectedAgents: classification.agentsRequired,

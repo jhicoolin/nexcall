@@ -39,6 +39,12 @@ function defaultStore(): RuntimeStore {
       mode: "local-first",
       runtimeStatus: "connected",
       lastCommandAt: null,
+      lastResponseAt: null,
+      lastResponseSource: null,
+      lastInvocationModel: null,
+      lastInvocationProvider: null,
+      lastInvocationFallbackUsed: false,
+      lastInvocationFallbackReason: null,
       approvalsPending: seedApprovals.filter((a) => a.status === "Pending").length
     }
   };

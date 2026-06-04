@@ -248,10 +248,10 @@ Only publish performance numbers from a recorded Lighthouse run. Never use estim
 
 ## 7. AI Gateway — Deterministic Fallback Only
 
-**Status:** `AI_GATEWAY_API_KEY` not set; all commands use deterministic classifier  
-**Impact:** Command responses are pattern-matched (greeting, deploy, daily-summary) not AI-generated. Amber "deterministic fallback" badge shows on all responses.  
-**What to do:** Set `AI_GATEWAY_API_KEY` (OpenRouter key) + optionally `AI_GATEWAY_MODEL` in `.env.local`.  
-**No code change needed** — gateway is fully wired, key is the only missing piece.
+**Status:** Deterministic fallback only when `AI_GATEWAY_API_KEY` is missing or the live provider call fails.
+**Impact:** Command responses are pattern-matched (greeting, deploy, daily-summary) whenever the provider path does not complete successfully; when the key is present the gateway can resolve a live provider, but the command response must still be checked for `responseSource: "hermes-ai"` before calling it live AI.
+**What to do:** Set `AI_GATEWAY_API_KEY` + optionally `AI_GATEWAY_MODEL` in `.env.local` on new environments, then verify an actual command response before assuming live AI is active.
+**No code change needed** if the key is already present and the runtime reports `modelReady: true`, but live invocation should still be tested separately.
 
 ---
 

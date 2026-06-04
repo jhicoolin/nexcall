@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { appendEventJsonl, loadStore, readEventLog, runtimePaths, saveStore } from "./store";
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { executeCommand } from "./command-machine";
-import { getActiveModel, getFallbackModel } from "./ai-gateway";
+import { getActiveModel, getCredentialState, getFallbackModel, getFallbackReason, getModelProvider, getModelReady, getModelResolution } from "./ai-gateway";
 import { CANONICAL_BASE_URL } from "./config";
 
 function rid(prefix: string) {
@@ -103,6 +103,35 @@ export function getHealth() {
       watchtower: { available: true, mode: "local-runtime" },
       sse: { available: true, mode: "local-stream" }
     },
+    modelResolution: {
+      canonicalSource: getModelResolution().canonicalSource,
+      credentialSource: getModelResolution().credentialSource,
+      credentialState: getCredentialState(),
+      provider: getModelProvider(),
+      model: getActiveModel(),
+      modelVersion: getModelResolution().modelVersion,
+      baseUrl: getModelResolution().baseUrl,
+      ready: getModelReady(),
+      fallbackUsed: getModelResolution().fallbackUsed,
+      fallbackReason: getFallbackReason(),
+      precedence: getModelResolution().precedence,
+      discoveredSources: getModelResolution().discoveredSources,
+      resolutionNotes: getModelResolution().resolutionNotes
+    },
+    activeModel: getActiveModel(),
+    fallbackModel: getFallbackModel(),
+    modelProvider: getModelProvider(),
+    modelReady: getModelReady(),
+    credentialState: getCredentialState(),
+    credentialSource: getModelResolution().credentialSource,
+    lastResponseSource: store.runtime.lastResponseSource,
+    lastResponseAt: store.runtime.lastResponseAt,
+    lastInvocationModel: store.runtime.lastInvocationModel,
+    lastInvocationProvider: store.runtime.lastInvocationProvider,
+    lastInvocationFallbackUsed: store.runtime.lastInvocationFallbackUsed,
+    lastInvocationFallbackReason: store.runtime.lastInvocationFallbackReason,
+    fallbackUsed: getModelResolution().fallbackUsed || store.runtime.lastResponseSource === "deterministic-fallback",
+    fallbackReason: store.runtime.lastInvocationFallbackReason || getFallbackReason(),
     timestamp: nowIso()
   };
 }

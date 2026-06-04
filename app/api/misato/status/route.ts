@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { assertOwnerJson } from "@/lib/misato/owner-guard";
 import { getEvents, getHealth, getRuntimeSnapshot } from "@/lib/misato/runtime/service";
 import { isDesktopTokenRequired, isLocalSoloMode, misatoRuntimeMode } from "@/lib/misato/owner-guard";
-import { getActiveModel, getFallbackModel, getModelProvider, getModelReady } from "@/lib/misato/runtime/ai-gateway";
-import { CANONICAL_BASE_URL, getRuntimeTargetInfo, validateCanonicalPort } from "@/lib/misato/runtime/config";
+import { getModelResolution } from "@/lib/misato/runtime/ai-gateway";
+import { CANONICAL_BASE_URL, validateCanonicalPort } from "@/lib/misato/runtime/config";
 import { misatoOptionsResponse, withMisatoCors } from "@/lib/misato/http/cors";
 
 export const runtime = "nodejs";
@@ -38,8 +38,7 @@ export async function GET(request: Request) {
     const activeTasks = tasks.filter((task: any) => String(task?.status || "").toLowerCase() === "doing").length;
     const pendingApprovals = (snapshot.approvals || []).filter((approval: any) => String(approval?.status || "").toLowerCase() === "pending").length;
     const localSoloMode = isLocalSoloMode(request);
-    const modelProvider = getModelProvider();
-    const modelReady = getModelReady();
+    const resolution = getModelResolution();
 
     return withMisatoCors(
       NextResponse.json({
@@ -52,11 +51,27 @@ export async function GET(request: Request) {
         runtimeConnected: health.ok === true && health.status === "ok",
         eventStreamAvailable: true,
         baseUrl: CANONICAL_BASE_URL,
+        runtimeOrigin: CANONICAL_BASE_URL,
         connectionMode: health.runtimeStatus === "connected" ? "local-runtime" : "not-connected",
-        activeModel: getActiveModel(),
-        fallbackModel: getFallbackModel(),
-        modelProvider,
-        modelReady,
+        activeModel: resolution.model,
+        resolvedModel: resolution.model,
+        resolvedVersion: resolution.modelVersion,
+        fallbackModel: health.fallbackModel,
+        modelProvider: resolution.provider,
+        modelReady: resolution.ready,
+        credentialState: resolution.credentialState,
+        credentialSource: resolution.credentialSource,
+        credentialSources: resolution.discoveredSources,
+        lastResponseSource: health.lastResponseSource,
+        lastResponseAt: health.lastResponseAt,
+        lastInvocationModel: health.lastInvocationModel,
+        lastInvocationProvider: health.lastInvocationProvider,
+        lastInvocationFallbackUsed: health.lastInvocationFallbackUsed,
+        lastInvocationFallbackReason: health.lastInvocationFallbackReason,
+        fallbackUsed: health.fallbackUsed,
+        fallbackReason: health.fallbackReason,
+        modelResolution: resolution,
+        verificationStatus: health.lastResponseSource === "hermes-ai" ? "verified" : health.lastResponseSource === "deterministic-fallback" ? "fallback_explicit" : resolution.ready ? "credential_resolved" : "unverified",
         persistenceMode: health.paths?.persistence || "filesystem",
         activeAgents,
         activeTasks,
@@ -64,6 +79,7 @@ export async function GET(request: Request) {
         totalAgents: agents.length,
         queueDepth: activeTasks,
         lastEventAt: latestEvent?.timestamp || health.timestamp || null,
+        lastVerifiedAt: health.lastResponseAt || health.timestamp,
         capabilities: {
           command: true,
           taskCrud: true,

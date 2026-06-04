@@ -43,3 +43,9 @@ Each line uses the verification taxonomy from `docs/misato/STATUS_TAXONOMY.md`.
 `loaded` = the shell opened without HTTP error; DOM rendered.  
 `verified` = an explicit assertion was made with observable evidence (e.g., endpoint returned expected field).  
 `UNVERIFIED` = check was not run in this pass; not a failure — run the listed command to verify.
+# 2026-06-03 live-runtime hardening pass
+
+- The MISATO `/misato/*` screens are now reading live runtime state rather than the old mock-data imports.
+- Approval action buttons on the `/misato/approvals` screen are intentionally disabled with an explicit note so the UI does not pretend to mutate state where it does not.
+- The browser shell check remains split from the runtime-origin contract check; shell load is not being reported as full runtime correctness.
+- Live browser verification of `/misato/daily`, `/misato/council`, `/misato/projects`, and `/misato/agents` showed no console/page errors and no mock bleed-through in this pass.

@@ -51,6 +51,12 @@ export type RuntimeState = {
   mode: "local-first" | "preview-simple" | "production-locked";
   runtimeStatus: RuntimeStatus;
   lastCommandAt: string | null;
+  lastResponseAt: string | null;
+  lastResponseSource: "hermes-ai" | "deterministic-fallback" | null;
+  lastInvocationModel: string | null;
+  lastInvocationProvider: string | null;
+  lastInvocationFallbackUsed: boolean;
+  lastInvocationFallbackReason: string | null;
   approvalsPending: number;
 };
 

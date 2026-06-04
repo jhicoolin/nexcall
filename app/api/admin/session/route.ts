@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
-import { adminCookieName, createAdminSessionValue } from "@/lib/admin-auth";
+import { adminCookieName, createAdminSessionValue, getAdminAuthConfig } from "@/lib/admin-auth";
 import { cleanText, readJsonObject, validationResponse } from "@/lib/security";
 
 export async function POST(request: Request) {
+  const config = getAdminAuthConfig();
+  if (!config) {
+    return NextResponse.json({ ok: false, error: "Admin auth is not configured." }, { status: 503 });
+  }
+
   let payload: Record<string, unknown>;
 
   try {
@@ -12,9 +17,8 @@ export async function POST(request: Request) {
   }
 
   const submittedToken = cleanText(payload.token, 500);
-  const adminToken = process.env.ADMIN_DASHBOARD_TOKEN || "development-admin-token";
 
-  if (submittedToken !== adminToken) {
+  if (submittedToken !== config.token) {
     return NextResponse.json({ ok: false, error: "Invalid admin token." }, { status: 401 });
   }
 

@@ -161,6 +161,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  if (pathname === "/admin" || pathname.startsWith("/admin/") && pathname !== "/admin/login") {
+    if (!(await hasAdminSession(request))) {
+      return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
+    }
+  }
+
   const localSoloAllowed = isProtectedMisatoApi(pathname) && isLocalSoloAllowed(request);
   const desktopTokenAuthenticated = isProtectedMisatoApi(pathname) && !isMisatoAuthApi(pathname) && hasValidDesktopToken(request);
 
@@ -207,6 +213,21 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+async function hasAdminSession(request: NextRequest) {
+  const configToken = (process.env.ADMIN_DASHBOARD_TOKEN || "").trim();
+  const configSecret = (process.env.ADMIN_SESSION_SECRET || process.env.SECRET_ENCRYPTION_KEY || "").trim();
+  if (!configToken || !configSecret) return false;
+
+  const session = request.cookies.get("rg_admin_session")?.value || "";
+  if (!session) return false;
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(configSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(configToken));
+  const expected = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return session === expected;
+}
+
 export const config = {
-  matcher: ["/misato/:path*"]
+  matcher: ["/misato/:path*", "/admin/:path*"]
 };

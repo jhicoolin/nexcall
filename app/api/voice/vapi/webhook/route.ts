@@ -3,14 +3,26 @@ import { inngest } from "@/inngest/client";
 import { findTenantById } from "@/lib/tenant-repository";
 import { cleanText, readJsonObject, validationResponse } from "@/lib/security";
 
+function getVapiSecret() {
+  return (process.env.VAPI_WEBHOOK_SECRET || "").trim();
+}
+
 function isAuthorized(request: Request) {
-  const secret = process.env.VAPI_WEBHOOK_SECRET;
+  const secret = getVapiSecret();
   if (!secret) return process.env.NODE_ENV !== "production";
 
-  return request.headers.get("x-vapi-secret") === secret || request.headers.get("authorization") === `Bearer ${secret}`;
+  const headerSecret = request.headers.get("x-vapi-secret") || "";
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
+
+  return headerSecret === secret || bearer === secret;
 }
 
 export async function POST(request: Request) {
+  const secret = getVapiSecret();
+  if (process.env.NODE_ENV === "production" && !secret) {
+    return NextResponse.json({ ok: false, error: "Vapi webhook is not configured." }, { status: 503 });
+  }
+
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, error: "Unauthorized Vapi webhook." }, { status: 401 });
   }

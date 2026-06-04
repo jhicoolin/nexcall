@@ -139,9 +139,11 @@ npm run dev
 # Then click Sync Now in the Mirror screen
 ```
 
-### 3. AI gateway not configured (deterministic fallback active)
+### 3. AI gateway state (fallback only when the key is missing)
 
-`AI_GATEWAY_API_KEY` is not set. Commands use the deterministic classifier and return pattern-matched responses, not AI-generated ones. The UI shows an amber "deterministic fallback" badge on responses. To enable real AI: set `AI_GATEWAY_API_KEY` and optionally `AI_GATEWAY_MODEL`.
+When `AI_GATEWAY_API_KEY` is not set, commands use the deterministic classifier and return pattern-matched responses, not AI-generated ones. The UI shows an amber fallback badge on responses.
+
+Current verified runtime truth in this branch: the gateway resolves `AI_GATEWAY_API_KEY` and reports `modelReady: true` when that key is present, but live command invocation still needs separate proof because a command can legitimately fall back to the deterministic path if the provider call fails. To enable real AI on a fresh environment, set `AI_GATEWAY_API_KEY` and optionally `AI_GATEWAY_MODEL`, then verify `responseSource: "hermes-ai"` on an actual command response.
 
 ### 4. No autostart
 

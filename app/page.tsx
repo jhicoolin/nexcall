@@ -253,7 +253,7 @@ export default function Home() {
       <ProcessCommandCenter onCallDemo={openDemo} />
       <IndustrySelector />
       <DemoPreviewSection onCallDemo={openDemo} />
-      <Pricing />
+      <Pricing onCallDemo={openDemo} />
       <FAQSection />
       <ClosingLeadCapture onCallDemo={openDemo} />
       <Footer />
@@ -411,20 +411,16 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             </div>
             <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
 
-            {/* Stat strip — numeric stats count up after hero fade-in settles (~1s) */}
+            {/* Stat strip — honest, qualitative proof points */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
-              {([
-                { value: 500,  suffix: "+", decimals: 0, label: "Calls handled" },
-                { value: null, static: "24/7",            label: "Always on" },
-                { value: 99.9, suffix: "%", decimals: 1,  label: "Uptime" },
-                { value: 60,   suffix: "s", decimals: 0,  label: "Avg. response" }
-              ] as const).map((s) => (
+              {[
+                { value: "24/7", label: "Coverage" },
+                { value: "Live", label: "Front desk" },
+                { value: "Fast", label: "Handoff" },
+                { value: "Real-time", label: "Lead capture" }
+              ].map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
-                  <p className="text-2xl font-black text-white">
-                    {"static" in s
-                      ? s.static
-                      : <HeroCountUp value={s.value as number} suffix={s.suffix as string} decimals={s.decimals as number} />}
-                  </p>
+                  <p className="text-2xl font-black text-white">{s.value}</p>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#4B5563]">{s.label}</p>
                 </div>
               ))}
@@ -501,7 +497,7 @@ function CallInterceptionVisual() {
         <div className="rounded-2xl border border-white/[0.07] bg-black/45 px-5 py-4">
           <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]">Team Brief Ready</p>
           <div className="space-y-1.5 text-xs">
-            <p className="text-slate-400"><span className="font-bold text-slate-200">Caller:</span> Sarah M. · (555) 0123</p>
+            <p className="text-slate-400"><span className="font-bold text-slate-200">Caller:</span> Incoming caller · number on file</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Need:</span> Appointment this Thursday</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Urgency:</span> Moderate</p>
             <p className="text-slate-400"><span className="font-bold text-slate-200">Next step:</span> Confirm available slot</p>
@@ -757,7 +753,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
           {/* Sample call journey — full width at bottom */}
           <div className="border-t border-[#baff39]/10 bg-black/35 px-6 py-6 sm:px-8">
             <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <p className="text-[0.6rem] font-black uppercase tracking-[0.16em] text-[#baff39]">Sample call journey</p>
+              <p className="text-[0.6rem] font-black uppercase tracking-[0.16em] text-[#baff39]">Illustrative call journey</p>
               <div className="hidden flex-1 sm:block h-px bg-[#baff39]/10" />
               <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
                 className="system-button-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">
@@ -965,7 +961,7 @@ function DemoPreviewSection({ onCallDemo }: { onCallDemo: () => void }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    PRICING — same logic, cleaner visual
 ═══════════════════════════════════════════════════════════════════════════ */
-function Pricing() {
+function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
@@ -1013,7 +1009,7 @@ function Pricing() {
               <span className="accent-text">stop missing calls.</span>
             </h2>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-              Three choices, simple decision. Secure checkout opens when you choose a plan.
+              Three choices, simple decision. Request a demo and we’ll help you choose the right plan.
             </p>
           </div>
           <div className="flex w-full max-w-xs shrink-0 rounded-xl border border-[#baff39]/12 bg-black/30 p-1">
@@ -1051,13 +1047,13 @@ function Pricing() {
                   ))}
                 </ul>
                 <button
-                  type="button" onClick={() => startCheckout(plan.id)} disabled={checkoutLoading !== null}
+                  type="button" onClick={() => onCallDemo()}
                   data-fallback-href="/?demo=1"
                   className={`mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${plan.featured ? "system-button-primary focus:ring-[#baff39]/25" : "system-button-secondary hover:border-[#baff39]/30 hover:text-[#baff39] focus:ring-[#baff39]/15"}`}
                 >
                   {checkoutLoading === plan.id ? (
-                    <><svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Opening Checkout…</>
-                  ) : `Start With ${plan.name}`}
+                    "Requesting Demo…"
+                  ) : `Request Demo for ${plan.name}`}
                 </button>
               </div>
             );
@@ -1071,7 +1067,7 @@ function Pricing() {
               Want to get started?{" "}
               <a href="mailto:nexcall@proton.me" className="underline underline-offset-2 hover:text-amber-100">Email nexcall@proton.me</a>{" "}
               or call{" "}
-              <a href="tel:+12022006578" className="underline underline-offset-2 hover:text-amber-100">(202) 200-6578</a>.
+              <a href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`} className="underline underline-offset-2 hover:text-amber-100">{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>.
             </p>
           </div>
         )}
@@ -1093,8 +1089,8 @@ function FAQSection() {
     { question: "What if a caller needs a human?", answer: "NexCall can collect the important details and pass the conversation to your team with the context needed for follow-up." },
     { question: "Does NexCall work after hours?", answer: "Yes. NexCall covers nights, weekends, lunch rushes, and busy moments so callers do not hit a dead end." },
     { question: "What types of businesses is NexCall for?", answer: "The strongest fit is any business with repeat call patterns: dental offices, salons, clinics, restaurants, auto repair, legal offices, contractors, and local shops." },
-    { question: "How does pricing work?", answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card required for demo requests." },
-    { question: "How do I get started?", answer: "Start with a demo call or choose a plan. From there, the first setup focuses on your highest-value call types and the information your team needs." }
+    { question: "How does pricing work?", answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. Request a demo and we’ll help you choose the right fit." },
+    { question: "How do I get started?", answer: "Start with a demo call and we’ll help you choose the right next step. From there, the first setup focuses on your highest-value call types and the information your team needs." }
   ];
 
   return (

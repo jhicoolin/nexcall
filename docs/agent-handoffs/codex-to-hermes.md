@@ -87,3 +87,10 @@
   - tray click/restore
   - second-instance suppression
   - OS-level autostart enablement
+# 2026-06-03 live-runtime hardening pass
+
+- `/misato/*` pages now read from the live runtime snapshot instead of `lib/misato/mock/data`.
+- `GET /api/misato/projects` and `GET /api/misato/council` now return live runtime-derived data.
+- The daily, council, agents, missions, projects, tools, approvals, and memory screens were re-checked in-browser; no mock bleed-through or page errors were observed in this pass.
+- Browser shell checks still separate shell-load evidence from runtime-origin contract proof, as intended.
+- Build, desktop packaging, smoke, live-data, and redacted secret-scan checks all passed in this pass.

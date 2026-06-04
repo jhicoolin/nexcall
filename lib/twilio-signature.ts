@@ -12,18 +12,17 @@ function getPublicRequestUrl(request: Request) {
 /**
  * Validates Twilio's X-Twilio-Signature for form-encoded webhooks.
  *
- * If TWILIO_AUTH_TOKEN is not configured, validation is skipped so local
- * development and first setup tests do not fail. Production should always set
- * TWILIO_AUTH_TOKEN.
+ * Production must always set TWILIO_AUTH_TOKEN so request authenticity is
+ * enforced. Development can intentionally skip validation for local setup.
  */
 export function isValidTwilioWebhookRequest(
   request: Request,
   params: URLSearchParams,
   signature = request.headers.get("x-twilio-signature") || ""
 ) {
-  const token = process.env.TWILIO_AUTH_TOKEN;
+  const token = (process.env.TWILIO_AUTH_TOKEN || "").trim();
 
-  if (!token) return true;
+  if (!token) return process.env.NODE_ENV !== "production";
   if (!signature) return false;
 
   const url = getPublicRequestUrl(request);

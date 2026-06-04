@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { TacticalShell } from "@/components/misato/TacticalShell";
 import { HudPanel, RiskBadge } from "@/components/misato/ui";
-import { projects, tasks } from "@/lib/misato/mock/data";
+import { getLiveProjectBySlug, getLiveProjectTasks } from "@/lib/misato/runtime/live-views";
 
 export default async function ProjectDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = projects.find((p) => p.slug === slug);
+  const project = getLiveProjectBySlug(slug);
   if (!project) return notFound();
-  const projectTasks = tasks.filter((t) => t.projectId === project.id);
+  const projectTasks = getLiveProjectTasks(project.slug) as Array<Record<string, any>>;
 
   return (
     <TacticalShell title={`Project · ${project.name}`}>
@@ -16,7 +16,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ slug
         <HudPanel title="RISK"><RiskBadge level={project.riskLevel} /></HudPanel>
       </div>
       <HudPanel title="TASKS">
-        <ul className="mt-2 space-y-2 text-sm">{projectTasks.map((t) => <li key={t.id}>{t.title} · {t.status} · {t.dueDate}</li>)}</ul>
+        <ul className="mt-2 space-y-2 text-sm">{projectTasks.map((t) => <li key={String(t.id || t.title)}>{t.title} · {t.status} · {t.dueDate || t.dueAt || "unscheduled"}</li>)}</ul>
       </HudPanel>
     </TacticalShell>
   );
