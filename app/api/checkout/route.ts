@@ -6,6 +6,7 @@ import {
   getPriceId,
   type CheckoutBilling
 } from "@/lib/checkout-plans";
+import { isStripeCheckoutEnabledInEnv } from "@/lib/checkout-readiness";
 import { notifyNexCallLead } from "@/lib/lead-notifications";
 import {
   assertAllowedFields,
@@ -30,6 +31,16 @@ type CheckoutRequest = {
 export async function POST(request: Request) {
   const originDenied = originGuardResponse(request);
   if (originDenied) return originDenied;
+
+  if (!isStripeCheckoutEnabledInEnv()) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Checkout is not live yet. Request a demo and our team will help you choose the right plan."
+      },
+      { status: 503 }
+    );
+  }
 
   const limit = await checkRateLimit(request, {
     bucket: "checkout",

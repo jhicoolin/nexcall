@@ -31,6 +31,7 @@ import { useForm } from "react-hook-form";
 const NEXCALL_PUBLIC_EMAIL = "nexcall@proton.me";
 const NEXCALL_PUBLIC_PHONE_DISPLAY = "(202) 200-6578";
 const NEXCALL_PUBLIC_PHONE_TEL = "+12022006578";
+const PUBLIC_STRIPE_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_STRIPE_CHECKOUT_ENABLED === "true";
 const CALL_DEMO_FAILURE_MESSAGE =
   "We could not start the demo call right now. Please try again or contact NexCall.";
 
@@ -1022,6 +1023,7 @@ function Pricing() {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
+  const checkoutEnabled = PUBLIC_STRIPE_CHECKOUT_ENABLED;
   const plans = [
     {
       id: "starter", name: "Starter", monthly: 349, limit: "Up to 120 calls/mo",
@@ -1055,6 +1057,15 @@ function Pricing() {
     }
   }
 
+  function handlePlanAction(planId: string) {
+    if (!checkoutEnabled) {
+      document.getElementById("lead")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    void startCheckout(planId);
+  }
+
   return (
     <motion.section {...sectionMotion} id="pricing" className="relative border-b border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -1068,6 +1079,11 @@ function Pricing() {
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
               Three plans. Pick the one that fits your call volume and business type.
             </p>
+            {!checkoutEnabled ? (
+              <p className="mt-3 max-w-2xl text-sm font-semibold text-[#baff39]">
+                Checkout is still being finalized. Choose a plan to request setup and we will confirm the right fit with you directly.
+              </p>
+            ) : null}
           </div>
           <div className="flex w-full max-w-xs shrink-0 rounded-xl border border-[#baff39]/12 bg-black/30 p-1">
             {(["monthly", "yearly"] as const).map((opt) => (
@@ -1104,13 +1120,13 @@ function Pricing() {
                   ))}
                 </ul>
                 <button
-                  type="button" onClick={() => startCheckout(plan.id)} disabled={checkoutLoading !== null}
+                  type="button" onClick={() => handlePlanAction(plan.id)} disabled={checkoutEnabled && checkoutLoading !== null}
                   data-fallback-href="/?demo=1"
                   className={`mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-70 ${plan.featured ? "system-button-primary focus:ring-[#baff39]/25" : "system-button-secondary hover:border-[#baff39]/30 hover:text-[#baff39] focus:ring-[#baff39]/15"}`}
                 >
-                  {checkoutLoading === plan.id ? (
+                  {checkoutEnabled && checkoutLoading === plan.id ? (
                     <><svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Opening Checkout…</>
-                  ) : `Start With ${plan.name}`}
+                  ) : checkoutEnabled ? `Start With ${plan.name}` : `Request ${plan.name}`}
                 </button>
               </div>
             );
@@ -1177,7 +1193,9 @@ function FAQSection() {
     },
     {
       question: "How does pricing work?",
-      answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card required for the demo call. Secure checkout opens when you choose a plan."
+      answer: PUBLIC_STRIPE_CHECKOUT_ENABLED
+        ? "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card required for the demo call. Secure checkout opens when you choose a plan."
+        : "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. No card is required for the demo call. Until checkout is live, choosing a plan starts a setup conversation with the team."
     },
     {
       question: "How do I get started?",
