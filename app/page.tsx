@@ -546,7 +546,7 @@ function OutcomeRail() {
     {
       portrait: { skinTone: "#D2A679", hairColor: "#1a0a00", shirtColor: "#4a1942", hairStyle: "long" as const, hasGlasses: false },
       role: "Legal front desk", outcome: "No dead-end calls.",
-      detail: "Every caller gets a clear next step, not a voicemail.", tag: "⚡ Faster follow-up"
+      detail: "Callers get a clear next step instead of hitting voicemail.", tag: "⚡ Faster follow-up"
     }
   ];
   const doubled = [...cards, ...cards];

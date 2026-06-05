@@ -157,10 +157,10 @@ function AboutCommandCenter() {
             <p className="system-label">
               NexCall Command Center
             </p>
-            <h2 className="mt-2 text-2xl font-black">Every call gets a clear next step.</h2>
+            <h2 className="mt-2 text-2xl font-black">Each caller gets a clear next step.</h2>
           </div>
           <span className="rounded-full border border-[#baff39]/20 bg-[#baff39]/10 px-3 py-1 text-xs font-black text-[#eaffb8]">
-            live-ready
+            real-world flow
           </span>
         </div>
         <div className="mt-6 grid gap-3">
