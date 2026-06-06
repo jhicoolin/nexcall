@@ -9,14 +9,14 @@ This document defines the expected public behavior for the live NexCall launch s
 - Launch mode: request-demo / request-setup
 - Public self-serve checkout: disabled
 - Admin surface: private and fail-closed
-- Public health endpoint: intentionally not exposed
+- Public health endpoint: safe public uptime/parity probe
 
 ## Public Route Contract
 
 | Route | Expected behavior | Reason |
 | --- | --- | --- |
 | `/` | `200` with current honest homepage copy | Public marketing site must stay available |
-| `/health` | Public `404` | Health JSON is local/runtime-only and should not be exposed on the public domain |
+| `/health` | `200` with minimal safe JSON | Safe public health probe for uptime and deployment parity; must not expose secrets, provider details, database status, or internal runtime metadata. |
 | `/command` | `200` private access form only | Operator entry exists, but no sensitive data is rendered without auth |
 | `/checkout` | `404` | There is no public self-serve checkout page in request-demo mode |
 | `POST /api/checkout` | `503` with generic disabled message | Checkout is intentionally disabled until Stripe readiness is proven live |
@@ -51,14 +51,16 @@ The following must remain true unless Stripe is deliberately enabled and verifie
 
 ## Monitoring Contract
 
-The non-destructive NexCall security monitor does not require a public `200` on `/health`.
+The non-destructive NexCall security monitor should treat the public `/health` probe as a required parity check.
 
 Launch-safe monitoring expectations are:
 
-- `/health` may remain public `404` by policy
+- `/health` must return `200` with only `{ "ok": true, "service": "nexcall", "status": "healthy" }`
 - `/admin` must remain `404`
 - common exposure paths must remain blocked
 - header checks must continue to pass
+- `/health` returning `404` after deployment is a parity failure
+- `/health` returning MISATO/runtime metadata or sensitive fields is a security failure
 
 ## Escalation Rule
 

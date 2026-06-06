@@ -159,13 +159,13 @@ If it is a UI issue, hand it to Claude.
 
 The live deployment is still not in parity with the audited repo. Recent verification showed:
 - `https://nexcall.one/` serves older homepage copy
-- `https://nexcall.one/health` returns **404**
+- `https://nexcall.one/health` returns **404**, but the final launch contract now requires public `200` with only `{ "ok": true, "service": "nexcall", "status": "healthy" }`
 - `https://nexcall.one/checkout` returns **404**
 - `https://nexcall.one/admin` and `/admin/login` remain fail-closed **404**
 - `https://nexcall.one/command` returns **200** and renders the private access form
 - Security posture is acceptable for `/admin` fail-closed behavior, but live deploy parity is still unresolved
 
-Codex should focus on proving whether this is deploy/cache drift or an external environment blocker, not on UI copy.
+Codex should focus on proving whether `/health` parity is blocked by code, deploy drift, or cache, not on UI copy.
 
 ## If Codex finds a problem
 
