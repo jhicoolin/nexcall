@@ -389,8 +389,8 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
 
         {/* FULL-WIDTH headline spanning both sides */}
         <h1 className="hero-fade-up mb-12 text-[3rem] font-black leading-[0.88] tracking-[-0.028em] text-white sm:mb-14 sm:text-[5.5rem] lg:text-[7.5rem] xl:text-[9rem]">
-          Never miss your{" "}
-          <span className="text-[#A8FF00]">next call.</span>
+          Turn missed calls into{" "}
+          <span className="text-[#A8FF00]">next steps.</span>
         </h1>
 
         {/* TWO-COLUMN below headline: copy + CTAs left — call visual right */}
@@ -415,10 +415,10 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
             {/* Stat strip — honest, qualitative proof points */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
               {[
-                { value: "24/7", label: "Coverage" },
+                { value: "Always on", label: "Call coverage" },
                 { value: "Live", label: "Front desk" },
-                { value: "Fast", label: "Handoff" },
-                { value: "Real-time", label: "Lead capture" }
+                { value: "Fast handoff", label: "Team summary" },
+                { value: "After hours", label: "Overflow ready" }
               ].map((s) => (
                 <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
                   <p className="text-2xl font-black text-white">{s.value}</p>
@@ -592,7 +592,7 @@ function TransformSection() {
     { emoji: "⏳", title: "Delayed callback attempt", sub: "The lead has already found someone else." }
   ];
   const after = [
-    { emoji: "📞", title: "Call answered professionally", sub: "NexCall picks up every time — day or night." },
+    { emoji: "📞", title: "Call answered professionally", sub: "NexCall answers when your team is busy or unavailable." },
     { emoji: "✅", title: "Details captured instantly", sub: "Name, need, and urgency — all logged for your team." },
     { emoji: "⚡", title: "Team brief ready to act", sub: "Follow-up starts in seconds, not hours." }
   ];
@@ -671,7 +671,7 @@ function TransformSection() {
 function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
   const steps = [
     {
-      label: "Answer", icon: Phone, emoji: "📞", title: "Picks up every time",
+      label: "Answer", icon: Phone, emoji: "📞", title: "Answers when needed",
       copy: "NexCall answers before callers hit voicemail or a dead end.",
       status: "CONNECTED", statusColor: "#A8FF00"
     },

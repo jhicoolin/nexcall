@@ -1,7 +1,8 @@
 import "server-only";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+
 import { appendEventJsonl, loadStore, readEventLog, runtimePaths, saveStore } from "./store";
 import { getRecentEvents, publishEvent } from "./event-bus";
 import { executeCommand } from "./command-machine";
@@ -271,32 +272,32 @@ export function watchtowerCheck() {
   return { ok: true, checkedAt: nowIso(), summary };
 }
 
+function detectGitleaksInstalled() {
+  try {
+    if (process.platform === "win32") {
+      const out = execFileSync("where", ["gitleaks"], { encoding: "utf8", timeout: 5000 }).trim();
+      return out.length > 0;
+    }
+    const out = execFileSync("which", ["gitleaks"], { encoding: "utf8", timeout: 5000 }).trim();
+    return out.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function detectGitleaksVersion() {
+  try {
+    return execFileSync("gitleaks", ["version"], { encoding: "utf8", timeout: 5000 }).trim();
+  } catch {
+    return "installed (version unknown)";
+  }
+}
+
 export function getSecretsStatus() {
   const store = loadStore();
 
-  // Check if gitleaks is installed
-  let gitleaksInstalled = false;
-  let gitleaksVersion = "";
-  try {
-    const out = execSync("which gitleaks 2>/dev/null || where gitleaks 2>nul", {
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 5000
-    }).toString().trim();
-    gitleaksInstalled = out.length > 0;
-    if (gitleaksInstalled) {
-      try {
-        gitleaksVersion = execSync("gitleaks version 2>/dev/null", {
-          encoding: "utf8",
-          timeout: 5000
-        }).toString().trim();
-      } catch {
-        gitleaksVersion = "installed (version unknown)";
-      }
-    }
-  } catch {
-    gitleaksInstalled = false;
-  }
+  const gitleaksInstalled = detectGitleaksInstalled();
+  const gitleaksVersion = gitleaksInstalled ? detectGitleaksVersion() : "";
 
   if (!gitleaksInstalled) {
     return {

@@ -1,91 +1,164 @@
 # Handoff: Hermes → Claude UI Agent
 
-**Date:** 2026-05-25
+**Date:** 2026-06-05
 **From:** Hermes (Runtime Orchestrator)
-**To:** Claude UI Agent (UI polish and shell UX)
+**To:** Claude UI Agent (UI/UX, shell polish, public-facing behavior)
 
-## Runtime Truth / API Contract
+## Role definition
 
-The canonical local runtime is at **`http://127.0.0.1:3010`**.
+Claude owns the **UI lane** only:
+- public-facing copy
+- layout, spacing, and visual clarity
+- mobile polish and interaction affordances
+- shell UX for `/`, `/command`, and other public pages
+- copy/label trust fixes that reduce confusion
 
-The full API contract is defined in `docs/MISATO_RUNTIME_API_CONTRACT.md`. Every response shape is documented there.
+Claude does **not** own security hardening, middleware, env validation, secret handling, or auth policy. If a UI change touches those surfaces, stop and feed the finding to Codex.
 
-Ports 3000 and 3020 have been killed. **Do not use them.**
+## Current runtime truth
 
-## What Works (Verified)
+Canonical local runtime: **`http://127.0.0.1:3010`**
 
-| Endpoint | Status | Notes |
-|----------|--------|-------|
-| `GET /health` | ✅ 200 | Unauthenticated |
-| `GET /api/misato/status` | ✅ 200 | Authenticated, local-solo bypass |
-| `POST /api/misato/command` | ✅ 200 | All 4 test commands worked |
-| `GET /api/misato/events` | ✅ 200 | 59+ events persisted |
-| `GET /api/misato/events/stream` | ✅ 200 | SSE, real-time events |
-| `GET /api/misato/tasks` | ✅ 200 | 18 tasks in store |
-| `GET /api/misato/approvals` | ✅ 200 | 12 approvals in store |
-| `GET /api/misato/agents` | ✅ 200 | 12 agents in store |
-| `GET /api/misato/logs` | ✅ 200 | 27 log entries |
-| `GET /api/misato/lanes` | ✅ 200 | 3 lanes defined |
-| `GET /api/misato/projects` | ✅ 200 | 5 projects |
-| `GET /api/misato/watchtower` | ✅ 200 | Health monitoring |
-| `GET /api/misato/secrets` | ✅ 200 | Secret scanning status |
-| `GET /api/misato/council` | ✅ 200 | Agent council roster |
-| `GET /api/misato/discord` | ✅ 200 | Mock (not connected) |
-| `GET /api/misato/obsidian` | ✅ 200 | Mock (not connected) |
-| `POST /api/misato/tasks/create` | ✅ Route wired | Calls service |
-| `POST /api/misato/tasks/update` | ✅ Route wired | Calls service |
-| `POST /api/misato/tasks/delete` | ✅ Route wired | Calls service |
-| `POST /api/misato/approvals/action` | ✅ Route wired | approve/reject/defer |
+Verified now:
+- `GET /health` → **200 OK**
+- `npm run build` → **passes**
+- `npm run dev` → **starts cleanly after stale output cleanup**
 
-## What Claude Should Do
+## What was fixed before this handoff
 
-### 1. Fix the Status Page — Add Missing Fields
-The `GET /api/misato/status` response currently returns `null` for:
-- `runtimeMode` → should be `"mock"`
-- `localSoloMode` → should be `true`
-- `desktopTokenRequired` → should be `false`
+The repo had a stale-generated-output problem that made the runtime look broken even though the source route tree was fine.
 
-These fields are exported from `lib/misato/owner-guard.ts` but the status route handler (`app/api/misato/status/route.ts`) doesn't import or use them. Either:
-- Add them to the route handler response, OR
-- Build a frontend that derives them from `mode` and `localFirst`
+### Root cause
+- Generated Next.js artifacts were drifting from source
+- The validator had been pointing at a non-existent `app/command/route.ts` artifact even though the source route is `app/command/page.tsx`
+- A stale dev/build cache could also produce transient `/health = 500` and webpack `ENOENT` errors until the dev server was restarted cleanly
 
-### 2. Wire UI Controls to Working APIs
-These backend routes exist and work — the UI needs to call them:
-- **Create Task** → `POST /api/misato/tasks/create`
-- **Update Task** (status, priority) → `POST /api/misato/tasks/update`
-- **Delete Task** → `POST /api/misato/tasks/delete`
-- **Assign Agent** → The backend `assignAgent()` exists but no API route was found for it — Codex needs to expose it
-- **Approve / Reject / Defer** → `POST /api/misato/approvals/action`
+### Fixes already applied
+- `scripts/clean-next-output.mjs` was added
+- `predev` was added to run the cleanup automatically before dev
+- `prebuild` was added to run the cleanup automatically before build
+- `preanalyze` was added to run the cleanup automatically before analyze
+- `package.json` now routes build output through `.next-build` while still clearing stale generated trees first
 
-### 3. Event Stream — Real Feed
-The SSE event stream at `/api/misato/events/stream` emits real events. Wire the UI to:
-- Connect to SSE on page load
-- Parse `data:` lines as JSON
-- Display real events (instead of dummy/demo logs)
-- Show: command.completed, task.created/updated/deleted, approval events
+### Important pitfall
+- cleanup now runs in mode-specific form, so dev clears `.next`/`.next-fresh` while build/analyze clear only `.next-build`
+- if `/health` suddenly flips to `500` with `ENOENT` paths under `.next`, treat it as stale generated output first, not a source-code regression
+- if `/api/misato/secrets` ever logs `The system cannot find the path specified.`, that is a Codex/security-lane issue in gitleaks detection plumbing, not a Claude UI issue
 
-### 4. Remove Port 3000 / 3020 References
-The UI should only reference `http://127.0.0.1:3010`. Remove any hardcoded references to port 3000 or 3020.
+## Why Claude is being handed this lane
 
-### 5. Known Backend Issues (Not for Claude)
-These are Codex's responsibility:
-- SSE stream has no auth
-- Filesystem writes crash on Vercel
-- Status missing runtimeMode et al
-- `misato-runtime/` routes lack auth
-- Middleware matcher excludes API routes from rate limiting
+Claude is best used for the **UI and shell-side verification** now that the runtime is stable:
+- confirm the public pages still look and read correctly after cleanup
+- make sure the app shell remains trustworthy and clear
+- preserve user-facing clarity while avoiding accidental security-policy or backend changes
 
-## Do NOT Touch
-- `lib/misato/` (runtime, store, mock data, auth, owner-guard)
-- `middleware.ts`
-- Any `/api/` route handler
-- `.env` or secrets
-- Public NexCall pages
-- Any production deployment
+## Claude’s mission
 
-## Files Claude CAN Touch
-- `app/misato/` pages (agents, approvals, daily, design, kanban, logs, memory, missions, projects, secrets, settings, tools, watchtower)
-- `app/misato-runtime/` (if needed for UI testing)
-- `components/` (UI components)
-- `desktop-ui/` (Tauri app shell)
-- `docs/` (documentation updates)
+### Primary tasks
+1. Smoke-test the public UX after the cleanup fix:
+   - `/`
+   - `/command`
+   - `/admin`
+   - `/admin/login`
+2. Verify the UI is still aligned with the canonical local runtime path/port:
+   - `http://127.0.0.1:3010`
+3. Check that the public-facing pages still load and render cleanly after the stale-output fix.
+4. If you change copy or layout, keep the UI honest: no inflated claims, no stale labels, no hidden regression in the shell.
+
+### UI proof standard
+Treat these as distinct checks:
+- source changed
+- build passed
+- live HTTP response verified
+- browser-rendered DOM verified
+- smoke-tested endpoint verified
+
+Do **not** collapse them into one claim.
+
+## Recommended verification commands for Claude
+
+Use these in order if needed:
+
+```bash
+curl -i http://127.0.0.1:3010/health
+curl -i http://127.0.0.1:3010/
+curl -i http://127.0.0.1:3010/command
+curl -i http://127.0.0.1:3010/admin
+curl -i http://127.0.0.1:3010/admin/login
+```
+
+If browser verification is needed, prefer the actual rendered DOM over source inspection.
+
+## What Claude should watch for
+
+- stale copy that no longer matches the runtime behavior
+- broken spacing or responsiveness on public pages
+- shell elements that mislead users about what is actually available
+- regressions caused by cleanup or route rebuilds
+- any UI text that implies a capability the runtime does not prove
+
+## Do NOT touch
+
+- `scripts/clean-next-output.mjs`
+- backend route handlers
+- middleware/auth logic
+- env files and secrets
+- security headers
+- deployment configuration
+
+If one of those areas needs work, hand it to Codex instead of changing it here.
+
+## Files most relevant to Claude
+
+- `app/page.tsx`
+- `app/command/page.tsx`
+- `app/admin/page.tsx`
+- `app/admin/login/page.tsx`
+- `desktop-ui/`
+- `docs/`
+- `nexcall_collaboration_log.txt`
+
+## Coordination rules
+
+- Read the shared collaboration log first if you need launch context
+- If your UI findings change the security surface, tell Codex explicitly
+- Log meaningful checkpoints in the shared log with proof-oriented entries
+- Keep the handoff narrow: UI only, no security refactors
+
+## Shared log entry format
+
+`[TIMESTAMP] AGENT: Task | RESULT: What changed | NEXT: What’s next`
+
+## Current verified state
+
+- Build passes: ✅
+- Runtime health passes: ✅
+- Stale output cleanup is automatic before dev/build/analyze: ✅
+- Canonical runtime port is 3010: ✅
+
+## Latest live truth
+
+The live site is still stale relative to the audited local repo. Recent verification showed:
+- `https://nexcall.one/` still serves older homepage copy, including `Answer more calls. Capture every lead.` and `Always on`
+- `https://nexcall.one/health` returns **404**
+- `https://nexcall.one/checkout` returns **404**
+- `https://nexcall.one/admin` and `/admin/login` remain fail-closed **404**
+- `https://nexcall.one/command` returns **200** and renders the private access form
+
+Claude should keep the public UI honest and avoid any copy that implies the live deployment is current when it has not been reverified.
+
+## If Claude finds a problem
+
+### UI-only issue
+Fix it in the UI lane, then re-run the smoke checks.
+
+### Security or auth issue discovered during UI work
+Stop and hand the finding to Codex with concrete evidence:
+- exact route
+- exact HTTP response
+- screenshot or DOM proof if relevant
+- whether it is source-only or live-runtime verified
+
+## Bottom line
+
+Claude owns the public UI and shell quality. The runtime is healthy again; focus on keeping the user-facing experience clean, accurate, and visually trustworthy without drifting into security changes.

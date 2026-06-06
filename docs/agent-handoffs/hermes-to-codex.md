@@ -1,125 +1,184 @@
-# Handoff: Hermes → Codex Reliability Lane
+# Handoff: Hermes → Codex Security Lane
 
-**Date:** 2026-05-25 | **Updated:** Post-execution-loop stabilization
+**Date:** 2026-06-05
 **From:** Hermes (Runtime Orchestrator)
-**To:** Codex Reliability Lane (Backend, security, persistence, contract validation)
+**To:** Codex Security Agent (security hardening, proof, contract validation)
 
-## Runtime Truth
+## Role definition
 
-- **Base URL:** `http://127.0.0.1:3010` — single canonical port. Ports 3000/3020 killed.
-- **Branch:** `misato-claude-ui`
-- **Latest commit:** `a3319d0` — 10-stage command state machine + AI gateway + tasks
-- **Build:** ✅ Clean. All 103 routes compile.
-- **Runtime:** ✅ Running (1018s uptime, connected, 12 agents, 27 tasks, 15 approvals)
+Codex owns the **security lane** only:
+- route protection and fail-closed behavior
+- middleware and header validation
+- env validation and secret hygiene
+- auth surface verification
+- public/private route contract checks
+- security smoke tests on live runtime behavior
 
-## What Hermes Just Built (doesn't need Codex)
+Codex does **not** own UI polish, copy editing, spacing, or shell aesthetics unless those changes are required to prove a security outcome.
 
-| Area | File(s) | Status |
-|------|---------|--------|
-| 10-stage command state machine | `lib/misato/runtime/command-machine.ts` | ✅ LIVE |
-| AI gateway (OpenRouter DeepSeek V4 Flash) | `lib/misato/runtime/ai-gateway.ts` | ✅ LIVE (with deterministic fallback) |
-| Task deduplication | `lib/misato/runtime/service.ts` (createTask) | ✅ VERIFIED |
-| Agent assignment with auto-create task | `lib/misato/runtime/service.ts` (assignAgent) | ✅ VERIFIED |
-| Mission tracking (create/list/dispatch) | `app/api/misato/missions/*` | ✅ VERIFIED |
-| Status fields (runtimeMode, activeModel, etc.) | `app/api/misato/status/route.ts` | ✅ ALL PRESENT |
-| Event stream (10-stage, clean types) | SSE at `/api/misato/events/stream` | ✅ LIVE |
-| Scheduled task support | `createTask` payload `scheduledAt` | ✅ READY |
+## Current runtime truth
 
-## What Still Needs Codex
+Canonical local runtime: **`http://127.0.0.1:3010`**
 
-### 🔴 CRITICAL (3)
+Verified now:
+- `GET /health` → **200 OK**
+- `npm run build` → **passes**
+- `npm run dev` → **starts cleanly after stale output cleanup**
 
-#### 1. Filesystem Writes Crash on Vercel/Railway
-**File:** `lib/misato/runtime/store.ts` (lines 70-77, 79-87)
-`saveStore()` uses `writeFileSync(STORE_PATH, ...)` and `appendEventJsonl()` uses `appendFileSync(...)`. These will throw `EROFS` on Vercel's read-only filesystem.
+## What was broken before this handoff
 
-**Fix approaches (any works):**
-- Wrap in try-catch with graceful in-memory degradation (`if (err.code === 'EROFS') fallback to memory`)
-- Replace with KV store (Upstash/Vercel KV) for cloud persistence
-- Add a `persistenceMode` switch: `local=filesystem`, `cloud=memory-only`
+The runtime was failing because stale generated Next.js output had drifted from source.
 
-**The store.ts already has `USE_FILESYSTEM_STORE = !process.env.VERCEL`** — but it only controls whether file ops are done. It doesn't catch the error if `process.env.VERCEL` is somehow not set on Vercel (unreliable env check). Safe to add try-catch anyway.
+### Observed failure mode
+- dev startup could throw `MODULE_NOT_FOUND` for generated server artifacts
+- `/health` could return **500** while the dev server was using stale cache/output
+- webpack cache `ENOENT` noise appeared in `.next/cache/webpack/client-development`
+- the source tree itself was not the root cause
 
-#### 2. Middleware Matcher Excludes `/api/` Routes
-**File:** `middleware.ts` line 222-224
-```ts
-matcher: ["/misato/:path*"]
+### Resolved root cause
+- stale generated output was poisoning the runtime
+- the validator had been pointing at a non-existent `app/command/route.ts` artifact while the source route is `app/command/page.tsx`
+
+### Fixes already applied
+- `scripts/clean-next-output.mjs` was added
+- `predev` was added to clear stale output before dev
+- `prebuild` was added to clear stale output before build
+- `preanalyze` was added to clear stale output before analyze
+- build output continues to use `.next-build` via `NEXT_DIST_DIR=.next-build`
+
+### Important pitfall
+- cleanup now runs in mode-specific form, so dev clears `.next`/`.next-fresh` while build/analyze clear only `.next-build`
+- if the live runtime reports `ENOENT` for `routes-manifest.json`, `server/app/health/route.js`, or `server/pages/_document.js`, the first move is to clear stale generated output and relaunch the dev server
+- if `/api/misato/secrets` prints `The system cannot find the path specified.`, check the gitleaks detection path first: the runtime now probes `gitleaks` with shell-less `where`/`which` and version probing via `execFileSync`, so that warning should be treated as a regression in detection plumbing rather than a route or auth failure
+
+## Why Codex is being handed this lane
+
+Codex is best used for **security and verification** now that the runtime is stable:
+- prove route protection is correct
+- make sure sensitive surfaces fail closed
+- verify headers and no-store behavior on private routes
+- confirm env/secret assumptions are not leaking into public behavior
+- check that the live runtime matches the source contract, not just the build output
+
+## Codex’s mission
+
+### Primary tasks
+1. Re-verify the security-sensitive routes and contracts:
+   - `/admin`
+   - `/admin/login`
+   - `/command`
+   - `/api/admin/*`
+   - any other sensitive route that is supposed to fail closed
+2. Confirm the live runtime still enforces the expected security posture after cleanup.
+3. Check headers, cache policy, and access control on private surfaces.
+4. Confirm the runtime is not accidentally reusing stale artifacts.
+
+### Security proof standard
+Treat these as separate checks:
+1. source patched
+2. build passes
+3. live HTTP response verified
+4. rendered DOM verified where relevant
+5. endpoint smoke test verified
+6. headers/security posture verified
+
+Do **not** collapse them into one claim.
+
+## Recommended verification commands for Codex
+
+Use these as a baseline:
+
+```bash
+curl -i http://127.0.0.1:3010/health
+curl -i http://127.0.0.1:3010/admin
+curl -i http://127.0.0.1:3010/admin/login
+curl -i http://127.0.0.1:3010/command
+curl -i http://127.0.0.1:3010/api/admin/session
+curl -i http://127.0.0.1:3010/api/admin/analytics
 ```
-Rate limiting, Upstash pipeline, and middleware-level auth checks are all dead code for `/api/*` routes. The matcher was narrowed to fix an `EvalError` from edge runtime.
 
-**Fix:** Investigate the `EvalError` cause (likely `path-to-regexp` or regex-heavy import in middleware), resolve it, and add `"/api/:path*"` back to the matcher. Alternatively, add a lightweight rate-limit wrapper in each API route directly.
+Expected directionally:
+- admin surfaces should fail closed for anonymous access
+- sensitive surfaces should not expose secrets or stale private data
+- cache-control / no-store behavior should be present where required
+- security headers should remain intact
 
-#### 3. SSE Event Stream Route Auth
-**File:** `app/events/stream/route.ts` and `app/api/misato/events/stream/route.ts`
-The SSE stream doesn't call `assertOwnerJson()`. Anyone who discovers the URL can subscribe to all runtime events.
+## What Codex should watch for
 
-**Fix:** Add `const unauthorized = await assertOwnerJson(request); if (unauthorized) return unauthorized;` before establishing the SSE stream. Note: SSE uses `Response` not `NextResponse`, so use a standard `new Response("Unauthorized", { status: 401 })` for rejection.
+- route drift between source and generated output
+- stale-cache artifacts masquerading as app bugs
+- auth/middleware regressions that only show up live
+- missing or inconsistent security headers
+- env validation that blocks the wrong thing or leaks the wrong thing
+- mismatches between build-time success and live-runtime security behavior
 
-### 🟠 HIGH (3)
+## Do NOT touch
 
-#### 4. `misato-runtime/` Routes Lack Auth
-**Files:** `app/misato-runtime/agents/route.ts`, `approvals/route.ts`, `logs/route.ts`
-The middleware rewrites `/agents` → `/misato-runtime/agents` for JSON clients. These routes don't call `assertOwnerJson()`.
+- UI-only copy polish unless it affects security proof
+- layout/spacing/tone work
+- design-system tweaks unrelated to security
+- public marketing content
+- cleanup script logic unless you have a concrete security reason
 
-**Fix:** Add auth guard to all 3 route handlers, same pattern as `/api/misato/*` routes.
+If it is a UI issue, hand it to Claude.
 
-#### 5. Owner Session Skipped in Production Mode
-**File:** `lib/misato/owner-guard.ts` lines 65-79
-`assertOwnerJson()` checks `isProdRuntime()` before `hasOwnerSession()`. On Vercel, a logged-in user with a valid session cookie still gets 401 because the desktop token check runs first.
+## Files most relevant to Codex
 
-**Fix:** Add `hasOwnerSession()` check inside the `isProdRuntime()` block:
-```ts
-if (isProdRuntime()) {
-  if (await hasOwnerSession()) return null; // ADD THIS
-  return hasValidDesktopToken(request) ? null : unauthorized;
-}
-```
+- `middleware.ts` or any auth/middleware entrypoints
+- `app/admin/page.tsx`
+- `app/admin/login/page.tsx`
+- `app/command/page.tsx`
+- `app/api/admin/**`
+- `app/api/misato/**`
+- `lib/misato/runtime/**`
+- `next.config.mjs`
+- `scripts/clean-next-output.mjs`
+- `package.json`
+- `docs/agent-handoffs/`
+- `nexcall_collaboration_log.txt`
 
-#### 6. Duplicated Auth Logic
-`isLocalSoloAllowed()` in `middleware.ts` is a near-copy of `localHostOnly()` from `owner-guard.ts`. Changes to one rot without the other.
+## Coordination rules
 
-**Fix:** Extract shared helpers into `lib/misato/request-utils.ts` and import from both files.
+- Read the shared collaboration log first
+- If a UI change affects the trust boundary, report it back to Claude
+- Log meaningful checkpoints in the shared log with proof-oriented entries
+- Keep this lane narrow: security, proof, and contract validation
 
-### 🟡 MEDIUM (5)
+## Shared log entry format
 
-| # | Issue | File(s) | Fix |
-|---|-------|---------|-----|
-| 7 | `_misato/` directory is dead code (underscore-prefixed dirs are private in Next.js) | `app/_misato/*` | Delete the directory |
-| 8 | `hasValidDesktopToken` uses `===` instead of `timingSafeEqual` | `owner-guard.ts:62`, `middleware.ts:63` | Replace with `crypto.timingSafeEqual` |
-| 9 | No error boundaries on API routes — uncaught exceptions leak stack traces | All `app/api/misato/*/route.ts` | Add global error handler |
-| 10 | 3 routes missing CORS (`projects`, `discord`, `obsidian`) | `app/api/misato/projects/`, `discord/`, `obsidian/` | Wrap responses with `withMisatoCors()` |
-| 11 | No Railway/host detection — `isVercelRuntime()` is false on Railway | `owner-guard.ts:17-19` | Check `RAILWAY_SERVICE_NAME` or `RENDER` env |
+`[TIMESTAMP] AGENT: Task | RESULT: What changed | NEXT: What’s next`
 
-## Do NOT Touch
-- `lib/misato/runtime/command-machine.ts` — Hermes owns this
-- `lib/misato/runtime/ai-gateway.ts` — Hermes owns this
-- `docs/agent-handoffs/hermes-to-codex.md` — Hermes owns this
-- UI components, pages, layouts — Claude's lane
-- Public NexCall pages — Hands off
-- Production deployment — Not happening
+## Current verified state
 
-## Files Codex CAN Touch
-- `lib/misato/owner-guard.ts`
-- `lib/misato/runtime/store.ts`
-- `middleware.ts`
-- `app/events/stream/route.ts`
-- `app/api/misato/events/stream/route.ts`
-- `app/misato-runtime/` (add auth)
-- `app/_misato/` (delete)
-- `.env.example`
+- Build passes: ✅
+- Runtime health passes: ✅
+- Stale output cleanup is automatic before dev/build/analyze: ✅
+- Canonical runtime port is 3010: ✅
 
-## Shared Documentation
-- `docs/audits/HERMES_RUNTIME_TRUTH_MATRIX.md` — All endpoint statuses
-- `docs/audits/HERMES_MISSION_DISPATCH_MATRIX.md` — Mission/dispatch flows
-- `docs/audits/HERMES_AGENT_SYNC_LOG.md` — Agent registry and dispatch history
-- `docs/agent-handoffs/hermes-to-codex.md` — This file
+## Latest live truth
 
-## Final Note
-This is the authoritative handoff. Codex should:
-1. Fix 3 CRITICAL items first (filesystem, middleware, SSE auth)
-2. Fix 3 HIGH items second (misato-runtime auth, owner session, dedup logic)
-3. Fix 5 MEDIUM items as time allows
-4. Rebuild, restart, and run the 10-test suite
-5. Write own handoff note for Hermes when done
+The live deployment is still not in parity with the audited repo. Recent verification showed:
+- `https://nexcall.one/` serves older homepage copy
+- `https://nexcall.one/health` returns **404**
+- `https://nexcall.one/checkout` returns **404**
+- `https://nexcall.one/admin` and `/admin/login` remain fail-closed **404**
+- `https://nexcall.one/command` returns **200** and renders the private access form
+- Security posture is acceptable for `/admin` fail-closed behavior, but live deploy parity is still unresolved
 
-**All 10 regression-check source contracts are SOURCE_VERIFIED on the current build** (`npm run misato:regression` → `summary.verified: 6, failed: 0`). Do not regress them. Full live verification requires Hermes running: `npm run misato:smoke` → `summary.verified: 13, failed: 0`.
+Codex should focus on proving whether this is deploy/cache drift or an external environment blocker, not on UI copy.
+
+## If Codex finds a problem
+
+### Security issue
+Fix it, then re-run the live proof commands until the behavior is verified.
+
+### UI-only issue found during security work
+Stop and hand it to Claude with concrete evidence:
+- exact route
+- exact HTTP response
+- screenshot or DOM proof if relevant
+- whether it is source-only or live-runtime verified
+
+## Bottom line
+
+Codex owns the security posture and proof. Keep the live app honest: fail closed where required, keep headers and cache policy correct, and verify the runtime directly instead of trusting stale generated artifacts.
