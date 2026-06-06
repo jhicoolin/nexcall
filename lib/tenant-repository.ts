@@ -1,8 +1,11 @@
 import "server-only";
-import type { Tenant, TenantStatus, VoiceProvider } from "@prisma/client";
 import { prisma, isDatabaseConfigured } from "@/lib/prisma";
 import { decryptSecret, encryptSecret } from "@/lib/secret-vault";
 import { cleanIdentifier, cleanText, isAllowedServerUrl } from "@/lib/security";
+
+type TenantStatusValue = "ACTIVE" | "PAUSED" | "ONBOARDING" | "CANCELLED";
+type VoiceProviderValue = "VAPI" | "LIVEKIT" | "CUSTOM_STREAM" | "EXTERNAL_WEBHOOK";
+type TenantRecord = NonNullable<Awaited<ReturnType<typeof prisma.tenant.findFirst>>>;
 
 export type TenantRuntimeConfig = {
   id: string;
@@ -23,13 +26,13 @@ export type TenantRuntimeConfig = {
   escalationPhone?: string;
   crmProvider?: string;
   calendarProvider?: string;
-  voiceProvider: VoiceProvider | "VAPI" | "LIVEKIT" | "CUSTOM_STREAM" | "EXTERNAL_WEBHOOK";
+  voiceProvider: VoiceProviderValue;
   vapiAssistantId?: string;
   livekitAgentName?: string;
   externalVoiceWebhookUrl?: string;
   maxMonthlyMinutes: number;
   maxMonthlySpendCents: number;
-  status: TenantStatus | "ACTIVE" | "PAUSED" | "ONBOARDING" | "CANCELLED";
+  status: TenantStatusValue;
 };
 
 export type TenantUpsertInput = {
@@ -37,14 +40,14 @@ export type TenantUpsertInput = {
   businessName: string;
   assignedTwilioNumber: string;
   systemPrompt: string;
-  status?: TenantStatus;
+  status?: TenantStatusValue;
   industry?: string;
   timezone?: string;
   greeting?: string;
   escalationPhone?: string;
   calendarProvider?: string;
   crmProvider?: string;
-  voiceProvider?: VoiceProvider;
+  voiceProvider?: VoiceProviderValue;
   vapiAssistantId?: string;
   livekitAgentName?: string;
   externalVoiceWebhookUrl?: string;
@@ -111,7 +114,7 @@ function demoTenant(): TenantRuntimeConfig {
   };
 }
 
-function runtimeFromTenant(tenant: Tenant): TenantRuntimeConfig {
+function runtimeFromTenant(tenant: TenantRecord): TenantRuntimeConfig {
   const calendarWebhookUrl = decryptSecret({
     ciphertext: tenant.calendarWebhookCiphertext || undefined,
     iv: tenant.calendarWebhookIv || undefined,
@@ -290,13 +293,20 @@ export async function getTenantAnalytics(tenantId?: string) {
   const where = tenantId ? { tenantId } : {};
   const calls = await prisma.callLog.findMany({ where });
   const billing = await prisma.billingRecord.findMany({ where: tenantId ? { tenantId } : {} });
-  const revenueCents = billing.reduce((sum, row) => sum + row.monthlyPriceCents + row.usageCostCents, 0);
-  const costCents = calls.reduce((sum, row) => sum + row.costCents, 0);
+  const revenueCents = billing.reduce(
+    (sum: number, row: { monthlyPriceCents: number; usageCostCents: number }) =>
+      sum + row.monthlyPriceCents + row.usageCostCents,
+    0
+  );
+  const costCents = calls.reduce(
+    (sum: number, row: { costCents: number }) => sum + row.costCents,
+    0
+  );
 
   return {
     totals: {
       callsHandled: calls.length,
-      appointmentsBooked: calls.filter((call) => call.bookingSuccess).length,
+      appointmentsBooked: calls.filter((call: { bookingSuccess: boolean }) => call.bookingSuccess).length,
       revenueCents,
       costCents,
       profitCents: revenueCents - costCents

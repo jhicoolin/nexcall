@@ -28,3 +28,28 @@
 - Request-demo launch is the target.
 - Stripe self-serve checkout remains disabled.
 - CSP `unsafe-inline` is tracked debt, not a request-demo blocker unless a real XSS sink appears.
+
+## Script-Backed Verification
+
+Run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-production-parity.ps1
+```
+
+Expected passing behavior:
+
+- exit code `0`
+- route statuses match this contract
+- homepage contains `Turn missed calls into next steps.` and `Request Setup`
+- homepage does not expose stale preview hosts, fake claims, provider/model/API leakage, or live-checkout promises
+- `/health` contains only safe NexCall health markers
+- required security headers are present
+
+NO-GO triggers:
+
+- parity script exits nonzero
+- `/health` leaks runtime, MISATO, database, secret, token, or provider details
+- `/checkout` stops returning `404` before Stripe readiness is proven
+- `POST /api/checkout` stops returning `503` in request-demo mode
+- admin routes stop failing closed
