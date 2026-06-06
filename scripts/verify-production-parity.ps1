@@ -177,7 +177,10 @@ $requiredMarkers = @(
 $forbiddenMarkers = @(
   'Answer more calls. Capture every lead.',
   'Never miss your next call',
-  'Always on',
+  'NexCall picks up every time',
+  'Picks up every time',
+  '99.9%',
+  '0s hold',
   'pay now',
   'buy now',
   'stale preview',
