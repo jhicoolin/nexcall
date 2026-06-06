@@ -138,14 +138,14 @@ If one of those areas needs work, hand it to Codex instead of changing it here.
 
 ## Latest live truth
 
-The live site is still stale relative to the audited local repo. Recent verification showed:
-- `https://nexcall.one/` still serves older homepage copy, including `Answer more calls. Capture every lead.` and `Always on`
+The request-demo launch contract is now GO on the public surface. Recent verification showed:
+- `https://nexcall.one/` serves the current honest homepage copy with request-demo wording
 - `https://nexcall.one/health` returns **200** with minimal safe JSON
 - `https://nexcall.one/checkout` returns **404**
 - `https://nexcall.one/admin` and `/admin/login` remain fail-closed **404**
 - `https://nexcall.one/command` returns **200** and renders the private access form
 
-Claude should keep the public UI honest and avoid any copy that implies the live deployment is current when it has not been reverified.
+Claude should keep the public UI honest and avoid reintroducing stale preview-host wording, fake claims, or any checkout-live implication.
 
 ## If Claude finds a problem
 

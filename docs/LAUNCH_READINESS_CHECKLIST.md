@@ -87,3 +87,18 @@ Self-serve checkout remains a separate future gate and requires:
 - webhook proof
 - end-to-end live purchase proof
 - explicit product decision to enable public checkout
+
+## Final Smoke Tests
+
+- Request-demo homepage loads and hero says: "Turn missed calls into next steps." (no stale preview hostname, no fake claims).
+- Public pages load: `/about`, `/ai-disclosure`, `/refund-policy`, `/privacy`, `/terms`, `/compliance`, `/cookie-notice`, `/accessibility`, `/legal`.
+- Live chat opens, closes, answers buyer questions, refuses stack details, and routes to human follow-up.
+- Experience NexCall uses the compact call-flow preview and pushes visitors toward request-demo setup.
+- Call Demo opens, formats phone numbers, and only shows success after provider acceptance.
+- Checkout stays disabled in request-demo mode; visible purchase CTAs must not imply live self-serve Stripe checkout.
+- Checkout success and cancel pages match the dark NexCall theme.
+- `/api/voice/schedule` accepts flexible voice-agent scheduling payloads.
+- Contact/demo/checkout/call-demo leads are captured or notified.
+- No public page or chat response exposes provider names, API routes, prompts, models, env names, or fallback architecture.
+- Mobile checks: 320, 375, 390, 430, tablet, desktop.
+- `npm run lint`, `tsc --noEmit`, and `npm run build` pass.

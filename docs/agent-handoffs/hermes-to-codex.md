@@ -157,15 +157,15 @@ If it is a UI issue, hand it to Claude.
 
 ## Latest live truth
 
-The live deployment is still not in parity with the audited repo. Recent verification showed:
-- `https://nexcall.one/` serves older homepage copy
+The request-demo launch contract is now GO on the security-sensitive surfaces, and the parity script is now the script-backed proof point. Recent verification showed:
+- `https://nexcall.one/` serves the current honest homepage copy with request-demo wording
 - `https://nexcall.one/health` returns **200** with minimal safe JSON
 - `https://nexcall.one/checkout` returns **404**
 - `https://nexcall.one/admin` and `/admin/login` remain fail-closed **404**
 - `https://nexcall.one/command` returns **200** and renders the private access form
-- Security posture is acceptable for `/admin` fail-closed behavior, but live deploy parity is still unresolved
+- `scripts/verify-production-parity.ps1` passes and suggests `GO FOR REQUEST-DEMO LAUNCH`
 
-Codex should focus on proving whether this is deploy/cache drift or an external environment blocker, not on UI copy.
+Codex should stay on security-sensitive verification only and avoid reintroducing the old `/health` 404 blocker loop or treating homepage copy drift as a request-demo blocker.
 
 ## If Codex finds a problem
 

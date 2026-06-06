@@ -7,7 +7,7 @@ const siteUrl =
   process.env.NODE_ENV === "production"
     ? "https://nexcall.one"
     : process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
-const title = "NexCall - AI Receptionist for Local Business Follow-Up";
+const title = "NexCall — AI Receptionist for Local Business Follow-Up";
 const description =
   "NexCall helps local businesses capture call details, appointment requests, and organized next steps when teams are busy or unavailable.";
 
