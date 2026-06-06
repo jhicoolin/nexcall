@@ -1,5 +1,12 @@
 # LAUNCH GREEN CHECKLIST
 
+## Current status
+
+- Route/security contract remains green on the live domain.
+- Local UI rebuild is now visually acceptable on desktop and mobile according to screenshot review.
+- The current script-backed parity run is **NO-GO** until the homepage redesign is deployed publicly.
+- Vercel deployment SHA has **not yet been publicly re-proved** from an extractable signal in this turn.
+
 ## A. Production route proof
 
 - [ ] `/` → 200

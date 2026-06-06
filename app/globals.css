@@ -466,7 +466,7 @@ section[id] {
 
 /* Focus visible */
 :focus-visible {
-  outline: 2px solid #A8FF00;
+  outline: 2px solid #6f8f34;
   outline-offset: 2px;
 }
 
