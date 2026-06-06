@@ -140,7 +140,7 @@ If one of those areas needs work, hand it to Codex instead of changing it here.
 
 The live site is still stale relative to the audited local repo. Recent verification showed:
 - `https://nexcall.one/` still serves older homepage copy, including `Answer more calls. Capture every lead.` and `Always on`
-- `https://nexcall.one/health` returns **404**, but the final launch contract now requires public `200` with only `{ "ok": true, "service": "nexcall", "status": "healthy" }`
+- `https://nexcall.one/health` returns **200** with minimal safe JSON
 - `https://nexcall.one/checkout` returns **404**
 - `https://nexcall.one/admin` and `/admin/login` remain fail-closed **404**
 - `https://nexcall.one/command` returns **200** and renders the private access form
