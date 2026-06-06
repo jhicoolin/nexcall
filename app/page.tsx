@@ -78,7 +78,7 @@ const voiceDemos: DemoScenario[] = [
     callerNeed: "Move an appointment to Thursday afternoon.",
     nexcallAction: "Captures preferred time, caller details, reason, and urgency.",
     captures: ["Name", "Phone", "Preferred time", "Reason", "Urgency"],
-    handoff: "Appointment request captured. Team follow-up ready.",
+    handoff: "Appointment request noted. Team follow-up ready.",
     result: "Next step clear"
   },
   {
@@ -90,7 +90,7 @@ const voiceDemos: DemoScenario[] = [
     nexcallAction: "Captures job type, location, contact details, timing, and urgency.",
     captures: ["Name", "Phone", "Job type", "Location", "Urgency"],
     handoff: "Lead summary ready with the right follow-up context.",
-    result: "Lead captured"
+    result: "Lead details recorded"
   },
   {
     id: "question",
@@ -132,7 +132,7 @@ const industryData = [
     callerNeed: "Quotes, drop-off scheduling, status updates on vehicles",
     nexcallAction: "Captures vehicle info, service needed, preferred drop-off time.",
     handoff: "Service request with vehicle details and timing.",
-    tag: "🧾 Lead captured"
+    tag: "🧾 Lead request noted"
   },
   {
     name: "Legal offices", icon: "⚖️",
@@ -153,7 +153,7 @@ const industryData = [
     callerNeed: "Project quotes, availability, follow-up on submitted inquiries",
     nexcallAction: "Captures project type, location, timeline, contact, and budget range.",
     handoff: "Lead summary with project scope and contact info.",
-    tag: "🧾 Lead captured"
+    tag: "🧾 Lead request noted"
   },
   {
     name: "Local shops", icon: "🏪",
@@ -472,7 +472,7 @@ function CallInterceptionVisual() {
               <Image src={brandAssets.mark} alt="" width={26} height={26} className="brand-mark-img object-contain" />
             </div>
             <div className="flex-1">
-              <p className="text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]/75">NexCall Response Layer</p>
+              <p className="text-[0.58rem] font-black uppercase tracking-[0.15em] text-[#A8FF00]/75">NexCall at work</p>
               <p className="text-sm font-black text-white">Capturing caller details</p>
             </div>
             <span className="live-pulse h-2 w-2 shrink-0 rounded-full bg-[#A8FF00]" aria-hidden="true" />
@@ -482,7 +482,7 @@ function CallInterceptionVisual() {
               <div key={item} className="flex items-center gap-2.5">
                 <Check size={13} className="shrink-0 text-[#A8FF00]" aria-hidden="true" />
                 <span className="flex-1 text-xs font-bold text-slate-300">{item}</span>
-                <span className="text-[0.55rem] font-black font-mono tracking-wider text-[#A8FF00]">CAPTURED</span>
+                <span className="text-[0.55rem] font-black font-mono tracking-wider text-[#A8FF00]">LOGGED</span>
               </div>
             ))}
           </div>
@@ -521,12 +521,12 @@ function OutcomeRail() {
     {
       portrait: { skinTone: "#7B4F2E", hairColor: "#1a0a00", shirtColor: "#1d4ed8", hairStyle: "afro" as const, hasGlasses: false },
       role: "Local service team", outcome: "Fewer missed calls.",
-      detail: "Calls get captured while the team is busy with jobs.", tag: "📞 Calls answered"
+      detail: "Calls are answered while the team is busy with jobs.", tag: "📞 Calls answered"
     },
     {
       portrait: { skinTone: "#F5CBA7", hairColor: "#3d1c02", shirtColor: "#065f46", hairStyle: "short" as const, hasGlasses: true },
       role: "Clinic front desk", outcome: "Cleaner handoffs.",
-      detail: "Caller details arrive with a clear next step.", tag: "✅ Details captured"
+      detail: "Caller details arrive with a clear next step.", tag: "✅ Details recorded"
     },
     {
       portrait: { skinTone: "#A0522D", hairColor: "#1a0a00", shirtColor: "#7c3aed", hairStyle: "medium" as const, hasGlasses: false },
@@ -540,7 +540,7 @@ function OutcomeRail() {
     },
     {
       portrait: { skinTone: "#5C3317", hairColor: "#2a1400", shirtColor: "#0c4a6e", hairStyle: "short" as const, hasGlasses: false },
-      role: "Appointment-heavy practice", outcome: "Appointment requests captured.",
+      role: "Appointment-heavy practice", outcome: "Appointment requests noted.",
       detail: "After-hours calls get a professional response.", tag: "📅 Request noted"
     },
     {
@@ -582,7 +582,7 @@ function OutcomeRail() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   TRANSFORM SECTION — "Missed call → captured opportunity"
+   TRANSFORM SECTION — "Missed call → clear next step"
    Genuine before/after contrast
 ═══════════════════════════════════════════════════════════════════════════ */
 function TransformSection() {
@@ -593,7 +593,7 @@ function TransformSection() {
   ];
   const after = [
     { emoji: "📞", title: "Call answered professionally", sub: "NexCall answers when your team is busy or unavailable." },
-    { emoji: "✅", title: "Details captured instantly", sub: "Name, need, and urgency — all logged for your team." },
+    { emoji: "✅", title: "Details recorded clearly", sub: "Name, need, and urgency — all logged for your team." },
     { emoji: "⚡", title: "Team brief ready to act", sub: "Follow-up starts in seconds, not hours." }
   ];
 
@@ -604,7 +604,7 @@ function TransformSection() {
           <p className="system-label mx-auto mb-4 w-fit">The difference</p>
           <h2 className="text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
             Missed call →{" "}
-            <span className="accent-text">captured opportunity.</span>
+            <span className="accent-text">clear next step.</span>
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-400">
             Every unanswered call is a real cost. NexCall turns the missed moment into a clean next step.
@@ -673,17 +673,17 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
     {
       label: "Answer", icon: Phone, emoji: "📞", title: "Answers when needed",
       copy: "NexCall answers before callers hit voicemail or a dead end.",
-      status: "CONNECTED", statusColor: "#A8FF00"
+      status: "LIVE", statusColor: "#A8FF00"
     },
     {
       label: "Understand", icon: MessageSquareText, emoji: "✅", title: "Captures need and context",
       copy: "It identifies the need, collects contact details, and notes urgency.",
-      status: "CAPTURED", statusColor: "#A8FF00"
+      status: "LOGGED", statusColor: "#A8FF00"
     },
     {
       label: "Route", icon: Workflow, emoji: "📅", title: "Moves to the right next step",
       copy: "Appointment requests, lead capture, FAQs, or human handoff — with context.",
-      status: "ROUTED", statusColor: "#60a5fa"
+      status: "DIRECTED", statusColor: "#60a5fa"
     },
     {
       label: "Report", icon: ClipboardList, emoji: "🧾", title: "Team gets a clean brief",
@@ -694,7 +694,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
 
   const journeySteps = [
     { emoji: "📞", label: "Incoming caller", text: '"Can I get an appointment this week?"', accent: false },
-    { emoji: "✅", label: "Captured", text: "Name · Phone · Preferred time · Reason · Urgency", accent: false },
+    { emoji: "✅", label: "Recorded", text: "Name · Phone · Preferred time · Reason · Urgency", accent: false },
     { emoji: "🧾", label: "Team handoff", text: "Appointment request + clean next step", accent: false },
     { emoji: "⚡", label: "Outcome", text: "Ready for follow-up", accent: true }
   ];
@@ -757,7 +757,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
               <p className="text-[0.6rem] font-black uppercase tracking-[0.16em] text-[#baff39]">Illustrative call journey</p>
               <div className="hidden flex-1 sm:block h-px bg-[#baff39]/10" />
               <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
-                className="system-button-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">
+                className="system-button-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">
                 <Phone size={13} aria-hidden="true" /> Try a Demo Call
               </button>
             </div>
@@ -803,7 +803,7 @@ function IndustrySelector() {
               type="button"
               onClick={() => setActive(i)}
               aria-pressed={active === i}
-              className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-black transition ${
+              className={`flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-black transition ${
                 active === i
                   ? "border-[#baff39]/55 bg-[#baff39]/10 text-[#baff39]"
                   : "border-white/10 text-slate-400 hover:border-[#baff39]/25 hover:text-white"
@@ -932,9 +932,9 @@ function DemoPreviewSection({ onCallDemo }: { onCallDemo: () => void }) {
             })}
           </div>
 
-          {/* Captured details strip */}
+          {/* Information collected strip */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#baff39]/10 bg-black/30 px-6 py-4">
-            <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-slate-500">Captured:</p>
+            <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-slate-500">Information collected:</p>
             {scenario.captures.map((item) => (
               <span key={item} className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
                 <Check size={12} className="text-[#baff39]" aria-hidden="true" /> {item}
@@ -947,7 +947,7 @@ function DemoPreviewSection({ onCallDemo }: { onCallDemo: () => void }) {
             <p className="text-sm text-slate-400">
               The preview shows the handoff logic.{" "}
               <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
-                className="font-bold text-[#baff39] underline-offset-2 hover:underline">
+                className="inline-flex min-h-11 items-center font-bold text-[#baff39] underline-offset-2 hover:underline">
                 Try the real call
               </button>{" "}
               to hear the receptionist experience from the caller side.
@@ -1126,7 +1126,7 @@ function FAQSection() {
                 <button
                   type="button" aria-expanded={isOpen} aria-controls={panelId}
                   onClick={() => setOpenFaqs((c) => ({ ...c, [faq.question]: !isOpen }))}
-                  className="flex w-full cursor-pointer items-center justify-between gap-4 text-left text-lg font-black text-white focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
+                  className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-4 py-2 text-left text-lg font-black text-white focus:outline-none focus:ring-4 focus:ring-[#baff39]/20"
                 >
                   <span className="flex items-center gap-3">
                     <HelpCircle className="shrink-0 text-[#baff39]" size={21} aria-hidden="true" />
@@ -1340,7 +1340,7 @@ function Footer() {
           <p className="font-black text-white">Contact</p>
           <a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="mt-4 block font-bold text-slate-200 transition hover:text-[#baff39]">{NEXCALL_PUBLIC_EMAIL}</a>
           <a href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`} className="mt-3 block font-bold text-slate-200 transition hover:text-[#baff39]">{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>
-          <p className="mt-3 leading-6">Demo calls and setup requests are captured through the site forms.</p>
+          <p className="mt-3 leading-6">Demo calls and setup requests are sent through the site forms.</p>
         </div>
       </div>
       <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-4 border-t border-[#baff39]/10 pt-6 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">

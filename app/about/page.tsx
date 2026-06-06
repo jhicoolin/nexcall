@@ -145,7 +145,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 function AboutCommandCenter() {
   const rows: Array<{ icon: LucideIcon; label: string; value: string }> = [
     { icon: Headphones, label: "Caller asks for help", value: "Answered quickly" },
-    { icon: CalendarCheck, label: "Appointment request captured", value: "Next step clear" },
+    { icon: CalendarCheck, label: "Appointment request noted", value: "Next step clear" },
     { icon: Users, label: "Judgment call detected", value: "Human fallback ready" }
   ];
 

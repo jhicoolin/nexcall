@@ -5,7 +5,7 @@ const outcomes = [
   { icon: '✅', text: 'Cleaner handoffs.' },
   { icon: '⚡', text: 'Faster follow-up.' },
   { icon: '👤', text: 'Human backup when it matters.' },
-  { icon: '📅', text: 'Appointment requests captured.' },
+  { icon: '📅', text: 'Appointment requests noted.' },
   { icon: '🧾', text: 'No dead-end calls.' },
 ];
 
