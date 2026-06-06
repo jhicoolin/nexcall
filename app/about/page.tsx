@@ -12,9 +12,9 @@ import type { Metadata } from "next";
 import { PublicPageShell } from "@/components/PublicPageShell";
 
 export const metadata: Metadata = {
-  title: "About NexCall | AI Receptionist Built for Real Businesses",
+  title: "About NexCall | Local Business Call Follow-Up Support",
   description:
-    "Learn how NexCall helps businesses answer calls, capture details, support appointment requests, and create clean handoffs."
+    "Learn how NexCall helps local teams stay organized around missed calls, appointment requests, and follow-up."
 };
 
 const values = [
@@ -47,8 +47,8 @@ export default function AboutPage() {
   return (
     <PublicPageShell
       eyebrow="About NexCall"
-      title="Make every good customer conversation reachable."
-      summary="NexCall exists for the businesses that are busy enough to miss calls but personal enough to care how every caller is treated."
+      title="Make every customer call easier to follow up on."
+      summary="NexCall is built for service businesses that care about how callers are treated and need a steadier way to capture next steps when the team is busy."
       maxWidthClassName="max-w-7xl"
       contentClassName="mt-12"
     >
@@ -56,12 +56,12 @@ export default function AboutPage() {
         <div>
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#baff39]/15 bg-[#baff39]/10 px-4 py-2 text-sm font-bold text-[#baff39]">
             <Sparkles size={16} aria-hidden="true" />
-            Premium AI receptionist implementation
+            Guided setup for real local-business teams
           </div>
           <p className="mt-6 text-lg leading-8 text-slate-300">
-            We build AI reception around useful service, not spectacle: answer,
-            understand, route, capture, summarize, and improve. The goal is a
-            front desk experience that callers can trust and teams can act on.
+            NexCall is designed around useful service, not spectacle: answer,
+            clarify, document, and hand off. The goal is a front desk experience
+            that feels calm for callers and practical for the team behind it.
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function AboutPage() {
           What We Believe
         </p>
         <h2 className="mt-3 max-w-3xl text-4xl font-black text-white sm:text-5xl">
-          AI reception works when the experience is narrow, tested, and honest.
+          Good call coverage works when the experience is focused, tested, and honest.
         </h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {values.map((value) => (
@@ -97,8 +97,8 @@ export default function AboutPage() {
             Start with the calls that matter most.
           </h2>
           <p className="mt-5 text-lg leading-8 text-slate-300">
-            A strong rollout begins with repeatable call types that create revenue
-            or relieve staff: appointment requests, rescheduling, lead intake,
+            A strong rollout begins with the repeatable calls that create revenue
+            or relieve pressure: appointment requests, rescheduling, lead intake,
             FAQs, routing, and after-hours coverage.
           </p>
         </div>
@@ -117,17 +117,17 @@ export default function AboutPage() {
       <section className="mt-14 rounded-[1.5rem] border border-[#baff39]/25 bg-[#baff39]/10 px-5 py-12 text-center shadow-2xl shadow-black/20 sm:px-8">
         <MessageSquareText className="mx-auto text-[#baff39]" size={42} aria-hidden="true" />
         <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-black text-white">
-          Build a front desk that callers can actually trust.
+          Build a front desk experience your team can stand behind.
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-          Start with a practical call audit, then launch the smallest receptionist
-          flow that can prove value.
+          Start with a practical setup review, then launch the smallest receptionist
+          flow that fits your call patterns and follow-up process.
         </p>
         <Link
           href="/#lead"
           className="system-button-primary mt-8 inline-flex min-h-12 items-center justify-center rounded-xl px-6 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25"
         >
-          Get a Free AI Audit
+          Request Setup Guidance
         </Link>
       </section>
     </PublicPageShell>

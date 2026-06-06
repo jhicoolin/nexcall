@@ -1,12 +1,10 @@
 'use client';
 
 const outcomes = [
-  { icon: '📞', text: 'Fewer missed calls.' },
-  { icon: '✅', text: 'Cleaner handoffs.' },
-  { icon: '⚡', text: 'Faster follow-up.' },
-  { icon: '👤', text: 'Human backup when it matters.' },
-  { icon: '📅', text: 'Appointment requests noted.' },
-  { icon: '🧾', text: 'No dead-end calls.' },
+  { icon: '📅', text: 'Appointment requests and call details stay organized.' },
+  { icon: '🌙', text: 'After-hours inquiries still get a helpful response.' },
+  { icon: '🧾', text: 'Your team receives clean notes for follow-up.' },
+  { icon: '👤', text: 'Human backup stays part of the process.' },
 ];
 
 // Avatar initials for diverse human representation (no fake names/photos)
@@ -20,16 +18,19 @@ const avatars = [
 
 export function TrustStrip() {
   return (
-    <section className="py-10 border-y border-white/5" aria-label="Common outcomes">
+    <section className="border-y border-[#d7d0c2] bg-[rgba(255,251,245,0.88)] py-12" aria-label="Common outcomes">
       <div className="max-w-6xl mx-auto px-4">
-        <p className="text-center text-xs font-semibold tracking-[0.2em] text-[#4B5563] uppercase mb-6">
-          Designed for teams that cannot miss calls
+        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#6b7280]">
+          Built for the calls your team cannot always catch
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+        <h2 className="mx-auto mb-6 max-w-3xl text-center text-3xl font-black text-[#172033] sm:text-4xl">
+          Warm, organized call coverage for real service businesses.
+        </h2>
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
           {avatars.map((a) => (
             <div
               key={a.initials}
-              className="flex items-center gap-2 bg-white/5 border border-white/[0.08] rounded-full px-3 py-1.5"
+              className="flex items-center gap-2 rounded-full border border-[#d7d0c2] bg-white px-3 py-2 shadow-sm"
               title={a.label}
             >
               <div
@@ -39,13 +40,13 @@ export function TrustStrip() {
               >
                 {a.initials}
               </div>
-              <span className="text-xs text-[#9CA3AF]">{a.label}</span>
+              <span className="text-xs text-[#4b5a67]">{a.label}</span>
             </div>
           ))}
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {outcomes.map((o) => (
-            <div key={o.text} className="flex items-center gap-1.5 text-sm text-[#9CA3AF]">
+            <div key={o.text} className="flex items-start gap-3 rounded-2xl border border-[#e7dece] bg-[#fffdf8] px-4 py-4 text-sm text-[#4b5a67] shadow-sm">
               <span role="img" aria-hidden="true">{o.icon}</span>
               <span>{o.text}</span>
             </div>

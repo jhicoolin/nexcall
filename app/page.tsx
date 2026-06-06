@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { TrustStrip } from "@/components/sections/TrustStrip";
 // CountUpStat used below via HeroCountUp (time-delay version for above-fold stats)
 
 /* ── constants ─────────────────────────────────────────────────────────────── */
@@ -249,6 +250,7 @@ export default function Home() {
     <main className="system-shell min-h-screen w-full overflow-hidden text-slate-50">
       <Header onCallDemo={openDemo} />
       <CinematicHero onCallDemo={openDemo} />
+      <TrustStrip />
       <OutcomeRail />
       <TransformSection />
       <ProcessCommandCenter onCallDemo={openDemo} />
@@ -297,7 +299,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
             type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
             className="system-button-primary hidden min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 sm:inline-flex"
           >
-            <Phone size={17} aria-hidden="true" /> Call Demo
+            <Phone size={17} aria-hidden="true" /> Request Setup
           </button>
           <button
             type="button" onClick={() => setMobileOpen((c) => !c)}
@@ -319,7 +321,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
             ))}
             <button type="button" onClick={() => { setMobileOpen(false); onCallDemo(); }} data-fallback-href="/?demo=1"
               className="system-button-primary mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black">
-              <Phone size={17} aria-hidden="true" /> Call Demo
+              <Phone size={17} aria-hidden="true" /> Request Setup
             </button>
           </div>
         </div>
@@ -382,47 +384,47 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
 
       <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         {/* Live badge */}
-        <p className="mb-7 inline-flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.22em] text-[#A8FF00]">
+        <p className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#d7d0c2] bg-white/70 px-4 py-2 text-[0.7rem] font-black uppercase tracking-[0.22em] text-[#6f8f34]">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#A8FF00]" aria-hidden="true" />
-          AI Receptionist · Available 24/7
+          Local business call coverage
         </p>
 
         {/* FULL-WIDTH headline spanning both sides */}
-        <h1 className="hero-fade-up mb-12 text-[3rem] font-black leading-[0.88] tracking-[-0.028em] text-white sm:mb-14 sm:text-[5.5rem] lg:text-[7.5rem] xl:text-[9rem]">
+        <h1 className="hero-fade-up mb-8 text-[3rem] font-black leading-[0.9] tracking-[-0.028em] text-[#172033] sm:mb-10 sm:text-[5.25rem] lg:text-[7rem] xl:text-[8.3rem]">
           Turn missed calls into{" "}
-          <span className="text-[#A8FF00]">next steps.</span>
+          <span className="text-[#6f8f34]">next steps.</span>
         </h1>
 
         {/* TWO-COLUMN below headline: copy + CTAs left — call visual right */}
         <div className="hero-stagger-1 grid gap-12 lg:grid-cols-2 lg:items-start lg:gap-16">
           {/* LEFT */}
           <div>
-            <p className="max-w-lg text-xl leading-[1.7] text-[#93a09f]">
-              <span className="font-semibold text-[#A8FF00]">NexCall</span> answers calls, captures lead details, supports appointment requests, and sends your team clean notes — 24/7.
+            <p className="max-w-xl text-xl leading-[1.7] text-[#4b5a67]">
+              NexCall helps local businesses answer when the team is busy, capture appointment requests, and keep follow-up organized.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
-                className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[8px] bg-[#A8FF00] px-8 text-sm font-black tracking-wide text-black transition hover:scale-[1.02] hover:bg-[#bfff33] focus:outline-none focus:ring-4 focus:ring-[#A8FF00]/30 sm:w-auto">
-                <Phone size={16} aria-hidden="true" /> Try a Demo Call
+                className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[14px] bg-[#6f8f34] px-8 text-sm font-black tracking-wide text-[#fffdf8] transition hover:scale-[1.02] hover:bg-[#5d7a2c] focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/20 sm:w-auto">
+                <Phone size={16} aria-hidden="true" /> Request Setup
               </button>
-              <a href="#pricing"
-                className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[8px] border border-white/12 px-8 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.04] sm:w-auto">
-                View Plans <ArrowRight size={15} aria-hidden="true" />
+              <a href="#how-it-works"
+                className="inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[14px] border border-[#d7d0c2] bg-white/65 px-8 text-sm font-semibold text-[#172033] transition hover:border-[#c3b89f] hover:bg-white sm:w-auto">
+                See How It Works <ArrowRight size={15} aria-hidden="true" />
               </a>
             </div>
-            <p className="mt-4 text-xs text-[#4B5563]">No card required. Keep your phone nearby.</p>
+            <p className="mt-4 text-sm font-semibold text-[#6b7280]">Built for clinics, salons, contractors, and appointment-based local teams.</p>
 
             {/* Stat strip — honest, qualitative proof points */}
             <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
               {[
-                { value: "Always on", label: "Call coverage" },
-                { value: "Live", label: "Front desk" },
-                { value: "Fast handoff", label: "Team summary" },
-                { value: "After hours", label: "Overflow ready" }
+                { value: "Busy hours", label: "Call support" },
+                { value: "After hours", label: "Overflow help" },
+                { value: "Appointments", label: "Request capture" },
+                { value: "Team-ready", label: "Follow-up notes" }
               ].map((s) => (
-                <div key={s.label} className="border-l-2 border-[#A8FF00]/30 pl-4">
-                  <p className="text-2xl font-black text-white">{s.value}</p>
-                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#4B5563]">{s.label}</p>
+                <div key={s.label} className="border-l-2 border-[#d7b26d]/50 pl-4">
+                  <p className="text-2xl font-black text-[#172033]">{s.value}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#6b7280]">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -720,7 +722,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
           {/* Panel header bar */}
           <div className="flex items-center gap-3 border-b border-[#baff39]/10 bg-[#baff39]/[0.03] px-6 py-4">
             <span className="live-pulse h-2 w-2 rounded-full bg-[#A8FF00]" aria-hidden="true" />
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#baff39]">NexCall Process Flow · Active 24/7</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6f8f34]">How NexCall supports your team</p>
           </div>
 
           {/* 4 step zones — 2×2 on tablet, 1×4 on desktop */}
@@ -758,7 +760,7 @@ function ProcessCommandCenter({ onCallDemo }: { onCallDemo: () => void }) {
               <div className="hidden flex-1 sm:block h-px bg-[#baff39]/10" />
               <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
                 className="system-button-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">
-                <Phone size={13} aria-hidden="true" /> Try a Demo Call
+                <Phone size={13} aria-hidden="true" /> Start With a Demo
               </button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -785,14 +787,14 @@ function IndustrySelector() {
   const current = industryData[active] || industryData[0];
 
   return (
-    <section id="industries" className="border-b border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
+    <section id="industries" className="border-b border-[#d7d0c2] bg-[rgba(255,251,245,0.8)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <p className="system-label">Who it&apos;s built for</p>
-        <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
-          See how <span className="accent-text">your industry</span> uses NexCall.
+        <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-[#172033] sm:text-5xl lg:text-6xl">
+          Built for the calls your <span className="accent-text">team cannot always catch.</span>
         </h2>
-        <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-400">
-          Pick your business type. See the exact call flow NexCall handles for you.
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-[#4b5a67]">
+          From appointment-heavy clinics to fast-moving field teams, NexCall helps capture the details that keep follow-up organized and front-desk pressure lower.
         </p>
 
         {/* Industry tab strip */}
@@ -806,7 +808,7 @@ function IndustrySelector() {
               className={`flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-black transition ${
                 active === i
                   ? "border-[#baff39]/55 bg-[#baff39]/10 text-[#baff39]"
-                  : "border-white/10 text-slate-400 hover:border-[#baff39]/25 hover:text-white"
+                  : "border-[#d7d0c2] text-[#4b5a67] hover:border-[#6f8f34]/25 hover:text-[#172033]"
               }`}
             >
               <span>{ind.icon}</span>
@@ -820,7 +822,7 @@ function IndustrySelector() {
           {/* Panel label bar */}
           <div className="flex items-center gap-3 border-b border-[#baff39]/10 bg-[#baff39]/[0.03] px-6 py-3">
             <span className="text-lg">{current.icon}</span>
-            <p className="text-sm font-black text-white">{current.name}</p>
+            <p className="text-sm font-black text-[#172033]">{current.name}</p>
             <span className="ml-auto rounded-full border border-[#baff39]/22 bg-[#baff39]/[0.08] px-3 py-0.5 text-xs font-black text-[#baff39]">
               {current.tag}
             </span>
@@ -830,15 +832,15 @@ function IndustrySelector() {
           <div className="grid gap-0 divide-y divide-[#baff39]/10 sm:divide-x sm:divide-y-0 sm:grid-cols-3 p-0">
             <div className="p-6 sm:p-7">
               <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.16em] text-slate-500">Common caller need</p>
-              <p className="text-base font-bold leading-7 text-white">{current.callerNeed}</p>
+              <p className="text-base font-bold leading-7 text-[#172033]">{current.callerNeed}</p>
             </div>
             <div className="p-6 sm:p-7">
               <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.16em] text-[#baff39]">NexCall handles it</p>
-              <p className="text-base font-bold leading-7 text-white">{current.nexcallAction}</p>
+              <p className="text-base font-bold leading-7 text-[#172033]">{current.nexcallAction}</p>
             </div>
             <div className="p-6 sm:p-7">
               <p className="mb-3 text-[0.58rem] font-black uppercase tracking-[0.16em] text-slate-500">Your team receives</p>
-              <p className="text-base font-bold leading-7 text-white">{current.handoff}</p>
+              <p className="text-base font-bold leading-7 text-[#172033]">{current.handoff}</p>
             </div>
           </div>
         </div>
@@ -856,20 +858,20 @@ function DemoPreviewSection({ onCallDemo }: { onCallDemo: () => void }) {
   const scenario = voiceDemos[selected] || voiceDemos[0];
 
   return (
-    <section id="demos" className="border-b border-[#baff39]/10 bg-[#020403] py-16 sm:py-20">
+    <section id="demos" className="border-b border-[#d7d0c2] bg-[rgba(247,242,234,0.9)] py-16 sm:py-20">
       <motion.div {...sectionMotion} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header row */}
         <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="system-label">Live preview</p>
-            <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Pick a scenario.<br />
-              <span className="accent-text">See it play out.</span>
+            <p className="system-label">See how it works</p>
+            <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-[#172033] sm:text-5xl lg:text-6xl">
+              Pick a common call type.<br />
+              <span className="accent-text">See the follow-up path.</span>
             </h2>
           </div>
           <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
             className="system-button-primary inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl px-6 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">
-            <Phone size={17} aria-hidden="true" /> Try the Real Call
+            <Phone size={17} aria-hidden="true" /> Start With a Demo
           </button>
         </div>
 
@@ -1010,17 +1012,17 @@ function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
   }
 
   return (
-    <motion.section {...sectionMotion} id="pricing" className="relative border-b border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
+    <motion.section {...sectionMotion} id="pricing" className="relative border-b border-[#d7d0c2] bg-[rgba(255,250,244,0.72)] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="system-label">Predictable pricing</p>
             <h2 className="mt-3 text-4xl font-black leading-[0.92] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Clear plans for teams ready to{" "}
-              <span className="accent-text">stop missing calls.</span>
+              Clear plans for teams ready for{" "}
+              <span className="accent-text">organized follow-up.</span>
             </h2>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">
-              Three choices, simple decision. Request a demo and we’ll help you choose the right plan.
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-[#4b5a67]">
+              Three choices, simple decision. Request setup and we’ll help you choose the right fit for your call flow.
             </p>
             {!checkoutEnabled ? (
               <p className="mt-3 max-w-2xl text-sm font-semibold text-[#baff39]">
@@ -1069,7 +1071,7 @@ function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
                 >
                   {checkoutLoading === plan.id ? (
                     "Requesting Demo…"
-                  ) : `Request Demo for ${plan.name}`}
+                  ) : `Request Setup for ${plan.name}`}
                 </button>
               </div>
             );
@@ -1098,24 +1100,23 @@ function Pricing({ onCallDemo }: { onCallDemo: () => void }) {
 function FAQSection() {
   const [openFaqs, setOpenFaqs] = useState<Record<string, boolean>>({});
   const faqs = [
-    { question: "Does NexCall answer real phone calls?", answer: "Yes. NexCall is designed for real business call handling. It gives callers a professional first response when your team is busy or offline." },
-    { question: "Can I try a demo call?", answer: "Yes. Use the Call Demo button, enter your phone number, and NexCall will call you to show you the receptionist experience from the caller side." },
-    { question: "Can NexCall help with appointment requests?", answer: "Yes. NexCall can collect appointment details, preferred times, and caller context so your team can confirm the next step." },
-    { question: "What happens if the AI is unsure?", answer: "It stays helpful without guessing. NexCall can capture the context and route the situation to a person when judgment is needed." },
-    { question: "What if a caller needs a human?", answer: "NexCall can collect the important details and pass the conversation to your team with the context needed for follow-up." },
-    { question: "Does NexCall work after hours?", answer: "Yes. NexCall covers nights, weekends, lunch rushes, and busy moments so callers do not hit a dead end." },
-    { question: "What types of businesses is NexCall for?", answer: "The strongest fit is any business with repeat call patterns: dental offices, salons, clinics, restaurants, auto repair, legal offices, contractors, and local shops." },
-    { question: "How does pricing work?", answer: "Three flat-rate plans: Starter ($349/mo), Appointment ($549/mo), and Growth ($849/mo+). Yearly billing saves 15%. Request a demo and we’ll help you choose the right fit." },
-    { question: "How do I get started?", answer: "Start with a demo call and we’ll help you choose the right next step. From there, the first setup focuses on your highest-value call types and the information your team needs." }
+    { question: "Does NexCall replace my staff?", answer: "No. NexCall is designed to support your team by helping capture calls and appointment requests when people are busy or unavailable. Your business still controls customer relationships, scheduling decisions, and follow-up." },
+    { question: "Is checkout live right now?", answer: "Not yet. NexCall is currently in request-setup mode, so we guide you to the right plan and confirm fit before any payment flow is turned on." },
+    { question: "What happens after I request setup?", answer: "We review your business type, call patterns, and the situations you want handled first. Then we recommend a starting setup and walk through the intake questions, handoff rules, and next steps." },
+    { question: "What kinds of businesses is NexCall for?", answer: "NexCall is built for local teams that handle repeat calls and appointment requests, including clinics, dental offices, salons, contractors, home services, and small offices that need organized follow-up." },
+    { question: "Can NexCall handle after-hours requests?", answer: "Yes. NexCall can help capture the call details, the customer’s need, and any appointment or timing request so your team has something useful to review the next time someone is available." },
+    { question: "Who confirms the appointment?", answer: "Your business does. NexCall can gather the request, preferred times, and caller details, but your team stays in control of final scheduling decisions." },
+    { question: "How is customer information handled?", answer: "Customer information is collected so your team can review the call, respond appropriately, and keep the next step organized. We keep the public experience honest and avoid exposing sensitive details on the public site." },
+    { question: "Can I customize the intake flow?", answer: "Yes. The setup can be tailored around your business hours, common call types, intake questions, and the details your team wants captured for follow-up." }
   ];
 
   return (
     <section id="faq" className="border-t border-[#baff39]/10 bg-[#020403] py-16 sm:py-20">
       <motion.div {...sectionMotion} className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <p className="system-label text-center mx-auto w-fit">FAQ</p>
-        <h2 className="mt-3 text-center text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Every question a practical buyer asks{" "}
-          <span className="accent-text">before going live.</span>
+        <h2 className="mt-3 text-center text-4xl font-black leading-[0.93] tracking-tight text-[#172033] sm:text-5xl lg:text-6xl">
+          Calm answers for the questions teams ask{" "}
+          <span className="accent-text">before they request setup.</span>
         </h2>
         <div className="mt-10 grid gap-3">
           {faqs.map((faq, index) => {
@@ -1225,27 +1226,27 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
   const currentError = errors[steps[step].field]?.message || (step === 2 ? errors.phone?.message : undefined);
 
   return (
-    <section id="lead" className="border-t border-[#baff39]/10 bg-[#050807] py-16 sm:py-20">
+    <section id="lead" className="border-t border-[#d7d0c2] bg-[rgba(250,246,240,0.88)] py-16 sm:py-20">
       <motion.div {...sectionMotion} className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.9fr_1fr] lg:px-8">
         <div>
           <p className="system-label">Get started</p>
-          <h2 className="mt-3 text-4xl font-black leading-[0.93] tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Ready to stop missing <span className="accent-text">calls?</span>
+          <h2 className="mt-3 text-4xl font-black leading-[0.93] tracking-tight text-[#172033] sm:text-5xl lg:text-6xl">
+            Ready to turn missed calls into <span className="accent-text">organized follow-up?</span>
           </h2>
-          <p className="mt-5 text-lg leading-8 text-slate-300">
-            Try a real demo call or choose the plan that fits your call flow.
+          <p className="mt-5 text-lg leading-8 text-[#4b5a67]">
+            Request setup and we’ll help map NexCall to the way your business handles calls, appointment requests, and customer follow-up.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
               className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">
-              <Phone size={18} aria-hidden="true" /> Try Demo Call
+              <Phone size={18} aria-hidden="true" /> Request Setup
             </button>
             <a href="#pricing" className="system-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/15">
-              View Plans <ArrowRight size={17} aria-hidden="true" />
+              Get Setup Guidance <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
-          <p className="mt-4 rounded-2xl border border-[#baff39]/20 bg-[#baff39]/10 p-4 text-sm font-bold leading-6 text-[#eaffb8]">
-            Takes about 60 seconds. No card required for the demo request.
+          <p className="mt-4 rounded-2xl border border-[#d7d0c2] bg-white/70 p-4 text-sm font-bold leading-6 text-[#4b5a67]">
+            Takes about 60 seconds. No payment is required to request setup.
           </p>
           <div className="mt-6 space-y-2 text-sm text-slate-400">
             <p><a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="font-bold text-slate-200 hover:text-[#baff39] transition">{NEXCALL_PUBLIC_EMAIL}</a></p>
@@ -1319,7 +1320,7 @@ function Footer() {
             </span>
             <div>
               <p className="font-black text-white">NexCall</p>
-              <p className="mt-1">AI receptionist coverage with clear handoffs.</p>
+              <p className="mt-1">Call coverage with clear handoffs and organized follow-up.</p>
             </div>
           </a>
           <p className="mt-5 max-w-sm leading-7">NexCall answers when your team cannot, captures the details, helps move the next step forward, and sends clean notes.</p>
