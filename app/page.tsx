@@ -289,7 +289,7 @@ function Header({ onCallDemo }: { onCallDemo: () => void }) {
         </a>
         <div className="hidden items-center gap-7 text-xs font-black uppercase tracking-[0.16em] text-slate-400 md:flex">
           {navItems.map((item) => (
-            <a key={item.href} href={item.href} className="transition hover:text-[#baff39]">{item.label}</a>
+            <a key={item.href} href={item.href} className="inline-flex min-h-11 items-center transition hover:text-[#baff39]">{item.label}</a>
           ))}
         </div>
         <div className="flex items-center gap-2">
@@ -1327,26 +1327,26 @@ function Footer() {
         <nav aria-label="Quick links">
           <p className="font-black text-white">Quick links</p>
           <div className="mt-4 grid gap-3">
-            {quickLinks.map((item) => <a key={item.href} href={item.href} className="font-bold transition hover:text-[#baff39]">{item.label}</a>)}
+            {quickLinks.map((item) => <a key={item.href} href={item.href} className="inline-flex min-h-11 items-center font-bold transition hover:text-[#baff39]">{item.label}</a>)}
           </div>
         </nav>
         <div>
           <p className="font-black text-white">Services</p>
           <div className="mt-4 grid gap-3">
-            {serviceLinks.map((item) => <a key={item} href="#how-it-works" className="transition hover:text-[#baff39]">{item}</a>)}
+            {serviceLinks.map((item) => <a key={item} href="#how-it-works" className="inline-flex min-h-11 items-center transition hover:text-[#baff39]">{item}</a>)}
           </div>
         </div>
         <div>
           <p className="font-black text-white">Contact</p>
-          <a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="mt-4 block font-bold text-slate-200 transition hover:text-[#baff39]">{NEXCALL_PUBLIC_EMAIL}</a>
-          <a href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`} className="mt-3 block font-bold text-slate-200 transition hover:text-[#baff39]">{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>
+          <a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="mt-4 inline-flex min-h-11 items-center font-bold text-slate-200 transition hover:text-[#baff39]">{NEXCALL_PUBLIC_EMAIL}</a>
+          <a href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`} className="mt-3 inline-flex min-h-11 items-center font-bold text-slate-200 transition hover:text-[#baff39]">{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>
           <p className="mt-3 leading-6">Demo calls and setup requests are sent through the site forms.</p>
         </div>
       </div>
       <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-4 border-t border-[#baff39]/10 pt-6 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
         <p>&copy; 2026 NexCall. All rights reserved.</p>
         <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal links">
-          {legalLinks.map((item) => <a key={item.href} href={item.href} className="transition hover:text-[#baff39]">{item.label}</a>)}
+          {legalLinks.map((item) => <a key={item.href} href={item.href} className="inline-flex min-h-11 items-center transition hover:text-[#baff39]">{item.label}</a>)}
         </nav>
       </div>
     </footer>
