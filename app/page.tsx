@@ -127,7 +127,9 @@ export default function Home() {
       <WarmHero onCallDemo={openDemo} />
       <TrustLayer />
       <ServiceFlow />
+      <LiveIntakePreview />
       <LocalProof onCallDemo={openDemo} />
+      <ProofSlider />
       <EarlyPartners />
       <WarmPricing />
       <WarmFAQ />
@@ -136,6 +138,184 @@ export default function Home() {
       <LiveChatDock onCallDemo={openDemo} />
       <OutboundCallModal open={isOutboundModalOpen} onClose={closeDemo} />
     </main>
+  );
+}
+
+/* ── LiveIntakePreview ────────────────────────────────────────────────────────
+   A "follow-up feed" that shows sample requests moving call → details →
+   follow-up. Clearly labeled as illustrative sample data — never real callers,
+   no metrics. Auto-advances unless the visitor prefers reduced motion.
+── ──────────────────────────────────────────────────────────────────────── */
+const SAMPLE_INTAKES = [
+  { emoji: "🦷", caller: "New patient", need: "Wants a cleaning this week", tag: "Appointment request" },
+  { emoji: "💈", caller: "Returning client", need: "Reschedule Friday's color appointment", tag: "Reschedule" },
+  { emoji: "🛠️", caller: "Homeowner", need: "Quote for a water-heater swap", tag: "New lead" }
+];
+const INTAKE_STAGES = ["Call answered", "Details captured", "Follow-up ready"];
+
+function LiveIntakePreview() {
+  const [phase, setPhase] = useState(0);
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) {
+      setReduced(true);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setPhase((p) => (p + 1) % (INTAKE_STAGES.length + 1));
+    }, 1500);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <section className="border-t border-[#70894e]/10 bg-[#faf5ec] py-16 sm:py-20" aria-labelledby="intake-heading">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-3xl">
+            <p className="system-label">⚡ Live intake preview</p>
+            <h2 id="intake-heading" className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
+              Watch a call become a ready-to-act note.
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-[#4b5a67]">
+              A simple look at how each call moves from answered, to captured, to follow-up ready.
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#172033]/10 bg-white/70 px-3 py-1.5 text-xs font-bold text-[#6b7280]">
+            <span className="h-2 w-2 rounded-full bg-[#6f8f34] live-pulse" aria-hidden="true" /> Sample — illustrative, not real customer data
+          </span>
+        </div>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          {SAMPLE_INTAKES.map((item, idx) => {
+            const localPhase = reduced
+              ? INTAKE_STAGES.length
+              : Math.min(INTAKE_STAGES.length, (phase + idx) % (INTAKE_STAGES.length + 1));
+            return (
+              <div key={item.caller} className="system-card rounded-[1.35rem] p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6f8f34]/10 text-xl" aria-hidden="true">{item.emoji}</span>
+                  <span className="rounded-full border border-[#6f8f34]/14 bg-[#6f8f34]/8 px-3 py-1 text-[0.6rem] font-black uppercase tracking-[0.14em] text-[#6f8f34]">{item.tag}</span>
+                </div>
+                <p className="mt-4 font-black text-[#172033]">{item.caller}</p>
+                <p className="mt-1 text-sm leading-6 text-[#4b5a67]">{item.need}</p>
+                <div className="mt-5 space-y-2">
+                  {INTAKE_STAGES.map((stage, s) => {
+                    const done = s < localPhase;
+                    const activeStage = s === localPhase;
+                    return (
+                      <div key={stage} className="flex items-center gap-2.5">
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-black transition-colors ${
+                            done
+                              ? "bg-[#6f8f34] text-white"
+                              : activeStage
+                              ? "bg-[#6f8f34]/20 text-[#6f8f34]"
+                              : "bg-[#172033]/8 text-[#172033]/30"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {done ? "✓" : s + 1}
+                        </span>
+                        <span className={`text-sm font-semibold ${done || activeStage ? "text-[#172033]" : "text-[#172033]/40"}`}>{stage}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── ProofSlider ──────────────────────────────────────────────────────────────
+   Rotating "common buyer needs" spotlight. These are NOT testimonials — they are
+   the everyday situations early setup conversations focus on. Auto-advances
+   unless the visitor prefers reduced motion; dots/chips allow manual control.
+── ──────────────────────────────────────────────────────────────────────── */
+const BUYER_NEEDS = [
+  { emoji: "📞", title: "Missed calls", line: "“We can't always pick up — and every missed call might be a booking.”" },
+  { emoji: "🦷", title: "Clinic appointment requests", line: "“Patients call to book, reschedule, or ask about insurance while the desk is slammed.”" },
+  { emoji: "💈", title: "Salon bookings", line: "“Clients want a slot now, but we're mid-appointment and can't reach the phone.”" },
+  { emoji: "🛠️", title: "Contractor job details", line: "“On-site all day — we need job details captured, not lost to voicemail.”" },
+  { emoji: "🌙", title: "After-hours inquiries", line: "“Evening and weekend callers still expect a real response.”" },
+  { emoji: "✅", title: "Follow-up ready", line: "“Give the team a clean note so nobody has to chase the details.”" }
+];
+
+function ProofSlider() {
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    const id = window.setInterval(() => {
+      setActive((i) => (i + 1) % BUYER_NEEDS.length);
+    }, 3600);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const current = BUYER_NEEDS[active];
+
+  return (
+    <section id="needs" className="border-t border-[#70894e]/10 bg-[#f7f2ea] py-16 sm:py-20" aria-labelledby="needs-heading">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl">
+          <p className="system-label">📋 Common needs</p>
+          <h2 id="needs-heading" className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
+            What early setup conversations focus on.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-[#4b5a67]">
+            These are the everyday situations local teams describe to us — the calls they don&apos;t want to miss. They are common buyer needs, not customer reviews.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+          {/* Rotating spotlight */}
+          <div className="system-card flex flex-col justify-between rounded-[1.6rem] p-7 sm:p-9">
+            <div key={active} className="trust-card-fade">
+              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#6f8f34]/10 text-4xl" aria-hidden="true">{current.emoji}</span>
+              <p className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-[#6f8f34]">{current.title}</p>
+              <p className="mt-3 text-2xl font-black leading-snug text-[#172033] sm:text-3xl">{current.line}</p>
+            </div>
+            <div className="mt-7 flex flex-wrap gap-2" role="tablist" aria-label="Common buyer needs">
+              {BUYER_NEEDS.map((need, i) => (
+                <button
+                  key={need.title}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === active}
+                  aria-label={need.title}
+                  onClick={() => setActive(i)}
+                  className={`h-2.5 rounded-full transition-all ${i === active ? "w-8 bg-[#6f8f34]" : "w-2.5 bg-[#172033]/15 hover:bg-[#172033]/30"}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* All needs at a glance */}
+          <div className="grid grid-cols-2 gap-3">
+            {BUYER_NEEDS.map((need, i) => (
+              <button
+                key={need.title}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-pressed={i === active}
+                className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
+                  i === active ? "border-[#6f8f34]/35 bg-[#6f8f34]/8" : "border-[#172033]/8 bg-white/70 hover:border-[#6f8f34]/20"
+                }`}
+              >
+                <span className="text-2xl" aria-hidden="true">{need.emoji}</span>
+                <span className="text-sm font-black leading-tight text-[#172033]">{need.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -325,7 +505,7 @@ function TrustLayer() {
     <section className="border-t border-[#70894e]/10 bg-[#faf5ec] py-16 sm:py-20" aria-labelledby="trust-layer-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
-          <p className="system-label">Trust first</p>
+          <p className="system-label">🤝 Trust first</p>
           <h2 id="trust-layer-heading" className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
             Built to feel human before it feels automated.
           </h2>
@@ -357,16 +537,19 @@ function TrustLayer() {
 function ServiceFlow() {
   const steps = [
     {
+      emoji: "📞",
       title: "Answer with a calm first response",
       copy: "NexCall picks up when the team is busy, then sets a reassuring tone right away.",
       badge: "Step 1"
     },
     {
+      emoji: "📝",
       title: "Capture the details that matter",
       copy: "Name, callback number, reason for calling, and how urgent it feels — all in one note.",
       badge: "Step 2"
     },
     {
+      emoji: "✅",
       title: "Send a short handoff the team can use",
       copy: "The staff summary is concise and practical, so someone can act without digging through a long transcript.",
       badge: "Step 3"
@@ -376,15 +559,19 @@ function ServiceFlow() {
   return (
     <section id="how-it-feels" className="border-t border-[#70894e]/10 bg-[#f7f2ea] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="system-label">How it feels</p>
-        <div className="mt-3 grid gap-6 lg:grid-cols-3">
+        <p className="system-label">🔁 How it feels</p>
+        <h2 className="mt-3 max-w-3xl text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
+          Every call follows the same calm path.
+        </h2>
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {steps.map((step, index) => (
-            <div key={step.badge} className="system-card rounded-[1.35rem] p-6 sm:p-7">
+            <div key={step.badge} className="system-card system-card-hover rounded-[1.35rem] p-6 sm:p-7">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6f8f34]">{step.badge}</p>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#6f8f34]/10 text-2xl" aria-hidden="true">{step.emoji}</span>
                 <span className="text-3xl font-black leading-none text-[#172033]/10">0{index + 1}</span>
               </div>
-              <h3 className="mt-4 text-2xl font-black leading-tight text-[#172033]">{step.title}</h3>
+              <p className="mt-4 text-xs font-black uppercase tracking-[0.18em] text-[#6f8f34]">{step.badge}</p>
+              <h3 className="mt-2 text-2xl font-black leading-tight text-[#172033]">{step.title}</h3>
               <p className="mt-3 text-base leading-7 text-[#4b5a67]">{step.copy}</p>
             </div>
           ))}
@@ -397,31 +584,37 @@ function ServiceFlow() {
 function LocalProof({ onCallDemo }: { onCallDemo: () => void }) {
   const industries = [
     {
+      emoji: "🦷",
       title: "Dental offices",
       copy: "Appointment requests, cancellations, and insurance questions get a calm first response.",
       detail: "The team gets a short note with preferred time and contact details."
     },
     {
+      emoji: "💈",
       title: "Salons",
       copy: "Booking questions, stylist availability, and reschedule calls are handled without the rush.",
       detail: "The summary keeps the appointment request easy to confirm."
     },
     {
+      emoji: "🛠️",
       title: "Auto repair",
       copy: "Quotes, drop-off windows, and service updates are captured with the right context.",
       detail: "Less back-and-forth. More useful handoffs."
     },
     {
+      emoji: "🏗️",
       title: "Contractors",
       copy: "Job details, location, and timing questions are collected before the caller moves on.",
       detail: "Great for teams that are on-site most of the day."
     },
     {
+      emoji: "⚖️",
       title: "Legal offices",
       copy: "Consultation and urgency screening stay clear, polite, and consistent.",
       detail: "The caller is guided to the next step instead of hitting voicemail."
     },
     {
+      emoji: "🏥",
       title: "Clinics",
       copy: "Front-desk interruptions are reduced while callers still feel heard.",
       detail: "The handoff is ready for the person who needs it."
@@ -433,7 +626,7 @@ function LocalProof({ onCallDemo }: { onCallDemo: () => void }) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
-            <p className="system-label">Who it helps</p>
+            <p className="system-label">🏘️ Who it helps</p>
             <h2 className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
               Made for the businesses that actually answer the phone.
             </h2>
@@ -453,10 +646,13 @@ function LocalProof({ onCallDemo }: { onCallDemo: () => void }) {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {industries.map((industry) => (
-            <div key={industry.title} className="system-card rounded-[1.35rem] p-6">
+            <div key={industry.title} className="system-card system-card-hover rounded-[1.35rem] p-6">
               <div className="flex items-center justify-between gap-4">
-                <h3 className="text-xl font-black text-[#172033]">{industry.title}</h3>
-                <span className="rounded-full border border-[#6f8f34]/14 bg-[#6f8f34]/8 px-3 py-1 text-[0.65rem] font-black uppercase tracking-[0.14em] text-[#6f8f34]">Local fit</span>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#6f8f34]/10 text-xl" aria-hidden="true">{industry.emoji}</span>
+                  <h3 className="text-xl font-black text-[#172033]">{industry.title}</h3>
+                </div>
+                <span className="shrink-0 rounded-full border border-[#6f8f34]/14 bg-[#6f8f34]/8 px-3 py-1 text-[0.65rem] font-black uppercase tracking-[0.14em] text-[#6f8f34]">Local fit</span>
               </div>
               <p className="mt-3 text-base leading-7 text-[#4b5a67]">{industry.copy}</p>
               <p className="mt-4 text-sm font-semibold leading-6 text-[#172033]">{industry.detail}</p>
@@ -471,22 +667,28 @@ function LocalProof({ onCallDemo }: { onCallDemo: () => void }) {
 function WarmPricing() {
   const plans = [
     {
+      emoji: "📞",
+      stage: "Getting coverage",
       name: "Starter",
       price: "$349",
       note: "For small teams that need reliable coverage.",
       features: ["24/7 answering", "Lead capture", "Clean summaries"]
     },
     {
+      emoji: "🗓️",
+      stage: "Booking-driven",
       name: "Appointment",
       price: "$549",
-      note: "For appointment-heavy businesses with steady call volume.",
+      note: "For appointment-heavy teams with steady call volume.",
       featured: true,
       features: ["Everything in Starter", "Appointment request support", "Human fallback rules"]
     },
     {
+      emoji: "🚀",
+      stage: "Scaling up",
       name: "Growth",
       price: "$849+",
-      note: "For larger teams that want more customization.",
+      note: "For teams that need custom call flows.",
       features: ["Everything in Appointment", "Custom call flows", "Monthly review"]
     }
   ];
@@ -495,7 +697,7 @@ function WarmPricing() {
     <section id="pricing" className="border-t border-[#70894e]/10 bg-[#f7f2ea] py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
-          <p className="system-label">Pricing</p>
+          <p className="system-label">🏷️ Pricing</p>
           <h2 className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
             Simple plans for practical buyers.
           </h2>
@@ -506,12 +708,17 @@ function WarmPricing() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
-            <div key={plan.name} className={`system-card flex flex-col rounded-[1.45rem] p-6 ${plan.featured ? "border-[#6f8f34]/25 bg-white" : ""}`}>
-              {plan.featured ? (
-                <p className="inline-flex w-fit rounded-full border border-[#6f8f34]/15 bg-[#6f8f34]/10 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#6f8f34]">Best fit</p>
-              ) : null}
+            <div key={plan.name} className={`system-card system-card-hover flex flex-col rounded-[1.45rem] p-6 ${plan.featured ? "border-[#6f8f34]/25 bg-white shadow-[0_28px_70px_rgba(90,70,42,0.16)]" : ""}`}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 rounded-full border border-[#6f8f34]/14 bg-[#6f8f34]/8 px-3 py-1 text-[0.65rem] font-black uppercase tracking-[0.14em] text-[#6f8f34]">
+                  <span aria-hidden="true">{plan.emoji}</span> {plan.stage}
+                </span>
+                {plan.featured ? (
+                  <span className="inline-flex rounded-full bg-[#6f8f34] px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-white">Best fit</span>
+                ) : null}
+              </div>
               <h3 className="mt-4 text-2xl font-black text-[#172033]">{plan.name}</h3>
-              <div className="mt-4 flex items-end gap-2">
+              <div className="mt-3 flex items-end gap-2">
                 <span className="text-5xl font-black tracking-tight text-[#172033]">{plan.price}</span>
                 <span className="pb-1 text-[#4b5a67]">/mo</span>
               </div>
@@ -558,7 +765,7 @@ function WarmFAQ() {
     <section id="faq" className="border-t border-[#70894e]/10 bg-[#faf5ec] py-16 sm:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <p className="system-label mx-auto w-fit">FAQ</p>
+          <p className="system-label mx-auto w-fit">💬 FAQ</p>
           <h2 className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
             The practical questions buyers ask before they try it.
           </h2>
@@ -610,7 +817,7 @@ function EarlyPartners() {
     <section id="partners" className="border-t border-[#70894e]/10 bg-[#f7f2ea] py-16 sm:py-20" aria-labelledby="partners-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl">
-          <p className="system-label">Early access</p>
+          <p className="system-label">🌟 Early access</p>
           <h2 id="partners-heading" className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
             We&apos;re onboarding our first local partners.
           </h2>

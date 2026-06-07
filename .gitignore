@@ -51,3 +51,6 @@ gitleaks-report*.json
 # Lighthouse reports (keep baselines in .lighthouse/, ignore ad-hoc reports)
 lighthouse-*.report.json
 lighthouse-*.report.html
+
+# Local screenshot proof artifacts (not committed)
+pw-shots/
