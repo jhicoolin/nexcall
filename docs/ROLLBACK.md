@@ -9,6 +9,7 @@ This document defines the rollback path for the request-demo launch state.
 - Use the latest verified annotated tag matching:
   - `nexcall-request-demo-go-<shortsha>`
 - The tag should point to the verified request-demo release commit for the current cycle.
+- Confirm the tag commit SHA matches the exact SHA recorded in the final release verification report before redeploying it.
 
 ## Rollback Procedure
 

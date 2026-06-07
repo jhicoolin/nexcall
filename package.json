@@ -36,7 +36,7 @@
     "misato:updater-install": "node -e \"console.log('TODO: MISATO updater install not implemented yet'); process.exit(0)\"",
     "lighthouse:nexcall": "npx lighthouse http://127.0.0.1:3010 --output json --output-path ./lighthouse-nexcall.report.json --chrome-flags=\"--no-sandbox\" --quiet",
     "lighthouse:misato": "npx lighthouse http://127.0.0.1:1420 --output json --output-path ./lighthouse-misato.report.json --chrome-flags=\"--no-sandbox\" --quiet",
-    "secrets:scan": "gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json",
+    "secrets:scan": "node -e \"require('fs').mkdirSync('.security',{recursive:true})\" && gitleaks detect --source . --redact --report-format json --report-path .security/gitleaks-report.redacted.json",
     "secrets:scan:staged": "gitleaks protect --staged --redact"
   },
   "dependencies": {

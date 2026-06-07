@@ -6,12 +6,12 @@ This document anchors the verified request-demo release posture for NexCall. It 
 
 ## Release Snapshot
 
-- Origin/main SHA at authoring time: `dbef1e8f4ec9ab6957c6ef5f7759fdb1ee216691`
-- Verified Vercel deployment SHA at authoring time: `dbef1e8f4ec9ab6957c6ef5f7759fdb1ee216691`
-- Production deployment ID at authoring time: `dpl_2kgmMBf36cNMAmqrjz21cCaCy8g5`
-- Production deployment URL at authoring time: `https://nexcall-r44bfba0g-pixelmiles1-5825s-projects.vercel.app`
 - Production domain: `https://nexcall.one`
-- Release tag: see the matching `nexcall-request-demo-go-*` annotated tag pushed with this release cycle
+- Canonical verification rule:
+  - the exact release SHA must match `origin/main`
+  - the Vercel production deployment must report the same GitHub commit SHA
+  - the rollback anchor must be the latest matching `nexcall-request-demo-go-*` annotated tag
+- Exact deployment SHA, deployment ID, and tag name must be refreshed in the final technical verification report for the current release cycle.
 
 ## Route Contract
 
@@ -49,6 +49,7 @@ This document anchors the verified request-demo release posture for NexCall. It 
 ## Verification Status
 
 - Install path: `npm ci` now triggers Prisma client generation via `postinstall`
+- Secret hygiene: `npm run secrets:scan` passes and writes the redacted gitleaks report under `.security/`
 - Lint: pass
 - Typecheck: pass
 - Build: pass
