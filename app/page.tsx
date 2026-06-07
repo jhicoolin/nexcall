@@ -247,12 +247,13 @@ export default function Home() {
 
   return (
     <main className="system-shell min-h-screen w-full overflow-hidden text-slate-900">
-      <WarmHeader onCallDemo={openDemo} />
+      <WarmHeader />
       <WarmHero onCallDemo={openDemo} />
       <TrustLayer />
       <ServiceFlow />
       <LocalProof onCallDemo={openDemo} />
-      <WarmPricing onCallDemo={openDemo} />
+      <EarlyPartners />
+      <WarmPricing />
       <WarmFAQ />
       <ClosingLeadCapture onCallDemo={openDemo} />
       <Footer />
@@ -262,7 +263,7 @@ export default function Home() {
   );
 }
 
-function WarmHeader({ onCallDemo }: { onCallDemo: () => void }) {
+function WarmHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navItems = [
     { href: "#how-it-feels", label: "How it feels" },
@@ -286,14 +287,12 @@ function WarmHeader({ onCallDemo }: { onCallDemo: () => void }) {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onCallDemo}
-            data-fallback-href="/?demo=1"
+          <a
+            href="#lead"
             className="system-button-primary hidden min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/18 sm:inline-flex"
           >
-            <Phone size={17} aria-hidden="true" /> Call Demo
-          </button>
+            Request setup <ArrowRight size={16} aria-hidden="true" />
+          </a>
           <button
             type="button"
             onClick={() => setMobileOpen((c) => !c)}
@@ -318,14 +317,13 @@ function WarmHeader({ onCallDemo }: { onCallDemo: () => void }) {
                 {item.label}
               </a>
             ))}
-            <button
-              type="button"
-              onClick={() => { setMobileOpen(false); onCallDemo(); }}
-              data-fallback-href="/?demo=1"
+            <a
+              href="#lead"
+              onClick={() => setMobileOpen(false)}
               className="system-button-primary mt-2 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black"
             >
-              <Phone size={17} aria-hidden="true" /> Call Demo
-            </button>
+              Request setup <ArrowRight size={16} aria-hidden="true" />
+            </a>
           </div>
         </div>
       )}
@@ -594,7 +592,7 @@ function LocalProof({ onCallDemo }: { onCallDemo: () => void }) {
   );
 }
 
-function WarmPricing({ onCallDemo }: { onCallDemo: () => void }) {
+function WarmPricing() {
   const plans = [
     {
       name: "Starter",
@@ -626,15 +624,15 @@ function WarmPricing({ onCallDemo }: { onCallDemo: () => void }) {
             Simple plans for practical buyers.
           </h2>
           <p className="mt-4 text-lg leading-8 text-[#4b5a67]">
-            Choose the plan that matches your call volume, then request setup and we’ll help you get the right fit.
+            Pick the plan that matches your call volume, then request setup and we&apos;ll help you get the right fit. No card required to start.
           </p>
         </div>
 
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
-            <div key={plan.name} className={`system-card rounded-[1.45rem] p-6 ${plan.featured ? "border-[#6f8f34]/25 bg-white" : ""}`}>
+            <div key={plan.name} className={`system-card flex flex-col rounded-[1.45rem] p-6 ${plan.featured ? "border-[#6f8f34]/25 bg-white" : ""}`}>
               {plan.featured ? (
-                <p className="inline-flex rounded-full border border-[#6f8f34]/15 bg-[#6f8f34]/10 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#6f8f34]">Best fit</p>
+                <p className="inline-flex w-fit rounded-full border border-[#6f8f34]/15 bg-[#6f8f34]/10 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#6f8f34]">Best fit</p>
               ) : null}
               <h3 className="mt-4 text-2xl font-black text-[#172033]">{plan.name}</h3>
               <div className="mt-4 flex items-end gap-2">
@@ -649,17 +647,18 @@ function WarmPricing({ onCallDemo }: { onCallDemo: () => void }) {
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                onClick={onCallDemo}
-                data-fallback-href="/?demo=1"
+              <a
+                href="#lead"
                 className={`mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 ${plan.featured ? "system-button-primary focus:ring-[#6f8f34]/18" : "system-button-secondary focus:ring-[#6f8f34]/10"}`}
               >
-                Request demo <Phone size={16} aria-hidden="true" />
-              </button>
+                Request setup <ArrowRight size={16} aria-hidden="true" />
+              </a>
             </div>
           ))}
         </div>
+        <p className="mt-6 text-center text-sm text-[#6b7280]">
+          Prices are monthly. Checkout isn&apos;t open yet — requesting setup starts a quick conversation to confirm the right plan for your call volume.
+        </p>
       </div>
     </section>
   );
@@ -668,12 +667,15 @@ function WarmPricing({ onCallDemo }: { onCallDemo: () => void }) {
 function WarmFAQ() {
   const [openFaqs, setOpenFaqs] = useState<Record<string, boolean>>({});
   const faqs = [
-    { q: "Does NexCall replace my staff?", a: "No. It handles the first response when the team is busy or away, then hands the caller back to your people when needed." },
-    { q: "What does the caller hear?", a: "A calm, professional greeting followed by the next step. The goal is to feel helpful, not automated." },
-    { q: "Can it help with appointment requests?", a: "Yes. It can collect the basics your team needs to confirm the appointment later." },
-    { q: "What if a caller needs a person?", a: "NexCall can capture the details and route the conversation to the right human follow-up." },
-    { q: "Does it work after hours?", a: "Yes. It is built for lunch rushes, busy windows, evenings, and weekends." },
-    { q: "Which businesses are the best fit?", a: "Any local service business that depends on the phone: dental, salons, clinics, contractors, auto repair, legal, and similar teams." }
+    { q: "Does NexCall replace my staff?", a: "No. It handles the first response when your team is busy or away, then hands the caller back to your people when a person is needed. It is built to support your front desk, not replace it." },
+    { q: "How fast is setup?", a: "Setup starts with a short request, then a quick conversation about your most common calls. Most teams begin with one or two high-value call types, so you can get value early without a long onboarding." },
+    { q: "What happens after I request setup?", a: "We call your phone with a live demo so you can hear it, then walk you through the right call flow for your business. Nothing goes live until you have reviewed it." },
+    { q: "Is there a live checkout?", a: "Not yet. Right now, choosing a plan starts a setup conversation so we can confirm the right fit for your call volume. You will not be charged through the website today." },
+    { q: "What does the caller hear?", a: "A calm, professional greeting followed by a clear next step. The goal is to feel helpful and human, not like an automated script." },
+    { q: "Can it help with appointment requests?", a: "Yes. It collects the details your team needs — preferred time, contact info, and reason — so someone can confirm the appointment later." },
+    { q: "What if a caller needs a person?", a: "NexCall captures the details and routes the conversation to the right human follow-up, with the context your team needs." },
+    { q: "Does it work after hours?", a: "Yes. It is built for lunch rushes, busy windows, evenings, and weekends — the times calls are most likely to slip through." },
+    { q: "Which businesses are the best fit?", a: "Any local service business that depends on the phone: dental offices, salons, clinics, contractors, auto repair, legal, and similar teams." }
   ];
 
   return (
@@ -686,23 +688,91 @@ function WarmFAQ() {
           </h2>
         </div>
         <div className="mt-8 grid gap-3">
-          {faqs.map((faq) => {
+          {faqs.map((faq, index) => {
             const isOpen = Boolean(openFaqs[faq.q]);
+            const panelId = `warm-faq-panel-${index}`;
             return (
               <div key={faq.q} className="system-card rounded-2xl p-5">
                 <button
                   type="button"
                   aria-expanded={isOpen}
+                  aria-controls={panelId}
                   onClick={() => setOpenFaqs((current) => ({ ...current, [faq.q]: !isOpen }))}
                   className="flex min-h-11 w-full items-center justify-between gap-4 text-left focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/12"
                 >
                   <span className="text-lg font-black text-[#172033]">{faq.q}</span>
                   <ChevronRight className={`shrink-0 transition ${isOpen ? "rotate-90" : ""}`} size={20} aria-hidden="true" />
                 </button>
-                {isOpen ? <p className="mt-4 max-w-3xl text-base leading-7 text-[#4b5a67]">{faq.a}</p> : null}
+                {isOpen ? <p id={panelId} className="mt-4 max-w-3xl text-base leading-7 text-[#4b5a67]">{faq.a}</p> : null}
               </div>
             );
           })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── EarlyPartners ────────────────────────────────────────────────────────────
+   Honest social-proof slot. NexCall is pre-launch, so there are no real
+   testimonials yet — we do NOT fabricate them. When authorized customer quotes
+   exist, add them to `testimonials` and the card grid renders automatically.
+   Until then this shows an honest founding-partner invitation.
+── ──────────────────────────────────────────────────────────────────────── */
+type PartnerTestimonial = { quote: string; name: string; role: string };
+
+function EarlyPartners() {
+  const testimonials: PartnerTestimonial[] = [];
+
+  const foundingValue = [
+    { title: "Hands-on setup", copy: "We map your most common calls and build the first flow with you — no DIY dashboard to figure out." },
+    { title: "A direct line to our team", copy: "Early partners get direct support while we tune the experience around how your front desk really works." },
+    { title: "Shape what we build", copy: "Your feedback guides what we add next, so the product fits the way local teams actually run." }
+  ];
+
+  return (
+    <section id="partners" className="border-t border-[#70894e]/10 bg-[#f7f2ea] py-16 sm:py-20" aria-labelledby="partners-heading">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl">
+          <p className="system-label">Early access</p>
+          <h2 id="partners-heading" className="mt-3 text-3xl font-black leading-[0.95] text-[#172033] sm:text-4xl lg:text-5xl">
+            We&apos;re onboarding our first local partners.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-[#4b5a67]">
+            NexCall is new, and we&apos;re working hands-on with early businesses to get their call flow right. Join now and you get direct support — and a say in how it works for teams like yours.
+          </p>
+        </div>
+
+        {testimonials.length > 0 ? (
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {testimonials.map((t) => (
+              <figure key={t.name} className="system-card rounded-[1.35rem] p-6">
+                <blockquote className="text-base leading-7 text-[#172033]">&ldquo;{t.quote}&rdquo;</blockquote>
+                <figcaption className="mt-4 text-sm font-bold text-[#4b5a67]">
+                  <span className="text-[#172033]">{t.name}</span> · {t.role}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {foundingValue.map((card) => (
+              <div key={card.title} className="system-card rounded-[1.35rem] p-6">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#6f8f34]">{card.title}</p>
+                <p className="mt-3 text-base leading-7 text-[#4b5a67]">{card.copy}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <a
+            href="#lead"
+            className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/18"
+          >
+            Request setup <ArrowRight size={16} aria-hidden="true" />
+          </a>
+          <p className="text-sm text-[#6b7280]">Customer stories will appear here as our first partners go live.</p>
         </div>
       </div>
     </section>
@@ -1601,7 +1671,7 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
     {
       label: "How big is your team?", field: "trucks" as const,
       input: (
-        <select className="mt-3 min-h-12 w-full rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" {...register("trucks", { required: "Tell us the size of your team." })}>
+        <select className="mt-3 min-h-12 w-full rounded-lg border border-[#172033]/12 bg-white px-4 text-[#172033] outline-none focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15" {...register("trucks", { required: "Tell us the size of your team." })}>
           <option value="">Select team size</option>
           <option value="Solo">Solo owner/operator</option>
           <option value="2-5">2-5 people</option>
@@ -1612,18 +1682,18 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
     },
     {
       label: "What type of business do you run?", field: "service" as const,
-      input: <input type="text" placeholder="Example: dental office, salon, auto repair, law firm" className="mt-3 min-h-12 w-full rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" {...register("service", { required: "Tell us your business type." })} />
+      input: <input type="text" placeholder="Example: dental office, salon, auto repair, law firm" className="mt-3 min-h-12 w-full rounded-lg border border-[#172033]/12 bg-white px-4 text-[#172033] outline-none placeholder:text-[#9aa3ad] focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15" {...register("service", { required: "Tell us your business type." })} />
     },
     {
-      label: "Where should Nexa call you?", field: "email" as const,
+      label: "Where should we call you?", field: "email" as const,
       input: (
         <div className="mt-3 grid gap-3">
-          <input type="text" placeholder="Name (optional)" className="min-h-12 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" {...register("name")} />
+          <input type="text" placeholder="Name (optional)" className="min-h-12 rounded-lg border border-[#172033]/12 bg-white px-4 text-[#172033] outline-none placeholder:text-[#9aa3ad] focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15" {...register("name")} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <input type="email" placeholder="Work email" className="min-h-12 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" {...register("email", { required: "Enter your work email.", pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email address." } })} />
+            <input type="email" placeholder="Work email" className="min-h-12 rounded-lg border border-[#172033]/12 bg-white px-4 text-[#172033] outline-none placeholder:text-[#9aa3ad] focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15" {...register("email", { required: "Enter your work email.", pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email address." } })} />
             <input
               type="tel" inputMode="tel" autoComplete="tel" placeholder="(###) ###-####"
-              className="min-h-12 rounded-lg border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15"
+              className="min-h-12 rounded-lg border border-[#172033]/12 bg-white px-4 text-[#172033] outline-none placeholder:text-[#9aa3ad] focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15"
               {...leadPhoneRegistration} value={leadPhoneValue}
               onChange={(e) => { leadPhoneRegistration.onChange(e); handlePhoneInputFormatting(e, (v) => setValue("phone", v, { shouldDirty: true, shouldValidate: true })); }}
               onBlur={(e) => { leadPhoneRegistration.onBlur(e); setValue("phone", formatPhoneForBlur(e.target.value), { shouldDirty: true, shouldValidate: true }); }}
@@ -1664,24 +1734,24 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
     <section id="lead" className="border-t border-[#172033]/8 bg-[#f2ede4] py-16 sm:py-20">
       <motion.div {...sectionMotion} className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.9fr_1fr] lg:px-8">
         <div>
-          <p className="system-label">Get started</p>
+          <p className="system-label">Request setup</p>
           <h2 className="mt-3 text-4xl font-black leading-[0.93] tracking-tight text-[#172033] sm:text-5xl lg:text-6xl">
-            Ready to stop missing <span className="text-[#6f8f34]">calls?</span>
+            Hear it on your <span className="text-[#6f8f34]">own phone.</span>
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#4b5a67]">
-            Try a real demo call or choose the plan that fits your call flow.
+            Tell us a little about your business and we&apos;ll call your phone with a live demo, then help you set up the right call flow.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <button type="button" onClick={onCallDemo} data-fallback-href="/?demo=1"
               className="system-button-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/25">
-              <Phone size={18} aria-hidden="true" /> Start With a Demo
+              <Phone size={18} aria-hidden="true" /> Hear the demo now
             </button>
             <a href="#pricing" className="system-button-secondary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 hover:border-[#6f8f34]/30 hover:text-[#6f8f34] focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/15">
-              See Plans <ArrowRight size={17} aria-hidden="true" />
+              See plans <ArrowRight size={17} aria-hidden="true" />
             </a>
           </div>
           <p className="mt-4 rounded-2xl border border-[#6f8f34]/20 bg-[#6f8f34]/8 p-4 text-sm font-bold leading-6 text-[#3a5018]">
-            Takes about 60 seconds. No card required for the demo request.
+            Takes about 60 seconds. No card required — this starts a demo call and a setup conversation.
           </p>
           <div className="mt-6 space-y-2 text-sm text-[#4b5a67]">
             <p><a href={`mailto:${NEXCALL_PUBLIC_EMAIL}`} className="font-bold text-[#172033] hover:text-[#6f8f34] transition">{NEXCALL_PUBLIC_EMAIL}</a></p>
@@ -1731,11 +1801,11 @@ function ClosingLeadCapture({ onCallDemo }: { onCallDemo: () => void }) {
 ═══════════════════════════════════════════════════════════════════════════ */
 function Footer() {
   const quickLinks = [
-    { href: "#how-it-works", label: "How It Works" },
-    { href: "#industries", label: "Industries" },
-    { href: "#demos", label: "Demo" },
+    { href: "#how-it-feels", label: "How it feels" },
+    { href: "#who-its-for", label: "Who it helps" },
     { href: "#pricing", label: "Pricing" },
-    { href: "#faq", label: "FAQ" }
+    { href: "#faq", label: "FAQ" },
+    { href: "#lead", label: "Request setup" }
   ];
   const serviceLinks = ["AI Call Answering", "Appointment Requests", "Lead Capture", "After-Hours Coverage", "Human Backup Handoff"];
   const legalLinks = [
@@ -1759,6 +1829,10 @@ function Footer() {
             </div>
           </a>
           <p className="mt-5 max-w-sm leading-7">NexCall answers when your team cannot, captures the details, helps move the next step forward, and sends clean notes.</p>
+          <p className="mt-4 max-w-sm text-xs leading-6 text-slate-500">
+            NexCall uses automated systems to help with call intake and appointment-request workflows. Your team reviews caller information and confirms appointments.{" "}
+            <a href="/ai-disclosure" className="font-semibold text-slate-300 underline-offset-2 hover:text-[#a0c060] hover:underline">Read our AI disclosure</a>.
+          </p>
         </div>
         <nav aria-label="Quick links">
           <p className="font-black text-white">Quick links</p>
@@ -2088,13 +2162,13 @@ function LiveChatDock({ onCallDemo }: { onCallDemo: () => void }) {
 ═══════════════════════════════════════════════════════════════════════════ */
 function CallDemoFallbackNotice({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-red-400/35 bg-red-500/10 p-3 text-sm font-bold text-red-100">
+    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
       <p>{message}</p>
-      <p className="mt-2 text-red-50">
+      <p className="mt-2 font-semibold text-red-600">
         You can also reach NexCall at{" "}
-        <a className="underline underline-offset-2" href={`mailto:${NEXCALL_PUBLIC_EMAIL}`}>{NEXCALL_PUBLIC_EMAIL}</a>{" "}
+        <a className="underline underline-offset-2 hover:text-red-700" href={`mailto:${NEXCALL_PUBLIC_EMAIL}`}>{NEXCALL_PUBLIC_EMAIL}</a>{" "}
         or{" "}
-        <a className="underline underline-offset-2" href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`}>{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>.
+        <a className="underline underline-offset-2 hover:text-red-700" href={`tel:${NEXCALL_PUBLIC_PHONE_TEL}`}>{NEXCALL_PUBLIC_PHONE_DISPLAY}</a>.
       </p>
     </div>
   );
@@ -2144,52 +2218,51 @@ function OutboundCallModal({ open, onClose }: { open: boolean; onClose: () => vo
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm" role="presentation">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#172033]/55 px-4 py-6 backdrop-blur-sm" role="presentation">
       <div className="absolute inset-0" onClick={status === "calling" ? undefined : onClose} aria-hidden="true" />
       <div role="dialog" aria-modal="true" aria-labelledby="outbound-call-title"
-        className="modal-enter metal-panel relative w-full max-w-lg overflow-hidden rounded-[1.35rem] p-5 text-white shadow-2xl shadow-black/55 sm:p-6">
-        <div className="scanline pointer-events-none absolute left-0 top-0 h-px w-full" />
+        className="modal-enter metal-panel relative w-full max-w-lg overflow-hidden rounded-[1.35rem] p-5 text-[#172033] shadow-2xl shadow-[#172033]/25 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="system-label">Live demo call</p>
-            <h2 id="outbound-call-title" className="mt-2 text-3xl font-black text-white">Let Nexa ring your phone.</h2>
-            <p className="mt-3 leading-7 text-slate-300">Enter your number and the NexCall Receptionist will call you with the front-desk demo.</p>
+            <h2 id="outbound-call-title" className="mt-2 text-3xl font-black text-[#172033]">Let Nexa ring your phone.</h2>
+            <p className="mt-3 leading-7 text-[#4b5a67]">Enter your number and the NexCall receptionist will call you with the front-desk demo.</p>
           </div>
           <button type="button" onClick={onClose} disabled={status === "calling"}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#baff39]/12 bg-white/[0.04] text-slate-200 transition hover:border-[#baff39]/30 hover:text-[#baff39] focus:outline-none focus:ring-4 focus:ring-[#baff39]/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#172033]/12 bg-white/70 text-[#4b5a67] transition hover:border-[#6f8f34]/30 hover:text-[#6f8f34] focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/20 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close call demo modal">
             <X size={19} aria-hidden="true" />
           </button>
         </div>
         {status === "success" ? (
-          <div className="mt-6 rounded-xl border border-[#baff39]/30 bg-[#baff39]/10 p-5">
-            <p className="text-xl font-black text-white">Your demo call is starting now.</p>
-            <p className="mt-2 leading-7 text-slate-200">Nexa is ringing your phone. Pick up and ask about appointment requests, rescheduling, or missed calls.</p>
-            <button type="button" onClick={onClose} className="system-button-primary mt-5 min-h-12 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25">Done</button>
+          <div className="mt-6 rounded-xl border border-[#6f8f34]/25 bg-[#6f8f34]/8 p-5">
+            <p className="text-xl font-black text-[#172033]">Your demo call is starting now.</p>
+            <p className="mt-2 leading-7 text-[#4b5a67]">Nexa is ringing your phone. Pick up and ask about appointment requests, rescheduling, or missed calls.</p>
+            <button type="button" onClick={onClose} className="system-button-primary mt-5 min-h-12 rounded-xl px-5 py-3 font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/25">Done</button>
           </div>
         ) : (
           <form onSubmit={submitOutboundCall} className="mt-6 grid gap-4">
-            <label className="text-sm font-black text-slate-100">
+            <label className="text-sm font-black text-[#172033]">
               Phone number
               <input ref={phoneInputRef} type="tel" inputMode="tel" autoComplete="tel" required placeholder="(###) ###-####" value={phone}
                 onChange={(e) => handlePhoneInputFormatting(e, setPhone)}
                 onBlur={(e) => setPhone(formatPhoneForBlur(e.target.value))}
-                className="mt-2 min-h-14 w-full rounded-xl border border-[#baff39]/15 bg-[#f8fbff] px-4 text-lg font-bold text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" />
+                className="mt-2 min-h-14 w-full rounded-xl border border-[#172033]/12 bg-white px-4 text-lg font-bold text-[#172033] outline-none placeholder:text-[#9aa3ad] focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15" />
             </label>
-            <p className="-mt-2 text-xs font-bold leading-5 text-slate-400">US numbers can be entered as 10 digits; we format them automatically before calling.</p>
-            <label className="text-sm font-black text-slate-100">
-              Name <span className="font-semibold text-slate-400">(optional)</span>
+            <p className="-mt-2 text-xs font-bold leading-5 text-[#6b7280]">US numbers can be entered as 10 digits; we format them automatically before calling.</p>
+            <label className="text-sm font-black text-[#172033]">
+              Name <span className="font-semibold text-[#6b7280]">(optional)</span>
               <input type="text" autoComplete="name" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)}
-                className="mt-2 min-h-12 w-full rounded-xl border border-[#baff39]/15 bg-[#f8fbff] px-4 text-[#172033] outline-none placeholder:text-stone-400 focus:border-[#baff39] focus:ring-4 focus:ring-[#baff39]/15" />
+                className="mt-2 min-h-12 w-full rounded-xl border border-[#172033]/12 bg-white px-4 text-[#172033] outline-none placeholder:text-[#9aa3ad] focus:border-[#6f8f34] focus:ring-4 focus:ring-[#6f8f34]/15" />
             </label>
             {error && <CallDemoFallbackNotice message={error} />}
             <button type="submit" disabled={status === "calling"}
-              className="system-button-primary inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#baff39]/25 disabled:cursor-wait disabled:opacity-75">
+              className="system-button-primary inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-base font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-[#6f8f34]/25 disabled:cursor-wait disabled:opacity-75">
               {status === "calling" ? (
                 <><svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Calling Now…</>
               ) : "Call Me Now"}
             </button>
-            <p className="text-xs font-bold leading-5 text-slate-400">By submitting, you are asking for an automated demo call. Standard carrier rates may apply.</p>
+            <p className="text-xs font-bold leading-5 text-[#6b7280]">By submitting, you are asking for an automated demo call. Standard carrier rates may apply.</p>
           </form>
         )}
       </div>
