@@ -54,3 +54,4 @@ lighthouse-*.report.html
 
 # Local screenshot proof artifacts (not committed)
 pw-shots/
+pw-qa/
