@@ -171,8 +171,8 @@ $homeVisible = [regex]::Replace($homeVisible, '<[^>]+>', ' ')
 $homeNormalized = ($homeVisible -replace '\s+', ' ')
 $requiredMarkers = @(
   'Turn missed calls into next steps',
-  'NexCall helps local businesses answer when the team is busy, capture appointment requests, and keep follow-up organized',
-  'Request Setup'
+  'NexCall answers, captures the reason for the call, and hands your team a clear next step',
+  'Request setup'
 )
 $forbiddenMarkers = @(
   'Answer more calls. Capture every lead.',
