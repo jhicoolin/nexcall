@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
+const siteUrl =
+  process.env.NODE_ENV === "production"
+    ? "https://nexcall.one"
+    : process.env.NEXT_PUBLIC_SITE_URL || "https://nexcall.one";
 
 function absolute(path: string) {
   return `${siteUrl.replace(/\/$/, "")}${path}`;
