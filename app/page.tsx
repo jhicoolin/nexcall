@@ -360,7 +360,7 @@ function WarmHero({ onCallDemo }: { onCallDemo: () => void }) {
           <div>
             <p className="system-label">Built for local service businesses</p>
             <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[0.92] tracking-[-0.04em] text-[#172033] sm:text-6xl lg:text-7xl xl:text-[5.9rem]">
-              Never miss your next call.
+              Turn missed calls into next steps.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#4b5a67] sm:text-xl">
               NexCall answers, captures the reason for the call, and hands your team a clear next step — so the front desk feels calmer, even on busy days and after hours.
@@ -831,8 +831,8 @@ function CinematicHero({ onCallDemo }: { onCallDemo: () => void }) {
 
         {/* Headline — capped size to prevent cropping */}
         <h1 className="hero-fade-up mb-12 text-[2.75rem] font-black leading-[0.92] tracking-[-0.025em] text-[#172033] sm:mb-14 sm:text-5xl lg:text-6xl xl:text-7xl">
-          Never miss your{" "}
-          <span className="text-[#6f8f34]">next call.</span>
+          Turn missed calls{" "}
+          <span className="text-[#6f8f34]">into next steps.</span>
         </h1>
 
         {/* Two-column: copy + CTAs left — flow card right */}
